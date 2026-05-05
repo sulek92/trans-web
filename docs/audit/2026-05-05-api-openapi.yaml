@@ -1,0 +1,382 @@
+openapi: 3.0.3
+info:
+  title: PaletyBroker API
+  version: 0.1.0-audit
+  description: |
+    Specyfikacja odzwierciedla aktualna implementacje endpointow.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+servers:
+  - url: http://localhost:4000
+paths:
+  /auth/register:
+    post:
+      summary: Rejestracja użytkownika
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                role:
+                  type: string
+                  enum: [admin, customer]
+      responses:
+        "201":
+          description: User registered
+        "400":
+          description: Email already exists or invalid payload
+  /auth/password-reset/request:
+    post:
+      summary: Żądanie resetu hasła (anti-enumeration)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        "201":
+          description: Generic success message (token returned only in non-production)
+  /auth/password-reset/confirm:
+    post:
+      summary: Potwierdzenie resetu hasła
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, newPassword]
+              properties:
+                token:
+                  type: string
+                  minLength: 10
+                newPassword:
+                  type: string
+                  minLength: 8
+      responses:
+        "201":
+          description: Password reset successful
+        "400":
+          description: Invalid or expired reset token
+  /auth/login:
+    post:
+      summary: Logowanie użytkownika (JWT access + refresh token)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 6
+      responses:
+        "201":
+          description: Access and refresh token
+        "401":
+          description: Invalid credentials
+        "429":
+          description: Too many failed login attempts (lockout)
+  /auth/refresh:
+    post:
+      summary: Odświeżenie sesji na podstawie refresh tokenu
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        "201":
+          description: New access and refresh token pair
+        "401":
+          description: Invalid refresh token
+  /auth/logout:
+    post:
+      summary: Wylogowanie i uniewaznienie aktualnego access tokenu
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Logout successful
+        "401":
+          description: Missing/invalid bearer token
+  /auth/me:
+    get:
+      summary: Dane aktualnie zalogowanego uzytkownika
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User profile
+        "401":
+          description: Unauthorized
+  /auth/magic-link:
+    post:
+      summary: Wysylka magic link (MVP mock)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+      responses:
+        "201":
+          description: Magic link sent
+  /auth/verify:
+    get:
+      summary: Weryfikacja email tokenem (MVP mock)
+      parameters:
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Email verified
+  /quotes:
+    post:
+      summary: Kalkulacja wyceny
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [palletType, dimensions, weight, sender, recipient]
+              properties:
+                palletType:
+                  type: string
+                  enum: [euro, semi_euro, industrial, semi_industrial, custom]
+                dimensions:
+                  type: object
+                  required: [length, width, height]
+                  properties:
+                    length: { type: number, minimum: 1, maximum: 300 }
+                    width: { type: number, minimum: 1, maximum: 300 }
+                    height: { type: number, minimum: 1, maximum: 250 }
+                weight:
+                  type: number
+                  minimum: 1
+                  maximum: 1500
+                sender:
+                  type: object
+                  required: [postalCode, country]
+                  properties:
+                    postalCode: { type: string, pattern: "^([0-9]{2}-[0-9]{3}|[0-9]{5})$" }
+                    country: { type: string, enum: [PL, DE] }
+                recipient:
+                  type: object
+                  required: [postalCode, country]
+                  properties:
+                    postalCode: { type: string, pattern: "^([0-9]{2}-[0-9]{3}|[0-9]{5})$" }
+                    country: { type: string, enum: [PL, DE] }
+      responses:
+        "201":
+          description: Quote result
+        "400":
+          description: Validation error
+  /orders:
+    post:
+      summary: Utworzenie zamowienia (MVP mock)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quoteId, carrierOfferId, senderData, recipientData, pickupDate]
+              properties:
+                quoteId: { type: string }
+                carrierOfferId: { type: string }
+                senderData: { type: object, additionalProperties: true }
+                recipientData: { type: object, additionalProperties: true }
+                additionalServices: { type: object, additionalProperties: true }
+                pickupDate: { type: string }
+      responses:
+        "201":
+          description: Draft order
+  /orders/{id}:
+    get:
+      summary: Pobranie zamowienia
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Order details
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (admin role required)
+  /orders/my:
+    get:
+      summary: Lista zamowien aktualnego uzytkownika
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User orders
+        "401":
+          description: Unauthorized
+  /admin/stats:
+    get:
+      summary: Statystyki panelu administracyjnego
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Admin stats payload
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (admin role required)
+  /admin/pricing-rules:
+    get:
+      summary: Lista reguł cenowych (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Pricing rules list
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (admin role required)
+    post:
+      summary: Utworzenie/aktualizacja reguły cenowej (admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [carrierCode, serviceName, basePrice]
+              properties:
+                id: { type: string }
+                carrierCode: { type: string }
+                serviceName: { type: string }
+                basePrice: { type: string }
+                kmRate: { type: string }
+                marginPercent: { type: string }
+                minWeight: { type: string }
+                maxWeight: { type: string }
+                isActive: { type: boolean }
+      responses:
+        "201":
+          description: Rule created or updated
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (admin role required)
+  /users:
+    get:
+      summary: Lista użytkowników (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User list
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (admin role required)
+  /users/me:
+    get:
+      summary: Profil aktualnego użytkownika
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User profile
+        "401":
+          description: Unauthorized
+  /users/me/addresses:
+    get:
+      summary: Adresy aktualnego użytkownika
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User addresses
+        "401":
+          description: Unauthorized
+  /users/me/company:
+    get:
+      summary: Dane firmy aktualnego użytkownika
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Company details or null
+        "401":
+          description: Unauthorized
+  /custom-quotes:
+    post:
+      summary: Utworzenie zapytania niestandardowego (MVP mock)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "201":
+          description: Custom quote created
+    get:
+      summary: Lista zapytan niestandardowych (MVP mock)
+      responses:
+        "200":
+          description: List of custom quotes
+  /tracking/{trackingNumber}:
+    get:
+      summary: Tracking przesylki
+      parameters:
+        - in: path
+          name: trackingNumber
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Tracking timeline
+        "404":
+          description: Shipment not found
