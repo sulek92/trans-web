@@ -155,4 +155,17 @@ export class CmsController {
     const slugs = payload.slugs ?? [];
     return this.cmsService.bulkDeletePages(slugs, { userId: req.user?.sub, email: req.user?.email });
   }
+
+  @Post('media/rename')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async renameMedia(
+    @Body() payload: { oldName: string; newName: string },
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.cmsService.renameMedia(payload.oldName, payload.newName, {
+      userId: req.user?.sub,
+      email: req.user?.email,
+    });
+  }
 }
