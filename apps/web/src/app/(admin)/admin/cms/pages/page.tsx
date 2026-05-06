@@ -11,6 +11,11 @@ export default function CmsPagesIndex() {
   const [pages, setPages] = React.useState<CMSPage[]>([]);
   const [loading, setLoading] = React.useState(true);
 
+  // Quick action bar: create new CMS page
+  const createNew = () => {
+    window.location.assign('/admin/cms/pages/new');
+  };
+
   React.useEffect(() => {
     const fetchPages = async () => {
       try {
@@ -53,6 +58,9 @@ export default function CmsPagesIndex() {
   return (
     <div className="p-6 space-y-6">
       <h2 className="text-xl font-bold">CMS Pages</h2>
+      <div className="flex justify-end">
+        <button onClick={createNew} className="px-4 py-2 rounded bg-[var(--color-primary)] text-white">Nowa strona CMS</button>
+      </div>
       {loading ? (
         <div className="text-sm text-slate-500">Ładowanie...</div>
       ) : (
