@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 
 @Injectable()
 export class PaymentsService {
-  private stripe: Stripe;
+  private stripe: any;
   private readonly logger = new Logger(PaymentsService.name);
 
   constructor() {

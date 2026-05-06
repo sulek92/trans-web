@@ -41,7 +41,7 @@ export class TrackingService {
             {
               date: order.createdAt,
               status: order.status,
-              description: this.getStatusDescription(order.status),
+              description: this.getStatusDescription(order.status ?? 'PENDING'),
               location: (order.senderAddress as any)?.city || 'Punkt Nadania',
             },
           ];

@@ -89,7 +89,7 @@ export class OrdersController {
         return [
           o.id,
           o.orderNumber,
-          new Date(o.createdAt).toISOString(),
+          new Date(o.createdAt ?? '').toISOString(),
           escapeCsv(sender.name),
           escapeCsv(sender.companyName),
           o.carrierCode,

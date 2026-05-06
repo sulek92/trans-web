@@ -167,11 +167,11 @@ export class OrdersService {
   }
 
   async bulkUpdateStatus(ids: string[], status: string) {
-    const { inArray } = await import('drizzle-orm');
+    const { sql } = await import('drizzle-orm');
     const updated = await db
       .update(orders)
       .set({ status, updatedAt: new Date() })
-      .where(inArray(orders.id, ids))
+      .where(sql`${orders.id} = ANY(${ids})`)
       .returning();
 
     // Notify users

@@ -50,7 +50,7 @@ export class LeadsController {
     const rows = leads
       .map(
         (l) =>
-          `${l.id},${new Date(l.createdAt).toLocaleDateString()},${l.name},${l.email},${l.company},${l.status}`,
+          `${l.id},${new Date(l.createdAt ?? '').toLocaleDateString()},${l.name},${l.email},${l.company},${l.status}`,
       )
       .join('\n');
 

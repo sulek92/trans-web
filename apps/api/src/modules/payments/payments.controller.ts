@@ -3,12 +3,12 @@ import {
   Post,
   Headers,
   Req,
-  RawBodyRequest,
   BadRequestException,
   Inject,
   forwardRef,
 } from '@nestjs/common';
-import { Request } from 'express';
+import type { RawBodyRequest } from '@nestjs/common';
+import type { Request } from 'express';
 import { PaymentsService } from './payments.service';
 import { OrdersService } from '../orders/orders.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -34,12 +34,12 @@ export class PaymentsController {
 
     const event = await this.paymentsService.handleWebhook(
       signature,
-      req.rawBody,
+      req.rawBody!,
     );
 
     if (event.type === 'checkout.session.completed') {
-      const session = event.data.object as Stripe.Checkout.Session;
-      const orderId = session.metadata?.orderId;
+      const session = event.data.object as any;
+      const orderId = session.metadata?.orderId as string | undefined;
       if (orderId) {
         // Update order status to PAID
         const updatedOrder = await this.ordersService.updateStatus(
@@ -58,7 +58,7 @@ export class PaymentsController {
           void this.notificationsService.sendPaymentConfirmation(
             email,
             updatedOrder.orderNumber,
-            updatedOrder.priceBrutto,
+            updatedOrder.priceBrutto ?? '',
           );
         }
       }

@@ -155,13 +155,13 @@ export class DocumentsService {
 
   async generateInvoicePdf(invoiceId: string): Promise<Buffer> {
     const { invoices, companies } = await import('../../db/schema');
-    const { eq } = await import('drizzle-orm');
+    const { sql } = await import('drizzle-orm');
     const { db } = await import('../../db');
 
-    const [invoice] = await db
+    const [invoice] = (await db
       .select()
       .from(invoices)
-      .where(eq(invoices.id, invoiceId));
+      .where(sql`${invoices.id} = ${invoiceId}`));
     if (!invoice) throw new NotFoundException('Invoice not found');
 
     let buyer: any = null;
@@ -169,7 +169,7 @@ export class DocumentsService {
       [buyer] = await db
         .select()
         .from(companies)
-        .where(eq(companies.id, invoice.companyId));
+        .where(sql`${companies.id} = ${invoice.companyId}`);
     }
 
     return new Promise((resolve, reject) => {
