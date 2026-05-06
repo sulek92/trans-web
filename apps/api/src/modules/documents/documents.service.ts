@@ -1,11 +1,16 @@
 import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import PDFDocument from 'pdfkit';
-import { OrdersService } from '../orders/orders.service';
+import type { OrdersService } from '../orders/orders.service';
+
+const ordersServiceProvider = () => {
+  const { OrdersService: svc } = require('../orders/orders.service') as { OrdersService: typeof OrdersService };
+  return svc;
+};
 
 @Injectable()
 export class DocumentsService {
   constructor(
-    @Inject(forwardRef(() => OrdersService))
+    @Inject(forwardRef(ordersServiceProvider))
     private readonly ordersService: OrdersService,
   ) {}
 
