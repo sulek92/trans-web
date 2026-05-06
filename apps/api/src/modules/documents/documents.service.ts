@@ -1,10 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import PDFDocument from 'pdfkit';
 import { OrdersService } from '../orders/orders.service';
 
 @Injectable()
 export class DocumentsService {
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(
+    @Inject(forwardRef(() => OrdersService))
+    private readonly ordersService: OrdersService,
+  ) {}
 
   async generateOrderLabel(orderId: string): Promise<Buffer> {
     const order = await this.ordersService.getOrder(orderId);
