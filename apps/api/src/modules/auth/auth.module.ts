@@ -6,8 +6,13 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { AuthSessionService } from './auth-session.service';
 
+import { PassportModule } from '@nestjs/passport';
+import { GoogleStrategy } from './strategies/google.strategy';
+import { AzureADStrategy } from './strategies/azure-ad.strategy';
+
 @Module({
   imports: [
+    PassportModule,
     JwtModule.register({
       secret:
         process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || 'local-secret',
@@ -15,7 +20,14 @@ import { AuthSessionService } from './auth-session.service';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthSessionService, JwtAuthGuard, RolesGuard],
+  providers: [
+    AuthService,
+    AuthSessionService,
+    JwtAuthGuard,
+    RolesGuard,
+    GoogleStrategy,
+    AzureADStrategy,
+  ],
   exports: [AuthService, AuthSessionService, JwtAuthGuard, RolesGuard],
 })
 export class AuthModule {}

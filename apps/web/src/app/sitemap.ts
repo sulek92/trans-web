@@ -1,8 +1,8 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://paletbroker.pl';
-
+  const baseUrl = 'https://paletbroker.pl';
+  
   return [
     {
       url: baseUrl,
@@ -17,13 +17,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/dla-firm`,
+      url: `${baseUrl}/sledzenie`,
       lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
+      changeFrequency: 'always',
+      priority: 0.8,
     },
     {
-      url: `${baseUrl}/kontakt`,
+      url: `${baseUrl}/faq`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.5,

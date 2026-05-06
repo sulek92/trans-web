@@ -14,9 +14,12 @@ Pomiary wykonano lokalnie podczas audytu technicznego.
   - `npm run build --workspace apps/web` przechodzi.
   - Budowanie statycznych stron zakonczone poprawnie (41/41 tras).
   - `cd apps/web && npx playwright test`: 11/11 testow (auth + visual smoke + admin navigation + login-width guard, wieloresolucyjnie).
+  - `npm run test:e2e:docker --workspace apps/web`: 11/11 testow uruchomionych bezposrednio przeciwko `http://localhost:3000` (stack Docker).
 - Backend:
   - `npm run build --workspace apps/api` przechodzi.
-  - `npm run test:e2e --workspace apps/api`: 18/18 testow.
+  - `npm run test:e2e --workspace apps/api`: 21/21 testow.
+  - Session lifecycle (`revoke/lockout/password-reset-token`) oparty o Redis store z fallbackiem in-memory.
+  - CSRF origin/referer guard aktywny dla metod modyfikujacych przy cookie sesyjnym.
   - Rozszerzone pokrycie E2E:
     - login/refresh/logout/revocation,
     - lockout anty brute-force,

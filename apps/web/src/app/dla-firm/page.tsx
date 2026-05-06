@@ -1,8 +1,26 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { BusinessLeadForm } from '@/components/business/lead-form';
+import { getCmsContent } from '@/lib/cms';
 
-export default function ForBusinessPage() {
+const FALLBACK = {
+  heroBadge: 'Program Partnerski B2B',
+  heroTitle: 'Zoptymalizuj logistykę w swojej firmie',
+  heroDesc: 'Dedykowane rozwiązania dla e-commerce, hurtowni i producentów. Skaluj swój biznes z partnerem, który rozumie potrzeby transportu ciężkiego.',
+  benefits: [
+    { title: 'Faktura zbiorcza', icon: 'receipt_long', desc: 'Otrzymuj jedną fakturę za wszystkie zlecenia w miesiącu.' },
+    { title: 'Dedykowane API', icon: 'integration_instructions', desc: 'Zintegruj swój sklep lub system ERP bezpośrednio z naszą platformą.' },
+    { title: 'Opiekun konta', icon: 'support_agent', desc: 'Indywidualne wsparcie specjalisty.' },
+    { title: 'Ceny negocjowane', icon: 'trending_down', desc: 'Indywidualny cennik z gwarancją stawek.' },
+    { title: 'Ubezpieczenie CARGO', icon: 'security', desc: 'Rozszerzona ochrona ubezpieczeniowa.' },
+    { title: 'Panel analityczny', icon: 'bar_chart', desc: 'Analizuj koszty logistyki w czasie rzeczywistym.' },
+  ],
+  integrations: ['SAP', 'Oracle', 'PrestaShop', 'WooCommerce', 'Allegro', 'Magento'],
+};
+
+export default async function ForBusinessPage() {
+  const cms = await getCmsContent<typeof FALLBACK>('dla-firm');
+  const d = { ...FALLBACK, ...cms };
   return (
     <main className="pt-24 pb-24 bg-[var(--color-background)] min-h-screen">
       {/* Hero */}
@@ -10,11 +28,9 @@ export default function ForBusinessPage() {
         <div className="bg-[#005258] rounded-[40px] p-20 text-white relative overflow-hidden shadow-2xl">
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-white opacity-5 rounded-full -mr-48 -mt-48 blur-3xl animate-pulse"></div>
           <div className="relative z-10 max-w-2xl">
-            <span className="inline-block px-3 py-1 bg-white/10 rounded-full text-xs font-bold uppercase tracking-widest mb-6 border border-white/20">Program Partnerski B2B</span>
-            <h1 className="text-6xl font-bold mb-8 leading-[1.1]">Zoptymalizuj logistykę w swojej firmie</h1>
-            <p className="text-xl opacity-80 mb-12 leading-relaxed">
-              Dedykowane rozwiązania dla e-commerce, hurtowni i producentów. Skaluj swój biznes z partnerem, który rozumie potrzeby transportu ciężkiego.
-            </p>
+            <span className="inline-block px-3 py-1 bg-white/10 rounded-full text-xs font-bold uppercase tracking-widest mb-6 border border-white/20">{d.heroBadge}</span>
+            <h1 className="text-6xl font-bold mb-8 leading-[1.1]">{d.heroTitle}</h1>
+            <p className="text-xl opacity-80 mb-12 leading-relaxed">{d.heroDesc}</p>
             <div className="flex flex-wrap gap-4">
               <Link href="/rejestracja" className="bg-white text-[#005258] px-10 py-5 rounded-2xl font-bold hover:bg-slate-100 transition-premium shadow-xl active:scale-95">Załóż konto firmowe</Link>
               <Link href="/kontakt" className="border border-white/30 text-white px-10 py-5 rounded-2xl font-bold hover:bg-white/10 transition-premium active:scale-95">Porozmawiaj z doradcą</Link>
@@ -31,14 +47,7 @@ export default function ForBusinessPage() {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {[
-            { title: 'Faktura zbiorcza', icon: 'receipt_long', desc: 'Otrzymuj jedną fakturę za wszystkie zlecenia w miesiącu. Uprość księgowość i zarządzanie kosztami w Twojej firmie.' },
-            { title: 'Dedykowane API', icon: 'integration_instructions', desc: 'Zintegruj swój sklep lub system ERP bezpośrednio z naszą platformą. Automatyzuj proces nadawania przesyłek.' },
-            { title: 'Opiekun konta', icon: 'support_agent', desc: 'Indywidualne wsparcie specjalisty, który pomoże Ci w trudnych sytuacjach i zoptymalizuje koszty logistyki.' },
-            { title: 'Ceny negocjowane', icon: 'trending_down', desc: 'Wysyłasz powyżej 50 palet miesięcznie? Przygotujemy dla Ciebie indywidualny cennik z gwarancją stawek.' },
-            { title: 'Ubezpieczenie CARGO', icon: 'security', desc: 'Rozszerzona ochrona ubezpieczeniowa dla Twoich towarów w standardzie dla naszych stałych partnerów B2B.' },
-            { title: 'Panel analityczny', icon: 'bar_chart', desc: 'Analizuj koszty logistyki, czasy dostaw i kierunki wysyłek w czasie rzeczywistym dzięki naszym raportom.' }
-          ].map((benefit, i) => (
+          {d.benefits.map((benefit, i) => (
             <div key={i} className="bg-white p-10 rounded-3xl border border-[var(--color-divider)] shadow-sm hover:shadow-xl transition-premium hover:-translate-y-2 group">
               <div className="w-16 h-16 rounded-2xl bg-[var(--color-primary-highlight)] text-[var(--color-primary)] flex items-center justify-center mb-8 transition-premium group-hover:scale-110">
                 <span className="material-symbols-outlined text-3xl">{benefit.icon}</span>
@@ -57,7 +66,7 @@ export default function ForBusinessPage() {
             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-[0.2em]">Gotowe integracje</h3>
           </div>
           <div className="flex flex-wrap justify-center gap-16 opacity-30 grayscale hover:grayscale-0 transition-all">
-            {['SAP', 'Oracle', 'PrestaShop', 'WooCommerce', 'Allegro', 'Magento'].map(l => (
+            {d.integrations.map(l => (
               <span key={l} className="text-2xl font-bold tracking-tighter">{l}</span>
             ))}
           </div>

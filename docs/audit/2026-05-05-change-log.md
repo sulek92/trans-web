@@ -289,3 +289,353 @@
   - [app-shell.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/components/layout/app-shell.tsx)
   - [admin-and-graphics.spec.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/tests/e2e/admin-and-graphics.spec.ts)
   - [ci.yml](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/.github/workflows/ci.yml)
+
+### 21. Playwright pod Docker `localhost:3000` + stabilizacja asercji admin
+- Przed:
+  - Testy E2E web domyslnie uruchamialy osobny serwer (`next build + next start`), przez co brakowalo prostego trybu "testuj dokladnie to, co dziala w Dockerze na 3000".
+  - Asercje naglowkow w admin mogly byc flaky przy legalnych stanach ladowania danych (`Ładowanie ...`).
+- Po:
+  - Dodano tryb zewnetrznego `baseURL` w Playwright (`PLAYWRIGHT_BASE_URL`) i skrypty:
+    - `npm run test:e2e:docker --workspace apps/web`
+    - `npm run test:e2e:visual:docker --workspace apps/web`
+  - Uodporniono testy admin na stany ladowania (asercja tresci `main`, nie tylko finalnego `h1`).
+  - Potwierdzono: `test:e2e:docker` przechodzi `11/11` na zywych kontenerach.
+- Pliki:
+  - [playwright.config.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/playwright.config.ts)
+  - [package.json](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/package.json)
+  - [admin-and-graphics.spec.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/tests/e2e/admin-and-graphics.spec.ts)
+  - [admin-navigation.spec.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/tests/e2e/admin-navigation.spec.ts)
+
+### 22. Redis-backed auth session store (revocation / lockout / password reset)
+- Przed:
+  - Revocation tokenow, lockout loginu i tokeny resetu hasla dzialaly tylko in-memory (utrata stanu po restarcie API).
+- Po:
+  - Dodano obsluge Redis jako persystentnego store dla:
+    - revocation `jti`,
+    - lockout/failed-attempt counters,
+    - password reset tokens.
+  - Pozostawiono fallback in-memory, gdy Redis jest niedostepny (z logowaniem ostrzezen).
+  - Przepieto auth flow na async dla operacji sesyjnych:
+    - `login` (lock checks / failed attempts),
+    - `refresh`/`logout` (revocation),
+    - `password-reset request/confirm`.
+  - Zweryfikowano: `apps/api` lint/build/e2e (`18/18`) przechodza.
+- Pliki:
+  - [auth-session.service.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/api/src/modules/auth/auth-session.service.ts)
+  - [auth.service.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/api/src/modules/auth/auth.service.ts)
+  - [jwt-auth.guard.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/api/src/modules/auth/jwt-auth.guard.ts)
+  - [apps/api/package.json](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/api/package.json)
+  - [docker-compose.yml](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/docker-compose.yml)
+  - [.env.example](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/.env.example)
+
+### 23. CSRF hardening (origin/referer guard dla state-changing requests)
+- Przed:
+  - Brak aktywnej ochrony CSRF dla metod modyfikujacych w scenariuszach cookie-based.
+- Po:
+  - Dodano middleware security:
+    - obejmuje `POST/PUT/PATCH/DELETE`,
+    - aktywuje sie, gdy request niesie cookie sesyjne (`pb_auth_token` / `pb_refresh_token`),
+    - wymusza poprawny `Origin` lub `Referer` z allowlisty (`CORS_ORIGIN` + fallback `APP_URL/NEXTAUTH_URL`),
+    - odrzuca niezgodne originy kodem `403`.
+  - Rozszerzono E2E API o testy:
+    - blokada cross-origin z cookie sesyjnym,
+    - przepuszczenie trusted origin.
+  - Zweryfikowano: `apps/api` lint/build/e2e (`20/20`) przechodza.
+- Pliki:
+  - [app.setup.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/api/src/app.setup.ts)
+  - [app.e2e-spec.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/api/test/app.e2e-spec.ts)
+
+### 24. Controlled rollout: DB-only auth (legacy fallback flag)
+- Przed:
+  - Legacy fallback byl stale aktywny i trudniejszy do bezpiecznego wygaszenia.
+- Po:
+  - Dodano feature flag:
+    - `LEGACY_AUTH_FALLBACK_ENABLED` (domyslnie `true` dla kompatybilnosci),
+    - gdy `false`: logowanie i reset hasla dzialaja tylko przez DB (bez kont ENV jako fallback).
+  - W Docker live ustawiono:
+    - `LEGACY_AUTH_FALLBACK_ENABLED=false` (DB-only auth na `localhost` stacku).
+  - Zweryfikowano:
+    - API lint/build/e2e (`20/20`) zielone,
+    - login admin dziala na live (`201`, token zwracany),
+    - web E2E docker (`11/11`) zielone.
+- Pliki:
+  - [auth.service.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/api/src/modules/auth/auth.service.ts)
+  - [docker-compose.yml](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/docker-compose.yml)
+  - [.env.example](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/.env.example)
+
+### 25. Admin CRUD hardening + audit log API (CMS/Leads/Pricing/Users)
+- Przed:
+  - Brak centralnego logu zmian administracyjnych.
+  - Czesci operacji admin nie zostawiala sladu audytowego.
+  - `/users` nie zwracalo modelu zgodnego z UI admina (`companyName`, `nip`, `status`), a akcje statusu nie byly podlaczone.
+- Po:
+  - Dodano modul audit log:
+    - `AuditLogService` z endpointem `GET /admin/audit-log`,
+    - zapis zdarzen dla kluczowych operacji admin:
+      - `pricing_rule.created` / `pricing_rule.updated`,
+      - `cms.page_updated`,
+      - `lead.status_updated`,
+      - `user.status_updated`.
+  - Dodano fallback audit log do pamieci, gdy tabela/DB jest niedostepna (bez wywalenia endpointu).
+  - Rozszerzono CRUD users:
+    - `GET /users` zwraca shape zgodny z panelem admin,
+    - `PUT /users/:id/status` aktualizuje status konta i loguje zdarzenie.
+  - Panel admin `/admin/uzytkownicy` ma aktywne akcje `Aktywuj`/`Blokuj` (realne zapisy API).
+  - Zweryfikowano:
+    - API lint/build/e2e: `21/21`,
+    - web lint/build: OK,
+    - web E2E docker: `11/11`,
+    - live: `GET /admin/audit-log` zwraca `200`.
+- Pliki:
+  - [audit-log.service.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/api/src/modules/audit-log/audit-log.service.ts)
+  - [audit-log.module.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/api/src/modules/audit-log/audit-log.module.ts)
+  - [admin.controller.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/api/src/modules/admin/admin.controller.ts)
+  - [cms.controller.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/api/src/modules/cms/cms.controller.ts)
+  - [cms.service.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/api/src/modules/cms/cms.service.ts)
+  - [leads.controller.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/api/src/modules/leads/leads.controller.ts)
+  - [leads.service.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/api/src/modules/leads/leads.service.ts)
+  - [users.controller.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/api/src/modules/users/users.controller.ts)
+  - [uzytkownicy/page.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/(admin)/admin/uzytkownicy/page.tsx)
+
+### 26. Dynamiczna migracja CMS i Edytor Treści (Faza 3)
+- Przed:
+  - Wiekszosc stron publicznych miala tresci hardcoded w kodzie React.
+  - Edytor CMS w panelu admina byl jedynie makieta.
+- Po:
+  - Pelna migracja 12 stron publicznych na dynamiczny CMS API:
+    - Wdrozenie wzorca `Server Component (Fetch) -> Client Component (Render)` dla zachowania SEO i wydajności.
+    - Dodano mechanizm `Fallbacks` zapewniajacy wyswietlanie strony nawet przy bledach API.
+  - Przepisano `admin/cms/page.tsx` na funkcjonalny edytor wspierajacy 13 sekcji:
+    - Edycja pol tekstowych, list dynamicznych i przelaczników.
+    - Live fetch/save kazdej sekcji CMS.
+- Pliki (wybor):
+  - [home-client.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/home-client.tsx)
+  - [o-nas/page.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/o-nas/page.tsx)
+  - [cms/page.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/(admin)/admin/cms/page.tsx)
+  - [pricing-client.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/cennik/pricing-client.tsx)
+  - [help-client.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/pomoc/help-client.tsx)
+
+### 27. Silnik Tematyczny (Theme Engine) i Edytor Wygladu (Faza 7)
+- Przed:
+  - Wyglad aplikacji bazowal na statycznych zmiennych CSS w `globals.css`.
+  - Brak mozliwosci zmiany brandingu bez modyfikacji kodu.
+- Po:
+  - Wdrozenie `ThemeProvider` (Server Component) wstrzykujacego nadpisania zmiennych CSS pobrane z CMS (`slug: theme`).
+  - Automatyczna generacja wariantów kolorystycznych (hover, highlight, container) z kolorów bazowych.
+  - Dodanie panelu `/admin/wyglad` (Theme Editor):
+    - 6 gotowych presetów kolorystycznych (Teal, Royal, Forest, etc.).
+    - Selektor typografii (Google Fonts) i zaokrągleń (Radius).
+    - Konfiguracja trybu ciemnego (Dark Mode).
+    - Podgląd na żywo (Live Preview) zmian przed zapisem.
+- Pliki:
+  - [theme-provider.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/components/theme/theme-provider.tsx)
+  - [admin/wyglad/page.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/(admin)/admin/wyglad/page.tsx)
+  - [layout.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/layout.tsx)
+
+### 28. Rozbudowa nawigacji admina i weryfikacja builda
+- Przed:
+  - Brak dostepu do nowych modulów (Wygląd, Cennik) z menu bocznego.
+- Po:
+  - Zaktualizowano `admin/layout.tsx` o nowe pozycje menu.
+  - Wykonano build produkcyjny (`next build`): 42 strony wygenerowane pomyslnie, 0 bledów typów.
+- Pliki:
+  - [admin layout.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/(admin)/admin/layout.tsx)
+
+### [2026-05-05 21:30] Panel Klienta & Zaawansowany Admin (Faza 10-12)
+- **Panel Klienta (CRUD Adresy)**:
+  - Wdrożono pełny system zarządzania książką adresową (Dodawanie, Edycja, Usuwanie).
+  - Dodano modale interaktywne i logikę domyślnych adresów nadawcy/odbiorcy.
+  - Pliki: `panel/addresses/page.tsx`, `users.controller.ts`.
+- **Profil Firmy & Bezpieczeństwo**:
+  - Uruchomiono edycję danych firmy oraz moduł zmiany hasła z walidacją starego hasła.
+  - Pliki: `panel/company/page.tsx`, `panel/settings/page.tsx`.
+- **Narzędzia Eksportu (CSV)**:
+  - Dodano endpointy API do generowania raportów CSV dla zamówień i leadów.
+  - Zaimplementowano bezpieczne pobieranie plików (fetch + blob) w panelu admina.
+  - Pliki: `orders.controller.ts`, `leads.controller.ts`.
+- **Globalne Wyszukiwanie**:
+  - Dodano asynchroniczny Search Bar w nagłówku admina przeszukujący 3 moduły jednocześnie (Orders, Leads, Users).
+  - Pliki: `admin/layout.tsx`, `admin.controller.ts`.
+- **UI/UX Polish**:
+  - Dodano animacje wejścia (animate-fade-in), statusy ladowania i poprawiono responsywność tabel.
+
+### [2026-05-05 22:05] Akcje Masowe & Zarządzanie Danymi (Faza 13)
+- **Bulk Actions (Zamówienia)**:
+  - Wdrożono system masowej selekcji zamówień z pływającym paskiem akcji (Floating Action Bar).
+  - Dodano endpoint API `POST /orders/bulk-status` do masowej zmiany statusów.
+- **Zarządzanie Leadami (Notatki)**:
+  - Dodano pole notatek handlowych w widoku leadów z automatycznym zapisem (`onBlur`).
+  - Rozbudowano API o endpoint `PUT /leads/:id/notes`.
+- **Zarządzanie Użytkownikami**:
+  - Implementacja modala edycji użytkownika (Email, Rola).
+  - Dodano endpoint `PUT /users/:id` dla administratorów.
+  - Odświeżono UI listy użytkowników z szybką blokadą konta.
+
+### [2026-05-05 22:10] Dashboard KPI & Analytics (Faza 14)
+- **Analityka API**:
+  - Wdrożono endpoint `/admin/analytics` agregujący dane o przychodach z ostatnich 30 dni.
+  - Obliczanie statystyk przewoźników i sumarycznych przychodów brutto.
+- **Interaktywny Dashboard**:
+  - Dodano dynamiczny wykres słupkowy przychodów (Custom SVG) z interaktywnymi tooltipami.
+  - Wdrożono widget "Ostatnia Aktywność" pobierający dane z logów audytowych w czasie rzeczywistym.
+  - Odświeżono karty statystyk o dynamiczne dane z bazy.
+
+### [2026-05-05 22:12] SEO, Performance & Final Polish (Faza 15)
+- **SEO & Social Media**:
+  - Wdrożono zaawansowane Metadata (OpenGraph, Twitter Cards) w `layout.tsx`.
+  - Dodano system szablonów tytułów (`%s | PaletyBroker`).
+- **Optymalizacja Bazy Danych**:
+  - Dodano krytyczne indeksy wydajnościowe na `orders(orderNumber, createdAt)` oraz `leads(email, status)`.
+- **UI & Navigation**:
+  - Implementacja stanów "Active" w nawigacji głównej i mobilnej (podświetlanie aktualnej podstrony).
+  - Poprawiono responsywność menu mobilnego.
+- **Wydajność**:
+  - Weryfikacja builda produkcyjnego i optymalizacja fontów (swap display).
+
+### [2026-05-06 00:35] Admin-Frontend hardening + poprawa logowania (kontynuacja)
+- **Logowanie / UX / grafiki**:
+  - Poprawiono responsywny kontener logowania (szerszy wrapper, bez ucinania, lepsze paddingi).
+  - Dodano `flex-wrap` dla logo płatności, aby uniknąć ryzyka przycięcia na małych ekranach.
+- **Panel admina (spójność endpointów i nawigacji)**:
+  - Ujednolicono endpoint logów systemowych na frontendzie do `/admin/audit-log?limit=200`.
+  - Dodano bezpieczne renderowanie rekordów logów dla `null` (`actorEmail`, `entityId`).
+  - Rozszerzono menu admina o sekcje `Finanse` i `Logi systemowe`.
+  - Edytor wyglądu (`/admin/wyglad`) używa teraz tego samego mechanizmu auth cookie (`pb_auth_token`) co reszta panelu.
+- **Stabilizacja frontu pod Next 16**:
+  - Naprawiono błąd parsowania w `admin/zamowienia/page.tsx` (brakujący `catch`).
+  - Usunięto zależność runtime od brakującego `sonner` w hooku websocket i podpięto lokalny `toast-store`.
+  - Przeniesiono `themeColor` z `metadata` do `viewport` (zgodnie z nowym API Next).
+  - Dodano rewrites dla starych ikon PWA (`/icons/icon-192x192.png`, `/icons/icon-512x512.png`) oraz poprawiono `manifest.json`, aby wyeliminować broken assety.
+- **Regresja E2E**:
+  - Zaktualizowano test nawigacji admina o nowe sekcje (`Wygląd`, `Cennik`, `Finanse`, `Logi systemowe`).
+  - Uruchomiono E2E: `7/7` testów przeszło (admin-navigation + admin-and-graphics).
+- **Pliki**:
+  - [logowanie/page.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/(auth)/logowanie/page.tsx)
+  - [admin layout.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/(admin)/admin/layout.tsx)
+  - [logi-systemowe/page.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/(admin)/admin/logi-systemowe/page.tsx)
+  - [wyglad/page.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/(admin)/admin/wyglad/page.tsx)
+  - [zamowienia/page.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/(admin)/admin/zamowienia/page.tsx)
+  - [use-websocket.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/hooks/use-websocket.ts)
+  - [layout.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/layout.tsx)
+  - [next.config.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/next.config.ts)
+  - [manifest.json](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/public/manifest.json)
+  - [admin-navigation.spec.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/tests/e2e/admin-navigation.spec.ts)
+
+### [2026-05-06 00:36] Bloker wykryty (API dev watch)
+- `api` w trybie `nest start --watch` nie startuje poprawnie z powodu istniejących, niezależnych od bieżącego patcha błędów TypeScript/dependency (41 errors w kompilacji watch).
+- Wpływ:
+  - frontend działa i aktualizuje się live na `localhost:3000`,
+  - część funkcji admina wymagających live API może nie zwracać danych do czasu stabilizacji backendu.
+- Kolejny krok:
+  - dedykowany sprint stabilizacyjny backendu (kompilacja `apps/api` od `CRITICAL` do `LOW`).
+
+### [2026-05-06 00:58] CMS Frontend Management v2 (user-facing sterowanie z panelu admina)
+- **Rozbudowa zarządzania frontendem przez admina (bez duplikacji istniejących modułów)**:
+  - Dodano nowe pola `global-settings` do zarządzania publicznym frontendem:
+    - `brandName`, `footerTagline`, `newsletterEnabled`, `supportStatusLabel`,
+    - `navLinks` (menu górne),
+    - `footerCompanyLinks`, `footerToolLinks`, `footerSupportLinks` (3 kolumny stopki).
+  - Rozszerzono edytor CMS (`/admin/cms`) o sekcje:
+    - Brand,
+    - Nawigacja główna,
+    - Linki stopki (3 kolumny),
+    - Dodatkowe opcje stopki.
+- **Publiczny frontend podpięty pod CMS**:
+  - `Navbar` dynamicznie pobiera nazwę marki i linki menu z `global-settings` (z fallbackiem do dotychczasowych wartości).
+  - `Footer` dynamicznie pobiera:
+    - nazwę marki i tagline,
+    - konfigurację newslettera,
+    - etykietę statusu systemu,
+    - wszystkie kolumny linków.
+  - Dodano normalizację i walidację linków (`/slug` fallback) aby uniknąć błędnych URL.
+- **UX panelu admina (CMS)**:
+  - `?section=global-settings` i inne `?section=*` działają poprawnie (autowybór sekcji).
+  - Klikanie sekcji aktualizuje URL query (`history.replaceState`) bez przeładowania.
+  - Dodano przycisk „Podgląd strony” dla sekcji mających odpowiadającą trasę publiczną.
+- **Seed danych**:
+  - Uzupełniono `global-settings` w seederze o nowe pola i domyślne struktury linków.
+- **Walidacja**:
+  - Lint dotkniętych plików frontend: OK.
+  - E2E: `admin-navigation` + `admin-and-graphics` zielone (`7/7`), dodatkowo `admin-and-graphics` (`6/6`).
+- Pliki:
+  - [cms/page.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/(admin)/admin/cms/page.tsx)
+  - [navbar.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/components/layout/navbar.tsx)
+  - [footer.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/components/layout/footer.tsx)
+  - [global-data-provider.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/components/providers/global-data-provider.tsx)
+  - [seed.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/api/src/db/seed.ts)
+  - [logowanie/page.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/(auth)/logowanie/page.tsx)
+
+### [2026-05-06 06:58] Frontend -> Admin funnel v3 (leady + reset hasla + live Docker stabilizacja)
+- **User-facing formularze podlaczone do realnego API leadow**:
+  - Usunieto `alert()` i wdrozono zapis leadow do `POST /leads` dla:
+    - formularza kontaktu (`/kontakt`),
+    - formularza wsparcia na homepage (`/`),
+    - formularza B2B (`/dla-firm`).
+  - W panelu admina `/admin/leady` rozszerzono widok o dodatkowe dane leada (`phone`, `route`) dla lepszej obslugi handlowej.
+- **Reset hasla (pelny frontend flow)**:
+  - Dodano nowa trase `/reset-hasla` (request token + confirm new password).
+  - Podpieto link z `/logowanie` ("Nie pamietasz?").
+  - Dodano obsluge tego widoku w shellu auth (`AppShell`) bez publicznej nawigacji/stopki.
+- **CRITICAL fix dla Docker dev (`localhost:3000`)**:
+  - Naprawiono blokade hydracji client-side przez Next 16 dev-origin policy:
+    - dodano `allowedDevOrigins` w `next.config.ts`.
+  - Efekt:
+    - event handlery znow sa aktywne (koniec natywnego submit `GET ?name=...`),
+    - formularze i akcje admin dzialaja poprawnie live przez Docker.
+- **Bloker API/Auth usuniety**:
+  - Naprawiono DI backendu (`DocumentsService`, `AnalyticsService`) oraz uruchomiono API watch bez crashu.
+  - Zsynchronizowano runtime DB z aktualnym modelem auth (dodane kolumny `users.auth_provider`, `users.external_id`, `users.api_key` + indeksy), co przywrocilo dzialanie `POST /auth/register` i `POST /auth/login`.
+- **Regresja i walidacja**:
+  - `eslint` (dotkniete pliki): OK.
+  - Playwright Docker:
+    - `auth-reset.spec.ts` + `lead-funnel.spec.ts` + `admin-navigation.spec.ts`: `3/3` zielone.
+    - `admin-and-graphics.spec.ts`: `6/6` zielone.
+- Pliki:
+  - [leads.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/lib/leads.ts)
+  - [lead-form.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/components/business/lead-form.tsx)
+  - [contact-client.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/kontakt/contact-client.tsx)
+  - [home-client.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/home-client.tsx)
+  - [reset-hasla/page.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/(auth)/reset-hasla/page.tsx)
+  - [logowanie/page.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/(auth)/logowanie/page.tsx)
+  - [app-shell.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/components/layout/app-shell.tsx)
+  - [admin/leady/page.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/(admin)/admin/leady/page.tsx)
+  - [admin/page.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/(admin)/admin/page.tsx)
+  - [next.config.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/next.config.ts)
+  - [auth-reset.spec.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/tests/e2e/auth-reset.spec.ts)
+  - [lead-funnel.spec.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/tests/e2e/lead-funnel.spec.ts)
+  - [documents.module.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/api/src/modules/documents/documents.module.ts)
+  - [analytics.module.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/api/src/modules/analytics/analytics.module.ts)
+
+### [2026-05-06 07:20] Frontend visual management v4 (grafiki sterowane z CMS + polish UX)
+- **Rozbudowa CMS -> frontend (strona główna)**:
+  - Dodano pola zarządzania grafikami dla `home`:
+    - `heroVisualImage`, `heroVisualCaption`,
+    - `supportVisualImage`,
+    - `ctaVisualImage`,
+    - `testimonials[].avatarImage` (opcjonalne zdjęcie avatara).
+  - Publiczny frontend wykorzystuje te pola w runtime z bezpiecznym fallbackiem lokalnych assetów.
+- **Nowe lokalne assety wizualne (stabilne pod Docker/live)**:
+  - `apps/web/public/images/home-hero-logistics.jpg`
+  - `apps/web/public/images/home-support-team.jpg`
+  - `apps/web/public/images/home-cta-warehouse.jpg`
+  - `apps/web/public/images/avatars/client-1.jpg`
+  - `apps/web/public/images/avatars/client-2.jpg`
+  - `apps/web/public/images/avatars/client-3.jpg`
+- **UX / techniczne polish (Next 16)**:
+  - Usunięto ostrzeżenie o `<script>` renderowanym w komponencie React:
+    - pasek progresu scrolla przeniesiony do `useEffect` w `AppShell`.
+  - Usunięto ostrzeżenia obrazków płatności na `/logowanie`:
+    - stabilne wymiary `next/image` bez runtime resize mismatch.
+  - Naprawiono bloker parsera w `admin/zamowienia` po restarcie Dockera (stabilny render tras `/admin/*`, koniec losowych `404` po błędzie kompilacji segmentu).
+- **Testy / walidacja**:
+  - ESLint (dotknięte pliki web+api): OK.
+  - Playwright Docker (`localhost:3000`):
+    - `admin-and-graphics.spec.ts` + `admin-navigation.spec.ts`: `7/7` pass.
+  - Rozszerzono test nawigacji admina o asercję nowych pól CMS grafik (`Hero image URL`, `Support image URL`, `CTA image URL`).
+- Pliki:
+  - [home-client.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/home-client.tsx)
+  - [cms/page.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/(admin)/admin/cms/page.tsx)
+  - [app-shell.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/components/layout/app-shell.tsx)
+  - [logowanie/page.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/(auth)/logowanie/page.tsx)
+  - [seed.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/api/src/db/seed.ts)
+  - [admin-navigation.spec.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/tests/e2e/admin-navigation.spec.ts)

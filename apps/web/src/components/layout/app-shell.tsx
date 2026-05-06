@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import { usePathname } from 'next/navigation';
 import { CookieConsent } from '@/components/layout/cookie-consent';
 import { Footer } from '@/components/layout/footer';
@@ -10,7 +11,31 @@ import { Toaster } from '@/components/ui/toaster';
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith('/admin');
-  const isAuth = pathname?.startsWith('/logowanie') || pathname?.startsWith('/rejestracja');
+  const isAuth =
+    pathname?.startsWith('/logowanie') ||
+    pathname?.startsWith('/rejestracja') ||
+    pathname?.startsWith('/reset-hasla');
+
+  React.useEffect(() => {
+    if (isAdmin || isAuth) return;
+
+    const updateScrollProgress = () => {
+      const root = document.documentElement;
+      const body = document.body;
+      const scrollTop = root.scrollTop || body.scrollTop;
+      const scrollHeight = root.scrollHeight || body.scrollHeight;
+      const maxScrollable = scrollHeight - root.clientHeight;
+      const percent = maxScrollable > 0 ? scrollTop / maxScrollable : 0;
+      const progressEl = document.getElementById('scroll-progress');
+      if (progressEl) {
+        progressEl.style.transform = `scaleX(${Math.max(0, Math.min(1, percent))})`;
+      }
+    };
+
+    updateScrollProgress();
+    window.addEventListener('scroll', updateScrollProgress, { passive: true });
+    return () => window.removeEventListener('scroll', updateScrollProgress);
+  }, [isAdmin, isAuth]);
 
   if (isAdmin || isAuth) {
     return (
@@ -30,20 +55,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         id="scroll-progress"
       ></div>
       <main className="flex-1 flex flex-col">{children}</main>
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-          window.addEventListener('scroll', () => {
-            const h = document.documentElement,
-                  b = document.body,
-                  st = 'scrollTop',
-                  sh = 'scrollHeight';
-            const percent = (h[st]||b[st]) / ((h[sh]||b[sh]) - h.clientHeight) * 100;
-            document.getElementById('scroll-progress').style.transform = 'scaleX(' + percent/100 + ')';
-          });
-        `,
-        }}
-      />
       <Footer />
       <Toaster />
       <CookieConsent />

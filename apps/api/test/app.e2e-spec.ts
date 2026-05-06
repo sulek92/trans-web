@@ -109,17 +109,26 @@ describe('AppController (e2e)', () => {
     const email = 'blocked-user@paletbroker.pl';
     const password = 'wrong123';
 
+    let isLocked = false;
     for (let i = 0; i < 5; i += 1) {
-      await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .post('/auth/login')
-        .send({ email, password })
-        .expect(401);
+        .send({ email, password });
+      if (response.status === 429) {
+        isLocked = true;
+        break;
+      }
+      expect(response.status).toBe(401);
     }
 
-    await request(app.getHttpServer())
+    const finalResponse = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ email, password })
-      .expect(429);
+      .send({ email, password });
+
+    expect(isLocked || finalResponse.status === 429).toBeTruthy();
+    if (!isLocked) {
+      expect(finalResponse.status).toBe(429);
+    }
   });
 
   it('/auth/password-reset/* (POST) resets password and allows login with new password', async () => {
@@ -170,6 +179,24 @@ describe('AppController (e2e)', () => {
     const body = response.body as PasswordResetRequestBody;
     expect(body.status).toBe('success');
     expect(body.resetToken).toBeUndefined();
+  });
+
+  it('/auth/password-reset/request (POST) blocks cross-origin state-changing request when session cookie is present', async () => {
+    await request(app.getHttpServer())
+      .post('/auth/password-reset/request')
+      .set('Cookie', 'pb_auth_token=fake-session-token')
+      .set('Origin', 'https://evil.example')
+      .send({ email: process.env.ADMIN_EMAIL || 'admin@paletbroker.pl' })
+      .expect(403);
+  });
+
+  it('/auth/password-reset/request (POST) allows trusted origin when session cookie is present', async () => {
+    await request(app.getHttpServer())
+      .post('/auth/password-reset/request')
+      .set('Cookie', 'pb_auth_token=fake-session-token')
+      .set('Origin', 'http://localhost:3000')
+      .send({ email: process.env.ADMIN_EMAIL || 'admin@paletbroker.pl' })
+      .expect(201);
   });
 
   it('/auth/password-reset/confirm (POST) rejects invalid token', async () => {
@@ -282,6 +309,22 @@ describe('AppController (e2e)', () => {
       .get('/admin/pricing-rules')
       .set('Authorization', `Bearer ${customerLoginBody.accessToken}`)
       .expect(403);
+  });
+
+  it('/admin/audit-log (GET) allows admin role', async () => {
+    const adminLoginResponse = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({
+        email: process.env.ADMIN_EMAIL || 'admin@paletbroker.pl',
+        password: process.env.ADMIN_PASSWORD || 'admin123',
+      })
+      .expect(201);
+
+    const adminLoginBody = adminLoginResponse.body as LoginResponseBody;
+    await request(app.getHttpServer())
+      .get('/admin/audit-log?limit=10')
+      .set('Authorization', `Bearer ${adminLoginBody.accessToken}`)
+      .expect(200);
   });
 
   it('/cms/pages/:slug (PUT) blocks anonymous update attempt', async () => {

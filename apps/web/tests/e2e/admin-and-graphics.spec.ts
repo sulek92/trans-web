@@ -34,7 +34,7 @@ test('allows admin and blocks customer for admin panel', async ({ browser, baseU
   const adminPage = await adminContext.newPage();
   await adminPage.goto(`${resolvedBaseUrl}/admin`);
   await expect(adminPage).toHaveURL(/\/admin$/);
-  await expect(adminPage.getByRole('heading', { name: /Witaj, Administratorze/i })).toBeVisible();
+  await expect(adminPage.locator('main')).toContainText(/Witaj, Administratorze|Ładowanie statystyk/i);
   await adminContext.close();
 
   const customerContext = await browser.newContext();

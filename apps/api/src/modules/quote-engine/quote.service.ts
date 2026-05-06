@@ -3,6 +3,7 @@ import { QuoteRequestDto } from './dto/quote.dto';
 import { db } from '../../db';
 import { pricingRules, quotes } from '../../db/schema';
 import { eq, and, lte, gte } from 'drizzle-orm';
+import { RedisService } from '../redis/redis.service';
 
 export interface CarrierOffer {
   carrierId: string;
@@ -17,6 +18,8 @@ export interface CarrierOffer {
 
 @Injectable()
 export class QuoteService {
+  constructor(private readonly redisService: RedisService) {}
+
   async calculateQuote(params: QuoteRequestDto) {
     const exceedsAutomaticDimensionLimits =
       params.dimensions.length > 300 ||
@@ -38,17 +41,29 @@ export class QuoteService {
       };
     }
 
-    // Fetch active pricing rules from DB
-    const activeRules = await db
-      .select()
-      .from(pricingRules)
-      .where(
-        and(
-          eq(pricingRules.isActive, true),
-          lte(pricingRules.minWeight, params.weight.toString()),
-          gte(pricingRules.maxWeight, params.weight.toString()),
-        ),
-      );
+    // Try to fetch from Redis Cache first
+    const cacheKey = 'active_pricing_rules';
+    let allActiveRules: any[] = [];
+    const cachedData = await this.redisService.get(cacheKey);
+
+    if (cachedData) {
+      allActiveRules = JSON.parse(cachedData);
+    } else {
+      allActiveRules = await db
+        .select()
+        .from(pricingRules)
+        .where(eq(pricingRules.isActive, true));
+      
+      // Cache for 1 hour (3600s)
+      await this.redisService.set(cacheKey, JSON.stringify(allActiveRules), 3600);
+    }
+
+    // Filter rules by weight in memory
+    const activeRules = allActiveRules.filter(rule => {
+      const minW = parseFloat(rule.minWeight);
+      const maxW = parseFloat(rule.maxWeight);
+      return params.weight >= minW && params.weight <= maxW;
+    });
 
     if (activeRules.length === 0) {
       // Fallback or empty if no rules match weight

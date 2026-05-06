@@ -27,6 +27,7 @@ export class RolesGuard implements CanActivate {
     const user = request.user;
     // Weryfikacja ról z payloadu JWT
     if (!user || !user.role) return false;
+    if (user.role === 'superadmin') return true; // Superadmin has access to everything
     return requiredRoles.some((role) => user.role === role);
   }
 }

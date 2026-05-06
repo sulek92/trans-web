@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:e2e": "playwright test",
+    "test:e2e:docker": "PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000 playwright test",
+    "test:e2e:visual:docker": "PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000 playwright test tests/e2e/visual-routes.spec.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -15,11 +18,13 @@
     "@sentry/nextjs": "^10.51.0",
     "clsx": "^2.1.1",
     "jose": "^6.2.3",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^1.14.0",
     "next": "16.2.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.75.0",
+    "socket.io-client": "^4.8.3",
     "tailwind-merge": "^3.5.0",
     "zod": "^4.4.3",
     "zustand": "^5.0.13"

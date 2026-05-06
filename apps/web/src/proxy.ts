@@ -22,7 +22,7 @@ export async function proxy(request: NextRequest) {
   try {
     const { payload } = await jwtVerify(token, secret);
 
-    if (isAdminRoute && payload.role !== 'admin') {
+    if (isAdminRoute && payload.role !== 'admin' && payload.role !== 'superadmin') {
       const loginUrl = new URL('/logowanie', request.url);
       loginUrl.searchParams.set('forbidden', '1');
       return NextResponse.redirect(loginUrl);

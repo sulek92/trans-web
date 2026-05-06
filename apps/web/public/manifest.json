@@ -1,0 +1,21 @@
+{
+  "name": "PaletBroker",
+  "short_name": "PaletBroker",
+  "description": "Profesjonalna logistyka B2B i tanie przesyłki paletowe.",
+  "start_url": "/panel",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#123456",
+  "icons": [
+    {
+      "src": "/next.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/next.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

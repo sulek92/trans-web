@@ -11,8 +11,22 @@ import { CmsModule } from './modules/cms/cms.module';
 import { LeadsModule } from './modules/leads/leads.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { UsersModule } from './modules/users/users.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { DocumentsModule } from './modules/documents/documents.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { WebsocketsModule } from './modules/websockets/websockets.module';
+import { RedisModule } from './modules/redis/redis.module';
+import { ApiKeyModule } from './modules/api-key/api-key.module';
+import { IntegrationsModule } from './modules/integrations/integrations.module';
+import { HealthModule } from './modules/health/health.module';
+import { ErpAdaptersModule } from './modules/erp-adapters/erp-adapters.module';
+import { AddressBookModule } from './modules/address-book/address-book.module';
+import { CurrenciesModule } from './modules/currencies/currencies.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { InvoicesModule } from './modules/invoices/invoices.module';
 
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -32,8 +46,27 @@ import { ThrottlerModule } from '@nestjs/throttler';
     LeadsModule,
     AdminModule,
     UsersModule,
+    PaymentsModule,
+    DocumentsModule,
+    NotificationsModule,
+    WebsocketsModule,
+    RedisModule,
+    ApiKeyModule,
+    IntegrationsModule,
+    HealthModule,
+    ErpAdaptersModule,
+    AddressBookModule,
+    CurrenciesModule,
+    AnalyticsModule,
+    InvoicesModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

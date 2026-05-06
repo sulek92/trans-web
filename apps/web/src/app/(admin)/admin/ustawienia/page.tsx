@@ -1,84 +1,128 @@
 'use client';
 
 import * as React from 'react';
+import { getCookie } from '@/lib/utils';
+import Link from 'next/link';
+
+interface AuditEntry {
+  id: string;
+  action: string;
+  entityType: string;
+  actorEmail: string;
+  createdAt: string;
+  metadata: Record<string, unknown>;
+}
 
 export default function AdminSettingsPage() {
+  const [logs, setLogs] = React.useState<AuditEntry[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+  React.useEffect(() => {
+    const fetchLogs = async () => {
+      const token = getCookie('pb_auth_token');
+      try {
+        const response = await fetch(`${API_URL}/admin/audit-log?limit=10`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) setLogs(await response.json());
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    void fetchLogs();
+  }, [API_URL]);
+
   return (
     <div className="animate-fade-in space-y-10">
-      <div>
-        <h1 className="font-display-bold text-3xl font-bold text-[var(--color-on-background)] mb-2">Ustawienia Systemowe</h1>
-        <p className="text-[var(--color-on-surface-variant)]">Konfiguracja marż, stawek paliwowych i parametrów brokerstwa.</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="font-display-bold text-3xl font-bold text-[var(--color-on-background)] mb-2">Ustawienia i System</h1>
+          <p className="text-[var(--color-on-surface-variant)]">Logi zdarzeń, status usług i konfiguracja zaawansowana.</p>
+        </div>
+        <div className="flex gap-3">
+          <Link href="/admin/cms?section=global-settings" className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-slate-50 transition-colors">
+            <span className="material-symbols-outlined text-sm">settings</span>
+            Ustawienia Globalne CMS
+          </Link>
+          <Link href="/admin/wyglad" className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-slate-50 transition-colors">
+            <span className="material-symbols-outlined text-sm">palette</span>
+            Edytor Wyglądu
+          </Link>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Margins Management */}
-        <div className="bg-white p-8 rounded-2xl border border-[var(--color-divider)] shadow-sm space-y-8">
-          <div className="flex items-center gap-3">
-            <span className="material-symbols-outlined text-[var(--color-primary)]">trending_up</span>
-            <h2 className="text-xl font-bold">Zarządzanie marżami</h2>
-          </div>
-          
-          <div className="space-y-6">
-            <div className="p-6 bg-slate-50 rounded-xl border border-[var(--color-divider)]">
-              <div className="flex justify-between items-center mb-4">
-                <span className="font-bold text-sm">Marża ogólna (domyślna)</span>
-                <span className="text-[var(--color-primary)] font-bold">15.00 %</span>
-              </div>
-              <input type="range" className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-primary)]" min="0" max="50" defaultValue="15" />
-            </div>
-
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* System Health */}
+        <div className="lg:col-span-4 space-y-6">
+          <div className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm space-y-6">
+            <h2 className="text-lg font-bold flex items-center gap-2">
+              <span className="material-symbols-outlined text-emerald-500">check_circle</span>
+              Status Systemu
+            </h2>
             <div className="space-y-4">
-              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Marże dla przewoźników</h3>
               {[
-                { name: 'DHL Freight', value: 12 },
-                { name: 'DPD Palety', value: 18 },
-                { name: 'FedEx Heavy', value: 10 }
-              ].map((m, i) => (
-                <div key={i} className="flex items-center gap-4">
-                  <span className="text-sm font-medium w-32">{m.name}</span>
-                  <input type="number" className="w-24 px-4 py-2 rounded-lg border border-[var(--color-divider)] text-sm font-bold" defaultValue={m.value} />
-                  <span className="text-sm font-bold text-slate-400">%</span>
+                { label: 'Baza Danych (PostgreSQL)', status: 'Online', color: 'text-emerald-600' },
+                { label: 'Cache (Redis)', status: 'Online', color: 'text-emerald-600' },
+                { label: 'API Gateway (NestJS)', status: 'v1.2.4', color: 'text-blue-600' },
+                { label: 'Prerender Engine (Next.js)', status: 'Active', color: 'text-emerald-600' },
+              ].map((s, i) => (
+                <div key={i} className="flex justify-between items-center p-3 bg-slate-50 rounded-xl text-xs font-bold">
+                  <span className="text-slate-500">{s.label}</span>
+                  <span className={s.color}>{s.status}</span>
                 </div>
               ))}
             </div>
           </div>
-          
-          <button className="w-full py-4 bg-[var(--color-primary)] text-white rounded-xl font-bold shadow-lg hover:bg-[var(--color-surface-tint)] transition-premium">
-            Zapisz zmiany w marżach
-          </button>
+
+          <div className="bg-blue-600 p-6 rounded-[32px] shadow-xl text-white space-y-4">
+            <div className="flex items-center gap-2 font-bold">
+              <span className="material-symbols-outlined">info</span>
+              Informacja
+            </div>
+            <p className="text-sm opacity-80 leading-relaxed">
+              Konfiguracja marż i reguł cennika znajduje się teraz w dedykowanej sekcji <strong>Cennik</strong> w menu bocznym.
+            </p>
+          </div>
         </div>
 
-        {/* Global Config */}
-        <div className="bg-white p-8 rounded-2xl border border-[var(--color-divider)] shadow-sm space-y-8">
-          <div className="flex items-center gap-3">
-            <span className="material-symbols-outlined text-[var(--color-primary)]">tune</span>
-            <h2 className="text-xl font-bold">Parametry globalne</h2>
+        {/* Audit Log */}
+        <div className="lg:col-span-8 bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+            <h2 className="text-lg font-bold">Ostatnie działania (Audit Log)</h2>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Ostatnie 10 zdarzeń</span>
           </div>
-
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-400 uppercase">Aktualna dopłata paliwowa (%)</label>
-              <input type="number" className="w-full px-4 py-3 rounded-xl border border-[var(--color-divider)] text-sm font-bold" defaultValue="14.2" />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-400 uppercase">Waluta systemowa</label>
-              <select className="w-full px-4 py-3 rounded-xl border border-[var(--color-divider)] text-sm font-bold bg-white">
-                <option>PLN (Złoty polski)</option>
-                <option>EUR (Euro)</option>
-              </select>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-amber-50 rounded-xl border border-amber-100">
-              <div className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-amber-600">notifications_active</span>
-                <div className="text-xs">
-                  <div className="font-bold text-amber-900">Tryb konserwacji</div>
-                  <p className="text-amber-700">Blokuje możliwość składania nowych zamówień.</p>
-                </div>
-              </div>
-              <div className="w-12 h-6 bg-slate-300 rounded-full relative cursor-pointer">
-                <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
-              </div>
-            </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-slate-50/50">
+                <tr className="text-[10px] uppercase font-bold text-slate-400">
+                  <th className="px-6 py-4">Data</th>
+                  <th className="px-6 py-4">Użytkownik</th>
+                  <th className="px-6 py-4">Działanie</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {isLoading ? (
+                  <tr><td colSpan={3} className="p-10 text-center text-slate-300">Ładowanie logów...</td></tr>
+                ) : logs.map(log => (
+                  <tr key={log.id} className="text-sm">
+                    <td className="px-6 py-4 text-slate-500">{new Date(log.createdAt).toLocaleString('pl-PL')}</td>
+                    <td className="px-6 py-4 font-medium">{log.actorEmail}</td>
+                    <td className="px-6 py-4">
+                      <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-[10px] font-bold uppercase">
+                        {log.action.replace('_', ' ')}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+                {!isLoading && logs.length === 0 && (
+                  <tr><td colSpan={3} className="p-10 text-center text-slate-300 italic">Brak zarejestrowanych działań.</td></tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

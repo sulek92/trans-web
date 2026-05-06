@@ -1,27 +1,15 @@
 'use client';
 
 import * as React from 'react';
+import { useGlobalSettings } from '@/components/providers/global-data-provider';
 
 export function SiteBanner() {
-  const [isVisible, setIsVisible] = React.useState(false);
-  const [isMaintenance, setIsMaintenance] = React.useState(false);
+  const settings = useGlobalSettings();
 
-  React.useEffect(() => {
-    const checkStatus = () => {
-      const banner = localStorage.getItem('site_banner');
-      const maintenance = localStorage.getItem('maintenance_mode');
-      setIsVisible(banner === 'true');
-      setIsMaintenance(maintenance === 'true');
-    };
+  if (!settings) return null;
+  if (!settings.bannerEnabled && !settings.maintenanceMode) return null;
 
-    checkStatus();
-    window.addEventListener('storage', checkStatus);
-    return () => window.removeEventListener('storage', checkStatus);
-  }, []);
-
-  if (!isVisible && !isMaintenance) return null;
-
-  if (isMaintenance) {
+  if (settings.maintenanceMode) {
     return (
       <div className="bg-red-600 text-white py-3 px-8 text-center text-xs font-bold tracking-widest uppercase animate-in slide-in-from-top duration-500 z-[110] sticky top-0 shadow-lg">
         <div className="max-w-[1280px] mx-auto flex items-center justify-center gap-4">
@@ -36,7 +24,7 @@ export function SiteBanner() {
     <div className="bg-[var(--color-primary)] text-white py-2 px-8 text-center text-xs font-bold tracking-widest uppercase animate-in slide-in-from-top duration-500 z-[110] sticky top-0">
       <div className="max-w-[1280px] mx-auto flex items-center justify-center gap-4">
         <span className="material-symbols-outlined text-sm animate-pulse">campaign</span>
-        Promocja: -10% na wszystkie kierunki UE z kodem: START2024
+        {settings.bannerText}
         <span className="material-symbols-outlined text-sm animate-pulse">campaign</span>
       </div>
     </div>

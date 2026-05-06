@@ -66,7 +66,7 @@ export class JwtAuthGuard implements CanActivate {
         throw new UnauthorizedException('Invalid token type');
       }
 
-      if (this.authSessionService?.isTokenRevoked(payload.jti)) {
+      if (await this.authSessionService?.isTokenRevoked(payload.jti)) {
         throw new UnauthorizedException('Token revoked');
       }
 

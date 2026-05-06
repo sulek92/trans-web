@@ -2,12 +2,11 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function LoginPage() {
   return (
-    <React.Suspense fallback={<main className="min-h-screen flex items-center justify-center bg-[var(--color-background)] px-4 py-10 sm:px-6 sm:py-12">Ladowanie...</main>}>
+    <React.Suspense fallback={<main className="min-h-dvh flex items-center justify-center bg-[var(--color-background)] px-4 py-10 sm:px-6 sm:py-12">Ladowanie...</main>}>
       <LoginContent />
     </React.Suspense>
   );
@@ -46,7 +45,7 @@ function LoginContent() {
       document.cookie = `pb_user_role=${payload.user?.role || 'customer'}; Path=/; Max-Age=${payload.expiresIn || 43200}; SameSite=Lax`;
 
       const nextPath = searchParams.get('next');
-      if (payload.user?.role === 'admin') {
+      if (payload.user?.role === 'admin' || payload.user?.role === 'superadmin') {
         router.push(nextPath || '/admin');
       } else {
         router.push('/konto');
@@ -59,8 +58,8 @@ function LoginContent() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[var(--color-background)] px-4 py-10 sm:px-6 sm:py-12">
-      <div className="w-full max-w-[32rem] animate-fade-in">
+    <main className="min-h-dvh bg-[var(--color-background)] px-3 py-6 sm:px-6 sm:py-10 lg:py-12">
+      <div className="mx-auto w-full max-w-[36rem] animate-fade-in">
         <div className="mb-8 text-center sm:mb-10">
           <Link href="/" className="inline-flex items-center gap-2 mb-6 hover:opacity-80 transition-premium">
             <div className="w-12 h-12 bg-[var(--color-primary)] rounded-xl flex items-center justify-center shadow-lg shadow-[var(--color-primary-highlight)]">
@@ -78,7 +77,7 @@ function LoginContent() {
           )}
         </div>
 
-        <div className="relative overflow-hidden rounded-2xl border border-[var(--color-divider)] bg-white p-6 shadow-2xl sm:rounded-[32px] sm:p-10">
+        <div className="relative rounded-2xl border border-[var(--color-divider)] bg-white p-5 shadow-2xl sm:rounded-[28px] sm:p-8 md:p-10">
           {isLoading && (
             <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center">
               <div className="w-12 h-12 border-4 border-[var(--color-primary-highlight)] border-t-[var(--color-primary)] rounded-full animate-spin"></div>
@@ -105,7 +104,7 @@ function LoginContent() {
             <div className="space-y-2">
               <div className="flex justify-between items-center px-1">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hasło dostępu</label>
-                <Link href="#" className="text-[10px] font-bold text-[var(--color-primary)] hover:underline uppercase tracking-wider">Nie pamiętasz?</Link>
+                <Link href="/reset-hasla" className="text-[10px] font-bold text-[var(--color-primary)] hover:underline uppercase tracking-wider">Nie pamiętasz?</Link>
               </div>
               <div className="relative group">
                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[var(--color-primary)] transition-colors">lock</span>
@@ -141,10 +140,13 @@ function LoginContent() {
           </div>
         </div>
         
-        <div className="mt-10 flex items-center justify-center gap-6 opacity-40 grayscale transition-all sm:mt-12 sm:gap-8">
-          <Image src="/payment/paypal.svg" alt="PayPal" className="h-4 w-auto" width={70} height={16} priority unoptimized />
-          <Image src="/payment/visa.svg" alt="Visa" className="h-4 w-auto" width={56} height={16} priority unoptimized />
-          <Image src="/payment/mastercard.svg" alt="Mastercard" className="h-6 w-auto" width={64} height={24} priority unoptimized />
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-6 opacity-40 grayscale transition-all sm:mt-12 sm:gap-8">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/payment/paypal.svg" alt="PayPal" width={70} height={16} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/payment/visa.svg" alt="Visa" width={56} height={16} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/payment/mastercard.svg" alt="Mastercard" width={64} height={24} />
         </div>
       </div>
     </main>

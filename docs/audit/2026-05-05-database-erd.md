@@ -11,6 +11,7 @@ erDiagram
   users ||--o{ orders : "user_id"
   users ||--o{ invoices : "user_id"
   users ||--o{ leads : "assigned_to"
+  users ||--o{ audit_logs : "actor_user_id"
 
   quotes ||--o{ orders : "quote_id"
   invoices ||--o{ orders : "invoice_id"
@@ -30,6 +31,7 @@ erDiagram
 - `invoices`: dane rozliczeniowe/faktury.
 - `leads`: zapytania handlowe i niestandardowe.
 - `cms_pages`, `cms_articles`: tresci CMS i blog.
+- `audit_logs`: historia operacji administracyjnych (kto/co/kiedy).
 
 ## Rekomendowane indeksy (do wdrozenia)
 - `orders(status, created_at)`

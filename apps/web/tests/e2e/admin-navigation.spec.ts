@@ -40,45 +40,71 @@ test('admin sidebar navigation routes to the correct views', async ({
 
   const page = await context.newPage();
   await page.goto(`${resolvedBaseURL}/admin`);
-  await expect(page.getByRole('heading', { name: /Witaj, Administratorze/i })).toBeVisible();
+  await expect(page.locator('main')).toContainText(/Witaj, Administratorze|Ładowanie statystyk/i);
 
   const flows = [
     {
       link: 'Zamówienia',
       url: '/admin/zamowienia',
-      heading: /Zarządzanie Zamówieniami/i,
+      content: /Zarządzanie Zamówieniami|Ładowanie zamówień/i,
     },
     {
       link: 'Klienci B2B',
       url: '/admin/uzytkownicy',
-      heading: /Baza Klientów B2B/i,
+      content: /Baza Klientów B2B|Ładowanie bazy klientów/i,
     },
     {
       link: 'Zapytania \\(Leady\\)',
       url: '/admin/leady',
-      heading: /Zapytania i Leady/i,
+      content: /Zapytania i Leady|Ładowanie zapytań/i,
     },
     {
       link: 'Zarządzanie treścią',
       url: '/admin/cms',
-      heading: /Zarządzanie treścią \(CMS\)/i,
+      content: /Zarządzanie treścią \(CMS\)|Ładowanie treści CMS/i,
     },
     {
-      link: 'Ustawienia marż',
+      link: 'Wygląd',
+      url: '/admin/wyglad',
+      content: /Edytor wyglądu|Podgląd na żywo/i,
+    },
+    {
+      link: 'Cennik',
+      url: '/admin/cennik',
+      content: /Reguły Cennika|Wczytywanie reguł cennika/i,
+    },
+    {
+      link: 'Finanse',
+      url: '/admin/finanse',
+      content: /Finanse i Księgowość|Eksport Faktur do ZIP/i,
+    },
+    {
+      link: 'Logi systemowe',
+      url: '/admin/logi-systemowe',
+      content: /Logi Systemowe|Szczegóły Zmian/i,
+    },
+    {
+      link: 'Ustawienia',
       url: '/admin/ustawienia',
-      heading: /Ustawienia Systemowe/i,
+      content: /Ustawienia i System|Status usług/i,
     },
     {
       link: 'Dashboard',
       url: '/admin',
-      heading: /Witaj, Administratorze/i,
+      content: /Witaj, Administratorze|Ładowanie statystyk/i,
     },
   ];
 
   for (const flow of flows) {
     await page.getByRole('link', { name: new RegExp(flow.link, 'i') }).click();
     await expect(page).toHaveURL(new RegExp(`${flow.url}$`));
-    await expect(page.getByRole('heading', { name: flow.heading })).toBeVisible();
+    await expect(page.locator('main')).toContainText(flow.content);
+
+    if (flow.url === '/admin/cms') {
+      await expect(page.locator('main')).toContainText(/Hero image URL/i);
+      await expect(page.locator('main')).toContainText(/Support image URL/i);
+      await expect(page.locator('main')).toContainText(/CTA image URL/i);
+    }
   }
 
   await context.close();

@@ -1,7 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const testPort = Number(process.env.PLAYWRIGHT_PORT || 3101);
-const baseURL = `http://127.0.0.1:${testPort}`;
+const externalBaseURL = process.env.PLAYWRIGHT_BASE_URL;
+const baseURL = externalBaseURL || `http://127.0.0.1:${testPort}`;
+const useExternalServer = Boolean(externalBaseURL);
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -20,9 +22,11 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  webServer: {
-    command: `npm run build && npm run start -- --port ${testPort} --hostname 127.0.0.1`,
-    url: baseURL,
-    reuseExistingServer: true,
-  },
+  webServer: useExternalServer
+    ? undefined
+    : {
+        command: `npm run build && npm run start -- --port ${testPort} --hostname 127.0.0.1`,
+        url: baseURL,
+        reuseExistingServer: true,
+      },
 });
