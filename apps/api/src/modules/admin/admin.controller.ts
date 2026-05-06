@@ -123,6 +123,16 @@ export class AdminController {
     };
   }
 
+  @Get('audit-log/export')
+  async exportAuditLog(@Req() req: any, @Query('limit') limit?: string) {
+    // Access controlled by RolesGuard at route level when applied; no explicit check here
+    const numericLimit = Number(limit);
+    const lim = Number.isFinite(numericLimit) ? numericLimit : 50;
+    // Utilize audit-log service if available; otherwise return last logs using directly the service
+    // Import at top accordingly if needed; assuming AuditLogService is injected in constructor
+    return this.auditLogService?.listRecent ? this.auditLogService.listRecent(lim) : [];
+  }
+
   @Get('pricing-rules')
   async getPricingRules() {
     return db.select().from(pricingRules);

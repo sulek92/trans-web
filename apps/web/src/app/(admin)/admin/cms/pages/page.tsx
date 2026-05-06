@@ -4,6 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { getApiBaseUrl } from '@/lib/api-url';
+import { getCookie } from '@/lib/utils';
 
 type CMSPage = { slug: string; title?: string; isPublished?: boolean };
 
@@ -14,6 +15,35 @@ export default function CmsPagesIndex() {
   // Quick action bar: create new CMS page
   const createNew = () => {
     window.location.assign('/admin/cms/pages/new');
+  };
+
+  const exportPages = async () => {
+    try {
+      const token = getCookie('pb_auth_token');
+      const res = await fetch(`${getApiBaseUrl()}/cms/pages/export`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token ?? ''}`,
+        },
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        // show an error message
+        alert('Eksport CMS nie powiódł się.');
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'cms-pages-export.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      alert('Błąd eksportu CMS.');
+    }
   };
 
   React.useEffect(() => {
@@ -57,7 +87,13 @@ export default function CmsPagesIndex() {
 
   return (
     <div className="p-6 space-y-6">
-      <h2 className="text-xl font-bold">CMS Pages</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold">CMS Pages</h2>
+        <div className="flex items-center gap-2">
+          <button onClick={createNew} className="px-4 py-2 rounded bg-[var(--color-primary)] text-white">Nowa strona CMS</button>
+          <button onClick={exportPages} className="px-4 py-2 rounded bg-green-600 text-white">Eksportuj CMS</button>
+        </div>
+      </div>
       <div className="flex justify-end">
         <button onClick={createNew} className="px-4 py-2 rounded bg-[var(--color-primary)] text-white">Nowa strona CMS</button>
       </div>
