@@ -161,7 +161,7 @@ export class DocumentsService {
     const [invoice] = (await db
       .select()
       .from(invoices)
-      .where(sql`${invoices.id} = ${invoiceId}`));
+      .where(sql`${invoices.id} = ${invoiceId}` as any));
     if (!invoice) throw new NotFoundException('Invoice not found');
 
     let buyer: any = null;
@@ -169,7 +169,7 @@ export class DocumentsService {
       [buyer] = await db
         .select()
         .from(companies)
-        .where(sql`${companies.id} = ${invoice.companyId}`);
+        .where(sql`${companies.id} = ${invoice.companyId}` as any);
     }
 
     return new Promise((resolve, reject) => {

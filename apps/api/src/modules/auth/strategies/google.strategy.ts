@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
+// @ts-expect-error: no type declarations for passport-google-oauth20
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 
 @Injectable()
