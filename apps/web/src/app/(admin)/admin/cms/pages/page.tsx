@@ -2,7 +2,6 @@
 'use client';
 
 import * as React from 'react';
-import { getApiBaseUrl } from '@/lib/api-url';
 import Link from 'next/link';
 import { getApiBaseUrl } from '@/lib/api-url';
 
