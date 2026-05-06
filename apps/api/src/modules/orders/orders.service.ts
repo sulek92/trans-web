@@ -171,7 +171,7 @@ export class OrdersService {
     const updated = await db
       .update(orders)
       .set({ status, updatedAt: new Date() })
-      .where(sql`${orders.id} = ANY(${ids})`)
+      .where(sql`${orders.id} = ANY(${ids})` as any)
       .returning();
 
     // Notify users
