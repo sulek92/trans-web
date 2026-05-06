@@ -1,8 +1,10 @@
 'use client';
 
 import * as React from 'react';
+import { useTranslation } from '@/lib/i18n/i18n-context';
 
 export function CookieConsent() {
+  const { t } = useTranslation();
   const [isVisible, setIsVisible] = React.useState(true);
 
   if (!isVisible) return null;
@@ -15,9 +17,8 @@ export function CookieConsent() {
             <span className="material-symbols-outlined">cookie</span>
           </div>
           <p className="text-sm text-[var(--color-on-surface-variant)] leading-relaxed">
-            Stosujemy pliki cookies w celu zapewnienia prawidłowego funkcjonowania serwisu oraz w celach analitycznych. 
-            Możesz zaakceptować wszystkie lub zarządzać ustawieniami. 
-            <a href="/polityka-prywatnosci" className="text-[var(--color-primary)] font-bold ml-1 hover:underline">Polityka Prywatności</a>
+            {t.cookies.text}
+            <a href="/polityka-prywatnosci" className="text-[var(--color-primary)] font-bold ml-1 hover:underline">{t.cookies.privacyPolicy}</a>
           </p>
         </div>
         <div className="flex gap-3 shrink-0">
@@ -25,13 +26,13 @@ export function CookieConsent() {
             onClick={() => setIsVisible(false)}
             className="px-6 py-3 rounded-xl border border-[var(--color-divider)] text-sm font-bold hover:bg-slate-50 transition-premium"
           >
-            Ustawienia
+            {t.cookies.settings}
           </button>
           <button 
             onClick={() => setIsVisible(false)}
             className="px-8 py-3 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-black transition-premium shadow-lg active:scale-95"
           >
-            Akceptuję wszystkie
+            {t.cookies.acceptAll}
           </button>
         </div>
       </div>

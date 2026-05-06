@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n/i18n-context';
 import { createLead } from '@/lib/leads';
 import { useToastStore } from '@/lib/store/toast-store';
+import { cn } from '@/lib/utils';
 
 type CmsManagedImageProps = {
   src?: string;
@@ -28,22 +29,20 @@ function CmsManagedImage({
     return trimmed.length > 0 ? trimmed : fallbackSrc;
   }, [src, fallbackSrc]);
 
-  const [currentSrc, setCurrentSrc] = React.useState(normalizedSrc);
-
-  React.useEffect(() => {
-    setCurrentSrc(normalizedSrc);
-  }, [normalizedSrc]);
-
   return (
     <div className={className}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={currentSrc}
+        src={normalizedSrc}
         alt={alt}
         loading="lazy"
+        data-fallback-applied="false"
         className={imgClassName}
-        onError={() => {
-          if (currentSrc !== fallbackSrc) setCurrentSrc(fallbackSrc);
+        onError={(event) => {
+          const image = event.currentTarget;
+          if (image.dataset.fallbackApplied === 'true') return;
+          image.dataset.fallbackApplied = 'true';
+          image.src = fallbackSrc;
         }}
       />
     </div>
@@ -55,7 +54,7 @@ export function HomePageClient({
 }: {
   initialCmsData: Record<string, unknown> | null;
 }) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [activeIndex, setActiveIndex] = React.useState(0);
   const [isSending, setIsSending] = React.useState<string | null>(null);
   const [showQuickBar, setShowQuickBar] = React.useState(false);
@@ -66,56 +65,58 @@ export function HomePageClient({
 
   const heroTitle = (c.heroTitle as string) || t.hero.title;
   const heroSubtitle = (c.heroSubtitle as string) || t.hero.subtitle;
-  const heroBadge = (c.heroBadge as string) || 'Logistyka B2B dla profesjonalistów';
+  const heroBadge = (c.heroBadge as string) || t.home.hero.badge;
   const heroVisualImage = (c.heroVisualImage as string) || '/images/home-hero-logistics.jpg';
-  const heroVisualCaption = (c.heroVisualCaption as string) || 'Operacje paletowe 24/7';
+  const heroVisualCaption = (c.heroVisualCaption as string) || t.home.hero.visualCaption;
   const partners = (c.partners as string[]) || ['DHL Freight', 'FedEx Express', 'Raben', 'DSV', 'DB Schenker'];
   const activityTicker = (c.activityTicker as {city:string;status:string;time:string}[]) || [
-    { city: 'Warszawa', status: 'Odebrano', time: '2 min temu' },
-    { city: 'Berlin', status: 'W trasie', time: '5 min temu' },
-    { city: 'Kraków', status: 'Dostarczono', time: '12 min temu' },
-    { city: 'Praga', status: 'Odebrano', time: '15 min temu' },
-    { city: 'Wrocław', status: 'Dostarczono', time: '20 min temu' },
+    { city: 'Warszawa', status: t.home.ticker.received, time: `2 ${t.home.ticker.ago}` },
+    { city: 'Berlin', status: t.home.ticker.inTransit, time: `5 ${t.home.ticker.ago}` },
+    { city: 'Kraków', status: t.home.ticker.delivered, time: `12 ${t.home.ticker.ago}` },
+    { city: 'Praga', status: t.home.ticker.received, time: `15 ${t.home.ticker.ago}` },
+    { city: 'Wrocław', status: t.home.ticker.delivered, time: `20 ${t.home.ticker.ago}` },
+    { city: 'Gdańsk', status: t.home.ticker.received, time: `25 ${t.home.ticker.ago}` },
+    { city: 'Poznań', status: t.home.ticker.inTransit, time: `28 ${t.home.ticker.ago}` },
   ];
   const howItWorks = (c.howItWorks as {step:string;title:string;desc:string;icon:string}[]) || [
-    { step: '01', title: 'Wyceń online', desc: 'Podaj kody pocztowe i wymiary palety w naszym kalkulatorze.', icon: 'search' },
-    { step: '02', title: 'Wybierz kuriera', desc: 'Porównaj ceny i czasy dostawy topowych przewoźników B2B.', icon: 'compare_arrows' },
-    { step: '03', title: 'Zleć odbiór', desc: 'Opłać zamówienie i czekaj na kuriera. Etykietę dostaniesz na maila.', icon: 'local_shipping' },
+    { step: '01', title: t.home.howItWorks.step1.title, desc: t.home.howItWorks.step1.desc, icon: 'search' },
+    { step: '02', title: t.home.howItWorks.step2.title, desc: t.home.howItWorks.step2.desc, icon: 'compare_arrows' },
+    { step: '03', title: t.home.howItWorks.step3.title, desc: t.home.howItWorks.step3.desc, icon: 'local_shipping' },
   ];
   const stats = (c.stats as {label:string;end:number;suffix:string}[]) || [
-    { label: 'Obsłużonych palet', end: 45000, suffix: '+' },
-    { label: 'Aktywnych klientów', end: 1200, suffix: '+' },
-    { label: 'Krajów w sieci', end: 28, suffix: '' },
-    { label: 'Średnia oszczędność', end: 22, suffix: '%' },
+    { label: t.home.stats.pallets, end: 45000, suffix: '+' },
+    { label: t.home.stats.clients, end: 1200, suffix: '+' },
+    { label: t.home.stats.countries, end: 28, suffix: '' },
+    { label: t.home.stats.savings, end: 22, suffix: '%' },
   ];
   const testimonials = (c.testimonials as {name:string;role:string;text:string;avatar:string;avatarImage?: string}[]) || [
     {
-      name: 'Marek Jankowski',
-      role: 'CEO, E-com Group',
-      text: 'Przejście na PaletBroker skróciło czas nadawania przesyłek o połowę.',
+      name: t.home.testimonials.items[0].name,
+      role: t.home.testimonials.items[0].role,
+      text: t.home.testimonials.items[0].text,
       avatar: 'person',
       avatarImage: '/images/avatars/client-1.jpg',
     },
     {
-      name: 'Anna Nowak',
-      role: 'Logistics Manager, TechFood',
-      text: 'Najbardziej cenimy sobie dedykowanego opiekuna.',
+      name: t.home.testimonials.items[1].name,
+      role: t.home.testimonials.items[1].role,
+      text: t.home.testimonials.items[1].text,
       avatar: 'person_3',
       avatarImage: '/images/avatars/client-2.jpg',
     },
     {
-      name: 'Robert Wilk',
-      role: 'Właściciel, Wilk Meble',
-      text: 'Ceny są bezkonkurencyjne.',
+      name: t.home.testimonials.items[2].name,
+      role: t.home.testimonials.items[2].role,
+      text: t.home.testimonials.items[2].text,
       avatar: 'person_4',
       avatarImage: '/images/avatars/client-3.jpg',
     },
   ];
-  const supportTitle = (c.supportTitle as string) || 'Zawsze do Twojej dyspozycji';
-  const supportSubtitle = (c.supportSubtitle as string) || 'Logistyka to branża, w której liczy się czas i precyzja. Nasz zespół wsparcia czuwa nad Twoimi przesyłkami i odpowie na każde pytanie w mniej niż 15 minut.';
+  const supportTitle = (c.supportTitle as string) || t.home.support.title;
+  const supportSubtitle = (c.supportSubtitle as string) || t.home.support.subtitle;
   const supportVisualImage = (c.supportVisualImage as string) || '/images/home-support-team.jpg';
-  const ctaTitle = (c.ctaTitle as string) || 'Zacznij wysyłać taniej już dziś';
-  const ctaSubtitle = (c.ctaSubtitle as string) || 'Dołącz do 1200+ firm, które zaufały technologii PaletBroker. Twoja pierwsza przesyłka może być u odbiorcy już jutro.';
+  const ctaTitle = (c.ctaTitle as string) || t.home.cta.title;
+  const ctaSubtitle = (c.ctaSubtitle as string) || t.home.cta.subtitle;
   const ctaVisualImage = (c.ctaVisualImage as string) || '/images/home-cta-warehouse.jpg';
   const totalTestimonials = testimonials.length;
 
@@ -150,15 +151,15 @@ export function HomePageClient({
         route: 'Homepage support form',
       });
       addToast({
-        title: 'Wiadomosc wyslana',
-        description: 'Dziekujemy. Odpowiemy w ciagu 15 minut.',
+        title: t.home.support.form.success.title,
+        description: t.home.support.form.success.description,
         type: 'success',
       });
       form.reset();
     } catch (error) {
       addToast({
-        title: 'Blad wysylki',
-        description: error instanceof Error ? error.message : 'Nie udalo sie wyslac formularza.',
+        title: t.home.support.form.error.title,
+        description: error instanceof Error ? error.message : t.home.support.form.error.description,
         type: 'error',
       });
     } finally {
@@ -167,116 +168,148 @@ export function HomePageClient({
   };
 
   return (
-    <main className="pt-24 pb-16 bg-[var(--color-background)]">
-      {/* Quick Quote Bar */}
-      <div className={`fixed top-0 left-0 w-full glass z-[60] py-3 px-8 transition-all duration-500 transform ${showQuickBar ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'} hidden md:flex items-center justify-between shadow-lg`}>
-        <div className="flex items-center gap-6">
-          <div className="font-display-bold font-bold text-[var(--color-primary)]">PaletBroker</div>
-          <div className="h-4 w-px bg-[var(--color-divider)]"></div>
-          <div className="text-sm font-medium text-slate-500">Błyskawiczna wycena palet B2B</div>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Ceny od 149 PLN</div>
+    <main key={locale} className="pt-20 sm:pt-24 pb-12 sm:pb-16 bg-[var(--color-background)]">
+      {/* Quick Quote Bar - Redesigned as a floating premium pill */}
+      <div className={cn(
+        "fixed top-8 left-1/2 -translate-x-1/2 z-[100] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]",
+        showQuickBar ? "translate-y-0 opacity-100 scale-100" : "-translate-y-20 opacity-0 scale-90 pointer-events-none"
+      )}>
+        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-white/20 dark:border-white/10 rounded-full px-2 py-2 flex items-center gap-6 shadow-[0_20px_50px_rgba(0,0,0,0.2)]">
+          <div className="flex items-center gap-4 px-6 border-r border-slate-200 dark:border-slate-800">
+            <div className="w-10 h-10 rounded-full bg-[var(--color-primary)] flex items-center justify-center text-white shadow-lg shadow-[var(--color-primary)]/20">
+              <span className="material-symbols-outlined text-lg">pallet</span>
+            </div>
+            <div className="hidden sm:block">
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">PaletBroker</div>
+              <div className="text-sm font-bold text-slate-900 dark:text-white leading-none">Wyceń przesyłkę</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 pr-2">
+            <div className="text-xs font-bold text-[var(--color-on-surface-variant)] line-through opacity-40">219 PLN</div>
+            <div className="text-lg font-display-bold font-bold text-[var(--color-primary)] tracking-tight">149 PLN</div>
+          </div>
           <button 
             onClick={() => document.getElementById('calculator')?.scrollIntoView({ behavior: 'smooth' })}
-            className="bg-[var(--color-primary)] text-white px-6 py-2 rounded-xl font-bold text-sm hover:scale-105 active:scale-95 transition-premium shadow-lg"
+            className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-8 py-3.5 rounded-full font-bold text-sm hover:bg-[var(--color-primary)] hover:text-white transition-premium shadow-xl active:scale-95"
           >
-            Wyceń teraz
+            Szybka Wycena
           </button>
         </div>
       </div>
+
       {/* Hero Section */}
-      <section className="max-w-[1280px] mx-auto px-8 mb-24 animate-fade-in">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-center">
+      <section className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 mb-16 sm:mb-20 lg:mb-24 animate-fade-in">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-start">
           {/* Left Column */}
-          <div className="lg:col-span-7 flex flex-col gap-lg">
+          <div className="lg:col-span-7 flex flex-col gap-lg lg:pt-2">
             <div>
-              <span className="inline-block px-3 py-1 bg-[var(--color-primary-highlight)] text-[var(--color-on-primary-fixed-variant)] font-label-sm text-[14px] font-bold rounded-full mb-6 border border-[var(--color-primary)] transition-premium hover:scale-105 cursor-default">{heroBadge}</span>
-              <h1 className="font-display-bold text-[36px] sm:text-[48px] lg:text-[56px] leading-[1.1] text-[var(--color-on-background)] mb-6 font-bold tracking-tight">
+              <span className="inline-block px-4 py-1.5 bg-[var(--color-primary-highlight)] text-[var(--color-primary)] font-bold text-[12px] rounded-full mb-8 border border-[var(--color-primary)]/10 shadow-sm uppercase tracking-widest">{heroBadge}</span>
+              <h1 className="font-display-bold text-[42px] sm:text-[56px] lg:text-[72px] leading-[0.95] text-[var(--color-on-background)] mb-8 font-bold tracking-tighter">
                 {heroTitle}
               </h1>
-              <p className="font-body-base text-[16px] sm:text-[18px] lg:text-[20px] text-[var(--color-on-surface-variant)] max-w-2xl leading-relaxed mb-10">
+              <p className="font-body-base text-[18px] sm:text-[20px] lg:text-[22px] text-[var(--color-on-surface-variant)] max-w-2xl leading-relaxed mb-12">
                 {heroSubtitle}
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-4">
-                <button 
+              <div className="flex flex-col sm:flex-row gap-5">
+                <button
                   onClick={() => document.getElementById('calculator')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="bg-[var(--color-primary)] text-white px-10 py-5 rounded-2xl font-bold shadow-xl hover:bg-[var(--color-surface-tint)] transition-premium active:scale-95 flex items-center justify-center gap-3 text-lg"
+                  className="bg-[var(--color-primary)] text-white px-12 py-6 rounded-[24px] font-bold shadow-2xl shadow-[var(--color-primary)]/20 hover:scale-[1.02] transition-premium active:scale-95 flex items-center justify-center gap-4 text-xl"
                 >
                   {t.hero.cta}
                   <span className="material-symbols-outlined">calculate</span>
                 </button>
-                <Link href="/dla-firm" className="bg-white border border-[var(--color-divider)] text-[var(--color-on-background)] px-10 py-5 rounded-2xl font-bold hover:bg-slate-50 transition-premium flex items-center justify-center gap-2 text-lg">
+                <Link href="/dla-firm" className="bg-white dark:bg-slate-900 border border-[var(--color-divider)] text-[var(--color-on-background)] px-12 py-6 rounded-[24px] font-bold hover:border-[var(--color-primary)] transition-premium flex items-center justify-center gap-3 text-xl shadow-lg">
                   Oferta B2B
+                  <span className="material-symbols-outlined text-sm opacity-40">arrow_forward</span>
                 </Link>
               </div>
             </div>
           </div>
 
-          {/* Right Column: Calculator & Tracking */}
-          <div id="calculator" className="lg:col-span-5 flex flex-col gap-6 animate-float">
-            <div className="relative overflow-hidden rounded-2xl border border-[var(--color-divider)] shadow-xl bg-slate-900">
+          {/* Right Column: Hero Visual */}
+          <div className="lg:col-span-5 flex flex-col gap-4">
+            <div className="relative overflow-hidden rounded-[48px] border border-[var(--color-divider)] shadow-[0_40px_80px_-15px_rgba(0,0,0,0.1)] bg-slate-900 group">
               <CmsManagedImage
                 src={heroVisualImage}
                 fallbackSrc="/images/home-hero-logistics.jpg"
                 alt="Centrum operacyjne logistyki paletowej"
-                className="aspect-[16/10] w-full"
-                imgClassName="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                className="aspect-[16/11] w-full"
+                imgClassName="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-900/10 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-5">
-                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white/85">
-                  <span className="material-symbols-outlined text-sm">monitoring</span>
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent opacity-60" />
+              <div className="absolute bottom-0 left-0 right-0 p-10">
+                <div className="inline-flex items-center gap-4 rounded-2xl bg-white/10 backdrop-blur-xl px-5 py-2.5 text-[12px] font-bold uppercase tracking-[0.2em] text-white border border-white/20 shadow-2xl">
+                  <span className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-pulse shadow-[0_0_8px_var(--color-primary)]"></span>
                   {heroVisualCaption}
                 </div>
               </div>
             </div>
-
-            {/* Calculator */}
-            <div className="bg-[var(--color-surface-primary)] p-8 rounded-2xl shadow-xl border border-[var(--color-divider)] relative transition-premium hover:shadow-2xl">
-              <div className="absolute -top-3 -right-3 bg-[var(--color-secondary)] text-white text-[10px] font-bold px-2 py-1 rounded rotate-12 shadow-sm animate-pulse">NAJTANIEJ</div>
-              <h2 className="font-h2-medium text-[20px] font-bold text-[var(--color-on-surface)] mb-6 flex items-center gap-2">
-                <span className="material-symbols-outlined text-[var(--color-primary)]">calculate</span>
-                Błyskawiczna wycena
-              </h2>
-              <React.Suspense fallback={<div className="h-[400px] flex items-center justify-center text-slate-300 font-bold">Ładowanie kalkulatora...</div>}>
-                <QuoteForm />
-              </React.Suspense>
-            </div>
-
-            {/* Quick Tracking */}
-            <div className="bg-slate-900 p-8 rounded-2xl shadow-xl border border-slate-800 text-white group overflow-hidden relative">
-              <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-premium">
-                <span className="material-symbols-outlined text-6xl">location_searching</span>
+            <div className="rounded-3xl border border-[var(--color-divider)] bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl p-6 text-sm text-[var(--color-on-surface-variant)] shadow-sm font-medium flex items-center gap-4">
+              <div className="flex -space-x-3">
+                {[1,2,3,4].map(i => (
+                  <div key={i} className="w-8 h-8 rounded-full bg-slate-200 border-2 border-white dark:border-slate-900 flex items-center justify-center text-[10px] font-bold">U{i}</div>
+                ))}
               </div>
-              <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                <span className="material-symbols-outlined text-teal-400">track_changes</span>
-                Gdzie jest moja paleta?
+              <span>Porównujemy oferty <span className="text-[var(--color-primary)] font-bold">12+ przewoźników</span> w czasie rzeczywistym.</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="calculator" className="mt-16 lg:mt-24">
+          {/* Calculator */}
+          <div className="bg-white dark:bg-slate-900/50 p-8 sm:p-16 rounded-[60px] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.06)] border border-[var(--color-divider)] relative transition-premium group">
+            <div className="absolute -top-6 right-16 bg-[var(--color-primary)] text-white text-[11px] font-bold px-6 py-3 rounded-full shadow-2xl animate-float tracking-widest uppercase">{t.home.calculator.badge}</div>
+            <div className="mb-12 flex flex-col gap-6">
+              <h2 className="text-4xl sm:text-5xl font-bold text-[var(--color-on-surface)] flex items-center gap-6">
+                <div className="w-16 h-16 rounded-3xl bg-[var(--color-primary-highlight)] text-[var(--color-primary)] flex items-center justify-center shadow-inner">
+                  <span className="material-symbols-outlined text-4xl">calculate</span>
+                </div>
+                {t.home.calculator.title}
+              </h2>
+              <p className="text-xl text-[var(--color-on-surface-variant)] max-w-3xl leading-relaxed">
+                {t.home.calculator.subtitle}
+              </p>
+            </div>
+            <React.Suspense fallback={<div className="h-[400px] flex items-center justify-center text-slate-300 font-bold">{t.home.calculator.loading}</div>}>
+              <QuoteForm />
+            </React.Suspense>
+          </div>
+
+          {/* Quick Tracking */}
+          <div className="mt-12 bg-slate-900 dark:bg-slate-950 rounded-[48px] p-10 sm:p-16 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] border border-slate-800 text-white group overflow-hidden relative">
+            <div className="absolute top-0 right-0 p-16 opacity-5 group-hover:scale-110 group-hover:rotate-12 transition-premium">
+              <span className="material-symbols-outlined text-[200px]">location_searching</span>
+            </div>
+            <div className="relative z-10">
+              <h3 className="font-bold text-3xl mb-8 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-[var(--color-primary)]">
+                  <span className="material-symbols-outlined text-2xl">track_changes</span>
+                </div>
+                {t.home.tracking.title}
               </h3>
-              <form 
+              <form
                 onSubmit={(e) => {
                   e.preventDefault();
                   const input = e.currentTarget.elements.namedItem('trackingNumber') as HTMLInputElement | null;
                   const val = input?.value;
-                  if (!val) return alert('Wpisz numer zlecenia');
+                  if (!val) return alert(t.home.tracking.error);
                   simulateSend('tracking', `Szukanie zlecenia: ${val}... (Funkcja w przygotowaniu)`);
                 }}
-                className="flex gap-2"
+                className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-6"
               >
-                <input 
+                <input
                   name="trackingNumber"
-                  type="text" 
-                  placeholder="Numer zlecenia (np. OR-1234)" 
-                  className="bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm flex-grow outline-none focus:border-teal-400 transition-colors placeholder:text-white/30 font-data-mono"
+                  type="text"
+                  placeholder={t.home.tracking.placeholder}
+                  className="w-full bg-white/5 border border-white/10 rounded-[24px] px-8 py-6 text-xl outline-none focus:border-[var(--color-primary)] transition-all placeholder:text-white/20 font-data-mono shadow-inner"
                 />
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={isSending === 'tracking'}
-                  className="bg-teal-500 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-teal-400 transition-colors shadow-lg shadow-teal-500/20 active:scale-95 disabled:opacity-50 relative overflow-hidden"
+                  className="bg-[var(--color-primary)] text-white px-12 py-6 rounded-[24px] font-bold text-xl hover:bg-[var(--color-primary-hover)] transition-all shadow-2xl shadow-[var(--color-primary)]/20 active:scale-95 disabled:opacity-50"
                 >
-                  {isSending === 'tracking' ? <span className="animate-pulse">Szukanie...</span> : 'Szukaj'}
-                  {isSending === 'tracking' && <div className="absolute inset-0 animate-shimmer"></div>}
+                  {isSending === 'tracking' ? t.home.tracking.searching : t.home.tracking.button}
                 </button>
               </form>
             </div>
@@ -284,14 +317,20 @@ export function HomePageClient({
         </div>
       </section>
 
-      {/* Partners Section */}
-      <section className="bg-white py-16 border-y border-[var(--color-divider)]">
+      {/* Partners Section - Premium Monochrome Grid */}
+      <section className="bg-slate-50 dark:bg-slate-950 py-24 border-y border-[var(--color-divider)]">
         <div className="max-w-[1280px] mx-auto px-8">
-          <div className="text-center mb-8 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Oficjalni Partnerzy Logistyczni</div>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-12 items-center justify-items-center opacity-40 grayscale">
+          <div className="text-center mb-16">
+            <span className="text-[11px] font-bold uppercase tracking-[0.4em] text-slate-400 mb-4 block">{t.home.partners.title}</span>
+            <div className="h-px w-20 bg-[var(--color-primary)] mx-auto opacity-30"></div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-12 items-center opacity-30 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-1000 ease-in-out">
             {partners.map((p, i) => (
-              <div key={i} className="font-display-bold text-xl font-bold hover:opacity-100 hover:grayscale-0 hover:text-[var(--color-primary)] transition-premium cursor-default">
-                {p}
+              <div key={i} className="flex flex-col items-center gap-4 group cursor-default">
+                <div className="w-16 h-16 rounded-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-center shadow-sm group-hover:shadow-xl group-hover:border-[var(--color-primary)]/20 transition-premium">
+                  <span className="material-symbols-outlined text-[var(--color-primary)] opacity-40 group-hover:opacity-100 transition-opacity">verified</span>
+                </div>
+                <span className="font-display-bold text-lg font-bold text-slate-900 dark:text-white tracking-tight">{p}</span>
               </div>
             ))}
           </div>
@@ -299,106 +338,75 @@ export function HomePageClient({
       </section>
 
       {/* Live Activity Ticker */}
-      <div className="bg-slate-50/50 py-4 overflow-hidden border-b border-[var(--color-divider)] glass relative z-20">
-        <div className="flex gap-12 animate-float whitespace-nowrap px-8">
-          {activityTicker.map((item, i) => (
-            <div key={i} className="flex items-center gap-3 text-xs font-medium">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-slate-400">{item.time}</span>
-              <span className="font-bold">{item.city}</span>
-              <span className="text-slate-400">—</span>
-              <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-bold">{item.status}</span>
+      <div className="bg-white dark:bg-slate-900 py-8 overflow-hidden border-b border-[var(--color-divider)] relative z-20">
+        <div className="flex gap-24 whitespace-nowrap animate-shimmer-slow px-8">
+          {[...activityTicker, ...activityTicker].map((item, i) => (
+            <div key={i} className="flex items-center gap-6 text-sm font-bold">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-pulse"></div>
+                <span className="text-slate-400 uppercase tracking-[0.2em] text-[10px]">{item.time}</span>
+              </div>
+              <span className="text-slate-900 dark:text-white font-display-bold text-base">{item.city}</span>
+              <span className="px-4 py-1.5 bg-[var(--color-primary-highlight)] text-[var(--color-primary)] rounded-full text-[11px] uppercase tracking-widest">{item.status}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* How it Works Section */}
-      <section className="py-24 max-w-[1280px] mx-auto px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-[var(--color-on-background)] mb-4">Jak to działa?</h2>
-          <p className="text-[var(--color-on-surface-variant)]">Wysyłka palety nigdy nie była tak prosta.</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          {howItWorks.map((item, idx) => (
-            <div key={idx} className="relative group">
-              <div className="text-[64px] font-display-bold font-bold text-[var(--color-primary)] opacity-10 absolute -top-8 left-0">{item.step}</div>
-              <div className="relative pt-4">
-                <div className="w-12 h-12 bg-[var(--color-primary)] text-white rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <span className="material-symbols-outlined">{item.icon}</span>
-                </div>
-                <h3 className="text-xl font-bold mb-2">{item.title}</h3>
-                <p className="text-[var(--color-on-surface-variant)] text-sm leading-relaxed">{item.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-24 bg-slate-900 text-white overflow-hidden relative">
-        <div className="max-w-[1280px] mx-auto px-8 relative z-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
-            {stats.map((stat, i) => (
-              <div key={i}>
-                <div className="text-4xl md:text-5xl font-bold text-[var(--color-primary)] mb-2">
-                  <Counter end={Number(stat.end)} suffix={stat.suffix} />
-                </div>
-                <div className="text-sm text-slate-400 font-medium uppercase tracking-widest">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-24 bg-white overflow-hidden">
+      {/* Testimonials - Premium Card System */}
+      <section className="py-32 bg-white dark:bg-slate-900 overflow-hidden">
         <div className="max-w-[1280px] mx-auto px-8">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-24 gap-12">
             <div className="max-w-2xl">
-              <h2 className="text-4xl font-bold text-[var(--color-on-background)] mb-4">Zaufali nam liderzy branż</h2>
-              <p className="text-[var(--color-on-surface-variant)] text-lg">Zobacz, co o współpracy z PaletBroker mówią nasi stali partnerzy biznesowi.</p>
+              <span className="text-[var(--color-primary)] font-bold tracking-[0.3em] uppercase text-[11px] mb-6 block">Głos naszych klientów</span>
+              <h2 className="text-5xl lg:text-6xl font-bold text-[var(--color-on-background)] mb-8 tracking-tight">Zaufali nam liderzy branż</h2>
+              <p className="text-[var(--color-on-surface-variant)] text-xl leading-relaxed opacity-80">Zobacz, jak technologia PaletBroker optymalizuje łańcuchy dostaw największych firm w regionie.</p>
             </div>
-            <div className="flex gap-4">
-              <button onClick={prevTestimonial} className="w-12 h-12 rounded-full border border-[var(--color-divider)] flex items-center justify-center hover:bg-slate-50 transition-colors active:scale-90">
-                <span className="material-symbols-outlined">west</span>
+            <div className="flex gap-6">
+              <button aria-label="Poprzednia opinia" onClick={prevTestimonial} className="w-16 h-16 rounded-[24px] border border-[var(--color-divider)] flex items-center justify-center hover:bg-[var(--color-primary)] hover:text-white hover:border-transparent transition-premium active:scale-90 shadow-sm">
+                <span className="material-symbols-outlined text-2xl">west</span>
               </button>
-              <button onClick={nextTestimonial} className="w-12 h-12 rounded-full border border-[var(--color-divider)] flex items-center justify-center hover:bg-slate-50 transition-colors active:scale-90">
-                <span className="material-symbols-outlined">east</span>
+              <button aria-label="Następna opinia" onClick={nextTestimonial} className="w-16 h-16 rounded-[24px] border border-[var(--color-divider)] flex items-center justify-center hover:bg-[var(--color-primary)] hover:text-white hover:border-transparent transition-premium active:scale-90 shadow-sm">
+                <span className="material-symbols-outlined text-2xl">east</span>
               </button>
             </div>
           </div>
 
-          <div className="relative group">
-            <div className="overflow-hidden">
+          <div className="relative">
+            <div className="overflow-visible">
               <div 
-                className="flex transition-transform duration-500 ease-in-out"
+                className="flex transition-transform duration-1000 cubic-bezier(0.23, 1, 0.32, 1)"
                 style={{ transform: `translateX(-${activeIndex * 100}%)` }}
               >
                 {testimonials.map((t, i) => (
                   <div key={i} className="w-full flex-shrink-0 px-4">
-                    <div className="bg-slate-50 p-12 rounded-[40px] border border-slate-100 relative h-full">
-                      <div className="text-[var(--color-primary)] opacity-20 mb-8">
-                        <span className="material-symbols-outlined text-6xl">format_quote</span>
+                    <div className="bg-slate-50 dark:bg-slate-950 p-12 lg:p-24 rounded-[64px] border border-slate-100 dark:border-slate-800 relative group overflow-hidden shadow-2xl">
+                      <div className="absolute top-0 right-0 p-16 text-[var(--color-primary)] opacity-[0.05] group-hover:scale-110 group-hover:rotate-12 transition-transform duration-1000">
+                        <span className="material-symbols-outlined text-[240px]">format_quote</span>
                       </div>
-                      <p className="text-2xl text-[var(--color-on-background)] font-medium italic mb-12 leading-relaxed">&ldquo;{t.text}&rdquo;</p>
-                      <div className="flex items-center gap-6">
-                        {t.avatarImage ? (
-                          <CmsManagedImage
-                            src={t.avatarImage}
-                            fallbackSrc="/images/avatars/client-1.jpg"
-                            alt={t.name}
-                            className="w-16 h-16 rounded-full overflow-hidden border border-[var(--color-divider)]"
-                            imgClassName="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-16 h-16 rounded-full bg-[var(--color-primary-highlight)] flex items-center justify-center text-[var(--color-primary)]">
-                            <span className="material-symbols-outlined text-3xl">{t.avatar}</span>
+                      <div className="relative z-10">
+                        <div className="flex gap-1.5 mb-12">
+                          {[1,2,3,4,5].map(s => <span key={s} className="material-symbols-outlined text-amber-400 text-base" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>)}
+                        </div>
+                        <p className="text-3xl lg:text-5xl text-[var(--color-on-background)] font-bold leading-[1.2] mb-16 tracking-tight">&ldquo;{t.text}&rdquo;</p>
+                        <div className="flex items-center gap-8">
+                          {t.avatarImage ? (
+                            <CmsManagedImage
+                              src={t.avatarImage}
+                              fallbackSrc="/images/avatars/client-1.jpg"
+                              alt={t.name}
+                              className="w-20 h-20 rounded-[28px] overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl"
+                              imgClassName="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-20 h-20 rounded-[28px] bg-[var(--color-primary-highlight)] flex items-center justify-center text-[var(--color-primary)] shadow-inner">
+                              <span className="material-symbols-outlined text-4xl">{t.avatar}</span>
+                            </div>
+                          )}
+                          <div>
+                            <div className="font-bold text-2xl tracking-tight">{t.name}</div>
+                            <div className="text-[11px] text-[var(--color-primary)] font-bold uppercase tracking-[0.2em] mt-2">{t.role}</div>
                           </div>
-                        )}
-                        <div>
-                          <div className="font-bold text-lg">{t.name}</div>
-                          <div className="text-sm text-slate-400 font-medium uppercase tracking-widest">{t.role}</div>
                         </div>
                       </div>
                     </div>
@@ -413,38 +421,44 @@ export function HomePageClient({
       {/* Support Section */}
       <section className="py-24 bg-slate-50 border-y border-[var(--color-divider)]">
         <div className="max-w-[1280px] mx-auto px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
             <div>
-              <h2 className="text-4xl font-bold mb-6">{supportTitle}</h2>
-              <p className="text-lg text-[var(--color-on-surface-variant)] mb-10 leading-relaxed">
+              <span className="text-[var(--color-primary)] font-bold tracking-widest uppercase text-[10px] mb-4 block">{t.home.support.badge}</span>
+              <h2 className="text-4xl lg:text-5xl font-bold mb-8 leading-tight">{supportTitle}</h2>
+              <p className="text-xl text-[var(--color-on-surface-variant)] mb-12 leading-relaxed">
                 {supportSubtitle}
               </p>
-              <div className="overflow-hidden rounded-3xl border border-[var(--color-divider)] shadow-lg">
-                <CmsManagedImage
-                  src={supportVisualImage}
-                  fallbackSrc="/images/home-support-team.jpg"
-                  alt="Zespół wsparcia klienta PaletBroker"
-                  className="aspect-[16/10] w-full"
-                  imgClassName="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
-                />
+              <div className="grid grid-cols-2 gap-6">
+                <div className="p-6 bg-white rounded-[24px] border border-slate-100 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center mb-4"><span className="material-symbols-outlined">bolt</span></div>
+                  <div className="font-bold text-lg">15 min</div>
+                  <div className="text-xs text-slate-400 font-medium">{t.home.support.responseTime}</div>
+                </div>
+                <div className="p-6 bg-white rounded-[24px] border border-slate-100 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4"><span className="material-symbols-outlined">support_agent</span></div>
+                  <div className="font-bold text-lg">24/7</div>
+                  <div className="text-xs text-slate-400 font-medium">{t.home.support.monitoring}</div>
+                </div>
               </div>
             </div>
-            <div className="bg-white p-8 rounded-[40px] shadow-2xl border border-slate-100 relative z-10">
-              <h3 className="text-xl font-bold mb-6">Napisz do nas</h3>
+            <div className="bg-white p-10 rounded-[48px] shadow-2xl border border-slate-100 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-primary)] opacity-5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700" />
+              <h3 className="text-2xl font-bold mb-8">{t.home.support.form.title}</h3>
               <form 
                 onSubmit={submitSupportLead}
-                className="flex flex-col gap-4"
+                className="flex flex-col gap-5 relative z-10"
               >
-                <input required name="name" type="text" placeholder="Imię i nazwisko" className="p-4 bg-slate-50 rounded-xl border border-transparent focus:border-[var(--color-primary)] outline-none transition-colors" />
-                <input required name="email" type="email" placeholder="E-mail firmowy" className="p-4 bg-slate-50 rounded-xl border border-transparent focus:border-[var(--color-primary)] outline-none transition-colors" />
-                <textarea required name="message" placeholder="W czym możemy pomóc?" rows={4} className="p-4 bg-slate-50 rounded-xl border border-transparent focus:border-[var(--color-primary)] outline-none transition-colors resize-none"></textarea>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <input required name="name" type="text" placeholder={t.home.support.form.name} className="p-5 bg-slate-50 rounded-2xl border border-transparent focus:bg-white focus:border-[var(--color-primary)] outline-none transition-all" />
+                  <input required name="email" type="email" placeholder={t.home.support.form.email} className="p-5 bg-slate-50 rounded-2xl border border-transparent focus:bg-white focus:border-[var(--color-primary)] outline-none transition-all" />
+                </div>
+                <textarea required name="message" placeholder={t.home.support.form.message} rows={5} className="p-5 bg-slate-50 rounded-2xl border border-transparent focus:bg-white focus:border-[var(--color-primary)] outline-none transition-all resize-none"></textarea>
                 <button 
                   type="submit" 
                   disabled={isSending === 'support'}
-                  className="bg-[var(--color-primary)] text-white py-4 rounded-xl font-bold shadow-lg hover:bg-[var(--color-surface-tint)] transition-premium active:scale-95 disabled:opacity-50 relative overflow-hidden"
+                  className="bg-slate-900 text-white py-5 rounded-2xl font-bold shadow-xl hover:bg-black transition-premium active:scale-95 disabled:opacity-50"
                 >
-                  {isSending === 'support' ? <span className="animate-pulse">Wysyłanie...</span> : 'Wyślij wiadomość'}
-                  {isSending === 'support' && <div className="absolute inset-0 animate-shimmer"></div>}
+                  {isSending === 'support' ? t.home.support.form.sending : t.home.support.form.button}
                 </button>
               </form>
             </div>
@@ -453,27 +467,27 @@ export function HomePageClient({
       </section>
 
       {/* CTA Section */}
-      <section className="mx-8 mb-24">
-        <div className="max-w-4xl mx-auto rounded-[60px] p-20 text-center text-white relative overflow-hidden shadow-2xl">
+      <section className="px-8 mb-24">
+        <div className="max-w-5xl mx-auto rounded-[60px] p-12 lg:p-24 text-center text-white relative overflow-hidden shadow-2xl group">
           <CmsManagedImage
             src={ctaVisualImage}
             fallbackSrc="/images/home-cta-warehouse.jpg"
-            alt="Magazyn i transport palet"
+            alt={t.home.cta.imageAlt}
             className="absolute inset-0"
-            imgClassName="h-full w-full object-cover"
+            imgClassName="h-full w-full object-cover group-hover:scale-105 transition-transform duration-1000"
           />
-          <div className="absolute inset-0 bg-[#005258]/85" />
+          <div className="absolute inset-0 bg-[var(--color-primary)]/90 backdrop-blur-[2px]" />
 
           <div className="relative z-10">
-            <h2 className="text-5xl font-bold mb-8">{ctaTitle}</h2>
-            <p className="text-xl opacity-80 mb-12 max-w-2xl mx-auto">{ctaSubtitle}</p>
+            <h2 className="text-4xl lg:text-6xl font-bold mb-8 tracking-tight">{ctaTitle}</h2>
+            <p className="text-xl lg:text-2xl opacity-80 mb-12 max-w-3xl mx-auto leading-relaxed">{ctaSubtitle}</p>
             
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Link href="/rejestracja" className="bg-white text-[#005258] px-10 py-5 rounded-2xl font-bold shadow-xl hover:bg-slate-100 transition-premium active:scale-95">
-                Załóż konto B2B
+            <div className="flex flex-col sm:flex-row justify-center gap-6">
+              <Link href="/rejestracja" className="bg-white text-[var(--color-primary)] px-12 py-5 rounded-2xl font-bold shadow-2xl hover:bg-slate-100 transition-premium active:scale-95 text-lg">
+                {t.home.cta.buttonRegister}
               </Link>
-              <Link href="/wycena" className="bg-transparent border-2 border-white/20 px-10 py-5 rounded-2xl font-bold hover:bg-white/10 transition-premium active:scale-95">
-                Sprawdź ceny bez konta
+              <Link href="/wycena" className="bg-transparent border-2 border-white/30 px-12 py-5 rounded-2xl font-bold hover:bg-white/10 transition-premium active:scale-95 text-lg">
+                {t.home.cta.buttonQuote}
               </Link>
             </div>
           </div>
@@ -482,3 +496,4 @@ export function HomePageClient({
     </main>
   );
 }
+

@@ -107,8 +107,13 @@ export default function AdminSettingsPage() {
               <tbody className="divide-y divide-slate-100">
                 {isLoading ? (
                   <tr><td colSpan={3} className="p-10 text-center text-slate-300">Ładowanie logów...</td></tr>
-                ) : logs.map(log => (
-                  <tr key={log.id} className="text-sm">
+                ) : logs.map((log, index) => {
+                  const rowKey =
+                    (typeof log.id === 'string' && log.id.trim().length > 0)
+                      ? log.id
+                      : `${log.createdAt}-${log.action}-${log.actorEmail ?? 'unknown'}-${index}`;
+                  return (
+                  <tr key={rowKey} className="text-sm">
                     <td className="px-6 py-4 text-slate-500">{new Date(log.createdAt).toLocaleString('pl-PL')}</td>
                     <td className="px-6 py-4 font-medium">{log.actorEmail}</td>
                     <td className="px-6 py-4">
@@ -117,7 +122,8 @@ export default function AdminSettingsPage() {
                       </span>
                     </td>
                   </tr>
-                ))}
+                );
+                })}
                 {!isLoading && logs.length === 0 && (
                   <tr><td colSpan={3} className="p-10 text-center text-slate-300 italic">Brak zarejestrowanych działań.</td></tr>
                 )}

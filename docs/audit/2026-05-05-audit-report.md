@@ -133,3 +133,173 @@ Audyt wykonano od panelu administratora, a nastepnie rozszerzono na backend/API,
 - CMS nadal przechowuje URL obrazow jako wolny tekst; zalecane jako kolejny krok:
   - walidacja dozwolonych hostow / sciezek,
   - dedykowany upload manager dla admina (zamiast manualnego URL).
+
+## 11) Aktualizacja 2026-05-06 (CMS media upload + upsert odporny na pusta tabele)
+### Problem (HIGH)
+- Przy pustej tabeli `cms_pages` panel `/admin/cms` wizualnie dzialal, ale:
+  - pola nie utrzymywaly zmian,
+  - `PUT /cms/pages/:slug` zwracal `404`,
+  - realne sterowanie frontendem z panelu admina bylo zablokowane.
+
+### Implementacja naprawy
+- Frontend CMS:
+  - lokalny fallback tworzy wpis sekcji przy pierwszej edycji (`slug`, `title`, `content`) zamiast no-op.
+  - `handleSave` wysyla zawsze sensowny `title` (fallback do etykiety sekcji), co stabilizuje pierwszy zapis.
+  - dodano komponent `HomeImageFieldEditor` (upload + URL + preview + restore default).
+- Backend CMS:
+  - `PUT /cms/pages/:slug` zmieniono na tryb upsert:
+    - update jesli rekord istnieje,
+    - insert jesli brak,
+    - fallback update przy konflikcie rownoleglym.
+  - audit log rozroznia `cms.page_updated` i `cms.page_created`.
+
+### Wplyw na system
+- Przeplyw **uzytkownik -> admin -> frontend** dla zarzadzania grafika i trescia homepage jest domkniety bez re-seedingu DB.
+- Pierwsza publikacja z panelu admina odtwarza rekordy CMS i odblokowuje kolejne edycje.
+
+### Weryfikacja
+- Docker live (`localhost:3000`) po restarcie `web` i `api`: OK.
+- E2E:
+  - `tests/e2e/admin-navigation.spec.ts`: `2/2` pass (w tym upload + publish + cleanup),
+  - `tests/e2e/admin-and-graphics.spec.ts`: `6/6` pass.
+- API smoke:
+  - `GET /cms/pages` po publikacji zawiera rekord `home`.
+
+### Ryzyko rezydualne
+- Brak twardego ograniczenia liczby plikow w bibliotece mediów (zalecane: limit + cleanup policy).
+- URL mediów nadal może wskazywać zewnętrzny host; rekomendowana whitelista źródeł.
+
+## 12) Status zamkniecia zakresu (wymagania user-facing/admin)
+Stan na 2026-05-06:
+- **Formularze user-facing -> `/leads`**: zamkniete i zweryfikowane (`/kontakt`, homepage support, `/dla-firm`).
+- **Reset hasla + link z logowania**: zamkniete i zweryfikowane (`/reset-hasla`, link z `/logowanie`).
+- **E2E dla nowych flow na Docker localhost:3000**: zamkniete i zweryfikowane.
+  - `lead-funnel.spec.ts`: PASS
+  - `auth-reset.spec.ts`: PASS
+- **Dokumentacja `docs/audit`**: uzupelniona wpisem finalizujacym bez powielania szczegolow implementacji.
+
+## 13) Walidacja wszystkich sekcji CMS (admin -> frontend) na Docker
+### Wynik
+- `13/13` sekcji przeszło pełny scenariusz:
+  1. wejście do sekcji w `/admin/cms`,
+  2. edycja treści,
+  3. publikacja,
+  4. weryfikacja zmiany na odpowiadającej stronie frontend,
+  5. rollback wartości.
+
+### Naprawiony problem krytyczny
+- Przyczyną wcześniejszego braku reakcji frontendu był błędny URL API po stronie serwera Next.js w Docker (`localhost` z perspektywy kontenera `web`).
+- Dodano rozdzielenie URL:
+  - `NEXT_PUBLIC_API_URL` dla przeglądarki,
+  - `API_URL_INTERNAL=http://api:4000` dla renderowania serwerowego.
+- Po poprawce publikacja z panelu admina jest widoczna na frontendzie bez opóźnień cache.
+
+## 14) Aktualizacja 2026-05-06 (wyrównanie strony głównej)
+### Problem
+- Hero na stronie głównej był wizualnie nierówny: lewa kolumna (headline + CTA) była osadzona zbyt nisko względem prawej kolumny (obraz + kalkulator), co tworzyło duży pusty obszar u góry.
+
+### Przyczyna
+- Siatka hero używała `items-center`, a prawa kolumna była znacznie wyższa od lewej.
+- Dodatkowo cała prawa kolumna miała animację `animate-float`, co potęgowało wrażenie „rozjechania”.
+
+### Wdrożone poprawki
+- Hero grid: zmiana wyrównania pionowego z `items-center` na `items-start`.
+- Usunięcie `animate-float` z kontenera prawej kolumny hero.
+- Przebudowa hero na układ dwuczęściowy:
+  - górny pas: treść + obraz,
+  - dolny pas: pełnoszeroka sekcja `Błyskawiczna wycena` (bez wąskiej kolumny bocznej).
+- Ujednolicenie poziomych odstępów między sekcjami homepage (`px-4 sm:px-6 lg:px-8`).
+- Dopracowanie responsywności CTA (padding, promienie, skalowanie typografii).
+- Stabilizacja fallbacku grafik CMS bez `setState` w `useEffect` (bez kaskadowych renderów).
+
+### Weryfikacja
+- Docker live: `docker compose up -d --build web` (zaktualizowane i uruchomione na `localhost:3000`).
+- Screenshoty Playwright:
+  - desktop: `1920x1080`, `1280x900`,
+  - mobile: `375x900`.
+- Wynik: hero i sekcje są wyrównane i spójne wizualnie.
+
+## 15) Aktualizacja 2026-05-06 (functional quote intake na homepage)
+### Problem
+- Sekcja `Błyskawiczna wycena` była zbyt uproszczona i nie zbierała pełnego zestawu danych do realnej wyceny (m.in. brakowało jawnej obsługi części pól oraz kompletnego przekazania parametrów do `/wycena`).
+
+### Wdrożone poprawki
+- Rozbudowano formularz o kluczowe dane operacyjne:
+  - trasa: kod pocztowy + kraj (nadanie i dostawa),
+  - parametry ładunku: liczba palet, waga jednej palety, długość/szerokość/wysokość,
+  - warunki przewozu: piętrowanie, delikatny towar, ADR, nadawca/odbiorca prywatny.
+- Dla standardowych typów palet długość i szerokość uzupełniane są automatycznie z presetów; dla `custom` pozostają edytowalne.
+- Uspójniono walidację danych:
+  - dodano `palletCount` do Zod (1-33),
+  - usunięto blokujący gap formularza związany z wymaganymi wymiarami.
+- Zintegrowano dane z flow wyników:
+  - `/wycena` pobiera i przekazuje komplet parametrów do API `/quotes`,
+  - liczba palet wpływa na wagę kalkulacyjną requestu (`weightPerPallet * palletCount`),
+  - sekcja konfiguracji na `/wycena` prezentuje rozszerzony zestaw danych wejściowych.
+
+### Weryfikacja
+- Docker live po `docker compose up -d --build web`: OK (`localhost:3000`).
+- E2E Docker:
+  - `tests/e2e/quote.spec.ts`: `2/2` pass (w tym flow szybkiej wyceny),
+  - `tests/e2e/visual-routes.spec.ts`: `3/3` pass.
+
+## 16) Aktualizacja 2026-05-06 (stabilizacja podglądu ładunku + responsywność sekcji)
+### Problem
+- Podgląd ładunku był zbyt mały względem kontenera i sprawiał wrażenie pustej sekcji.
+
+### Wdrożone poprawki
+- Przebudowano komponent preview:
+  - skalowanie wymiarów z clamp i rozsądnymi minimami/maksimami,
+  - poprawiona perspektywa 3D (`perspective` + `transformStyle: preserve-3d`),
+  - czytelniejsze elementy bryły (front/top/side), cień i grid tła,
+  - stały panel informacji (typ palety + wymiary) widoczny również na mobile.
+- Dostosowano panel kosztu do układu responsywnego:
+  - mobile: układ pionowy,
+  - desktop: trzy segmenty w jednej linii.
+
+### Weryfikacja
+- Docker live (`localhost:3000`) po przebudowie kontenera `web`: OK.
+- E2E Docker:
+  - `tests/e2e/quote.spec.ts`: `2/2` pass,
+  - `tests/e2e/visual-routes.spec.ts`: `3/3` pass.
+
+## 17) Aktualizacja 2026-05-06 (mikro-optymalizacje desktop/mobile homepage)
+### Problem
+- Po poprzedniej stabilizacji nadal widoczne byly nadmiarowe odstepy i zbyt "duza" skala niektorych elementow na mobile (szczegolnie testimonials/support/CTA).
+- Podglad ladunku nadal mogl wygladac na zbyt maly wzgledem dostepnej powierzchni.
+
+### Wdrozone poprawki
+- **Pallet preview**:
+  - zwiekszono zakresy normalizacji wymiarow bryly 3D (`clamp`) i wysokosc kontenera, aby lepiej wypelnic sekcje.
+- **Homepage responsiveness**:
+  - ograniczono pionowe odstępy na mniejszych viewportach w kluczowych sekcjach,
+  - dostrojono wielkosci naglowkow, tekstow i CTA na telefonach,
+  - zoptymalizowano sekcje opinii: paddings, radius, typografie cytatu, rozmiary avatarow,
+  - dodano `aria-label` do przyciskow poprzednia/nastepna opinia.
+
+### Weryfikacja
+- Lint (dotkniete pliki): OK.
+- E2E Docker:
+  - `tests/e2e/quote.spec.ts`: `2/2` pass,
+  - `tests/e2e/visual-routes.spec.ts`: `3/3` pass.
+- Wizualna walidacja screenshotami Playwright dla: `375`, `768`, `1280`, `1920`.
+
+## 18) Aktualizacja 2026-05-06 (automatyczny guard regresji layoutu sekcji wyceny)
+### Cel
+- Zmniejszenie ryzyka ponownego "rozjechania" sekcji `Błyskawiczna wycena` po kolejnych zmianach frontendu.
+
+### Wdrozenie
+- Rozszerzono `tests/e2e/quote.spec.ts` o test responsywnosci sekcji wyceny dla viewportow:
+  - `375x812`,
+  - `768x1024`,
+  - `1280x900`,
+  - `1920x1080`.
+- Test waliduje:
+  - obecność kluczowych elementów (`Podgląd ładunku`, etykieta wymiarów, przycisk CTA),
+  - minimalną szerokość renderowanej sekcji kalkulatora,
+  - brak poziomego overflow dokumentu.
+- Dodano helper akceptacji cookies dla stabilnego przebiegu testów.
+
+### Weryfikacja
+- `npm run test:e2e:docker --workspace apps/web -- tests/e2e/quote.spec.ts` => `3/3` pass.
+- `npm run test:e2e:docker --workspace apps/web -- tests/e2e/admin-navigation.spec.ts` => `2/2` pass (potwierdzony przeplyw admin -> frontend).

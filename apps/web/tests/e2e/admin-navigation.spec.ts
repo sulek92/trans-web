@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { SignJWT } from 'jose';
+import path from 'node:path';
 
 const jwtSecret = new TextEncoder().encode(
   process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || 'local-secret',
@@ -106,6 +107,75 @@ test('admin sidebar navigation routes to the correct views', async ({
       await expect(page.locator('main')).toContainText(/CTA image URL/i);
     }
   }
+
+  await context.close();
+});
+
+test('admin can upload homepage media and publish cms changes', async ({
+  browser,
+  baseURL,
+  request,
+}) => {
+  const resolvedBaseURL = baseURL || 'http://127.0.0.1:3000';
+  const host = new URL(resolvedBaseURL).hostname;
+  const adminToken = await createAdminToken();
+
+  const context = await browser.newContext();
+  await context.addCookies([
+    {
+      name: 'pb_auth_token',
+      value: adminToken,
+      domain: host,
+      path: '/',
+    },
+    { name: 'pb_user_role', value: 'admin', domain: host, path: '/' },
+  ]);
+
+  const page = await context.newPage();
+  await page.goto(`${resolvedBaseURL}/admin/cms?section=home`);
+  await expect(page.getByRole('heading', { name: /Zarządzanie treścią \(CMS\)/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Grafiki strony głównej/i })).toBeVisible();
+
+  const filePath = path.resolve(
+    __dirname,
+    '../../public/images/home-hero-logistics.jpg',
+  );
+  await page.locator('input[type="file"]').first().setInputFiles(filePath);
+  await expect(page.locator('main')).toContainText(
+    /Wgrano grafikę i podpięto do pola/i,
+  );
+
+  await page.getByRole('button', { name: /Ustaw Hero/i }).first().click();
+  const heroImageInput = page.getByLabel('Hero image URL');
+  await expect(heroImageInput).toHaveValue(/\/images\/uploads\//);
+  const uploadedUrl = await heroImageInput.inputValue();
+
+  await page.getByRole('button', { name: /Opublikuj zmiany/i }).click();
+  await expect(page.locator('main')).toContainText(/Zmiany opublikowane/i);
+
+  await page.goto(`${resolvedBaseURL}/`);
+  await expect(
+    page.getByRole('img', { name: /Centrum operacyjne logistyki paletowej/i }),
+  ).toBeVisible();
+
+  const removeResponse = await request.delete(
+    'http://127.0.0.1:4000/cms/media',
+    {
+      data: { url: uploadedUrl },
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+      },
+    },
+  );
+  expect(removeResponse.ok()).toBeTruthy();
+
+  await page.goto(`${resolvedBaseURL}/admin/cms?section=home`);
+  await page
+    .getByRole('button', { name: /Przywróć domyślną/i })
+    .first()
+    .click();
+  await page.getByRole('button', { name: /Opublikuj zmiany/i }).click();
+  await expect(page.locator('main')).toContainText(/Zmiany opublikowane/i);
 
   await context.close();
 });

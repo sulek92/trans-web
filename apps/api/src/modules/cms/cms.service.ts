@@ -55,29 +55,88 @@ export class CmsService {
   }
 
   async updatePage(slug: string, data: UpdateCmsPageDto, actor?: ActorContext) {
+    const now = new Date();
     const [updated] = await db
       .update(cmsPages)
-      .set({ ...data, updatedAt: new Date() })
+      .set({ ...data, updatedAt: now })
       .where(eq(cmsPages.slug, slug))
       .returning();
 
-    if (!updated)
-      throw new NotFoundException(`Page with slug ${slug} not found`);
+    if (updated) {
+      await this.auditLogService.record({
+        actorUserId: actor?.userId,
+        actorEmail: actor?.email,
+        action: 'cms.page_updated',
+        entityType: 'cms_page',
+        entityId: updated.id,
+        metadata: {
+          slug,
+          title: data.title,
+          isPublished: data.isPublished,
+        },
+      });
 
-    await this.auditLogService.record({
-      actorUserId: actor?.userId,
-      actorEmail: actor?.email,
-      action: 'cms.page_updated',
-      entityType: 'cms_page',
-      entityId: updated.id,
-      metadata: {
-        slug,
-        title: data.title,
-        isPublished: data.isPublished,
-      },
-    });
+      return updated;
+    }
 
-    return updated;
+    try {
+      const [created] = await db
+        .insert(cmsPages)
+        .values({
+          slug,
+          title: data.title,
+          content: data.content ?? null,
+          metaTitle: data.metaTitle ?? null,
+          metaDescription: data.metaDescription ?? null,
+          isPublished: data.isPublished ?? true,
+          updatedAt: now,
+        })
+        .returning();
+
+      if (!created) {
+        throw new NotFoundException(`Page with slug ${slug} not found`);
+      }
+
+      await this.auditLogService.record({
+        actorUserId: actor?.userId,
+        actorEmail: actor?.email,
+        action: 'cms.page_created',
+        entityType: 'cms_page',
+        entityId: created.id,
+        metadata: {
+          slug,
+          title: data.title,
+          isPublished: data.isPublished ?? true,
+        },
+      });
+
+      return created;
+    } catch {
+      const [afterConflict] = await db
+        .update(cmsPages)
+        .set({ ...data, updatedAt: now })
+        .where(eq(cmsPages.slug, slug))
+        .returning();
+
+      if (!afterConflict) {
+        throw new NotFoundException(`Page with slug ${slug} not found`);
+      }
+
+      await this.auditLogService.record({
+        actorUserId: actor?.userId,
+        actorEmail: actor?.email,
+        action: 'cms.page_updated',
+        entityType: 'cms_page',
+        entityId: afterConflict.id,
+        metadata: {
+          slug,
+          title: data.title,
+          isPublished: data.isPublished,
+        },
+      });
+
+      return afterConflict;
+    }
   }
 
   async getArticles() {

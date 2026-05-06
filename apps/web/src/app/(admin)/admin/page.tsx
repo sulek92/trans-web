@@ -99,6 +99,9 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* Public Preview Tunnel Widget */}
+      <TunnelUrlWidget apiUrl={API_URL} />
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {data?.stats.map((s, i: number) => (
@@ -251,6 +254,93 @@ export default function AdminDashboard() {
             </Link>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function TunnelUrlWidget({ apiUrl }: { apiUrl: string }) {
+  const [url, setUrl] = React.useState<string | null>(null);
+  const [copied, setCopied] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  const fetchTunnel = React.useCallback(async () => {
+    const token = getCookie('pb_auth_token');
+    if (!token) return;
+    try {
+      const res = await fetch(`${apiUrl}/admin/tunnel`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUrl(data.url);
+      }
+    } catch (err) {
+      console.error('Failed to fetch tunnel URL:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [apiUrl]);
+
+  React.useEffect(() => {
+    void fetchTunnel();
+    const interval = setInterval(() => void fetchTunnel(), 30000); // Refresh every 30s
+    return () => clearInterval(interval);
+  }, [fetchTunnel]);
+
+  const handleCopy = () => {
+    if (url) {
+      void navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  if (isLoading) return <Skeleton className="h-24 w-full rounded-[32px] mb-8" />;
+
+  return (
+    <div className="bg-gradient-to-r from-[#4f46e5] to-[#7c3aed] p-8 rounded-[40px] text-white shadow-2xl flex flex-col lg:flex-row items-center justify-between gap-8 overflow-hidden relative group mb-10">
+      <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -mr-48 -mt-48 blur-3xl group-hover:bg-white/20 transition-all duration-1000"></div>
+      <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/20 rounded-full -ml-32 -mb-32 blur-2xl"></div>
+      
+      <div className="flex items-center gap-6 relative z-10">
+        <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-3xl flex items-center justify-center border border-white/30 shadow-inner">
+          <span className="material-symbols-outlined text-4xl">rocket_launch</span>
+        </div>
+        <div>
+          <h2 className="text-xl font-display-bold font-bold mb-1">Publiczny Podgląd Live</h2>
+          <p className="text-indigo-100/80 text-sm font-medium">Udostępnij ten link, aby zaprezentować aktualny postęp prac.</p>
+        </div>
+      </div>
+
+      <div className="flex flex-col lg:flex-row items-center gap-4 w-full lg:w-auto relative z-10 flex-1 lg:ml-8">
+        {url ? (
+          <>
+            <div className="w-full lg:flex-1 bg-black/30 backdrop-blur-md border border-white/20 px-6 py-4 rounded-2xl font-mono text-sm tracking-tight shadow-inner flex items-center gap-4 group/url hover:bg-black/40 transition-all cursor-default min-w-0">
+              <div className="relative flex-shrink-0">
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_rgba(52,211,153,0.8)]"></div>
+                <div className="absolute inset-0 w-2.5 h-2.5 rounded-full bg-emerald-400 blur-[2px] opacity-50"></div>
+              </div>
+              <span className="truncate text-indigo-50 font-medium select-all flex-1 min-w-0">
+                {url}
+              </span>
+            </div>
+            <button
+              onClick={handleCopy}
+              className="w-full lg:w-auto px-8 py-4 bg-white text-indigo-600 rounded-2xl hover:bg-indigo-50 transition-premium shadow-xl flex items-center justify-center gap-3 font-bold text-sm group/btn active:scale-95 shrink-0 whitespace-nowrap"
+            >
+              <span className="material-symbols-outlined text-xl transition-transform group-hover/btn:scale-110">
+                {copied ? 'check_circle' : 'content_copy'}
+              </span>
+              {copied ? 'Skopiowano!' : 'Kopiuj Link'}
+            </button>
+          </>
+        ) : (
+          <div className="flex items-center gap-4 px-6 py-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10">
+            <div className="w-5 h-5 border-2 border-indigo-300 border-t-white rounded-full animate-spin"></div>
+            <span className="text-indigo-100 font-medium text-sm">Inicjalizacja tunelu Cloudflare...</span>
+          </div>
+        )}
       </div>
     </div>
   );

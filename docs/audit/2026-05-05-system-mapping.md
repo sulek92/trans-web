@@ -37,6 +37,15 @@
 ### Zakres sterowania frontendem z admina
 - `global-settings`: navbar, stopka, baner, podstawowe dane brandu.
 - `home` (CMS): hero, wsparcie, CTA, testimoniale + URL grafik (`heroVisualImage`, `supportVisualImage`, `ctaVisualImage`, `avatarImage`).
+- `home` (CMS media library): upload/lista/usuwanie plikow (`/cms/media`, `/cms/media/upload`) z mapowaniem do pol homepage.
+
+### CMS API (admin-facing)
+- `GET /cms/pages`, `GET /cms/pages/:slug`
+- `PUT /cms/pages/:slug` (upsert: update or create)
+- `GET /cms/articles`
+- `GET /cms/media` (admin)
+- `POST /cms/media/upload` (admin, multipart/form-data)
+- `DELETE /cms/media` (admin)
 
 ## Priorytety funkcji (P0/P1/P2)
 - `P0`:

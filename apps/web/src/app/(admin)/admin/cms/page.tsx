@@ -40,6 +40,9 @@ const SECTIONS = [
 ];
 
 const SECTION_IDS = new Set(SECTIONS.map((section) => section.id));
+const SECTION_LABEL_BY_ID = Object.fromEntries(
+  SECTIONS.map((section) => [section.id, section.label]),
+) as Record<string, string>;
 
 const PREVIEW_PATH_BY_SECTION: Record<string, string> = {
   home: '/',
@@ -56,8 +59,17 @@ const PREVIEW_PATH_BY_SECTION: Record<string, string> = {
   'polityka-prywatnosci': '/polityka-prywatnosci',
 };
 
+function resolveInitialSection(): string {
+  if (typeof window === 'undefined') return 'home';
+  const selected = new URLSearchParams(window.location.search).get('section');
+  if (selected && SECTION_IDS.has(selected)) {
+    return selected;
+  }
+  return 'home';
+}
+
 export default function AdminCMSPage() {
-  const [activeSection, setActiveSection] = React.useState('home');
+  const [activeSection, setActiveSection] = React.useState(resolveInitialSection);
   const [isSaving, setIsSaving] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
   const [pages, setPages] = React.useState<CmsPage[]>([]);
@@ -71,14 +83,6 @@ export default function AdminCMSPage() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
-  React.useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const selectedByQuery = new URLSearchParams(window.location.search).get('section');
-    if (!selectedByQuery) return;
-    if (!SECTION_IDS.has(selectedByQuery)) return;
-    setActiveSection((prev) => (prev === selectedByQuery ? prev : selectedByQuery));
-  }, []);
-
   const selectSection = (sectionId: string) => {
     setActiveSection(sectionId);
     if (typeof window === 'undefined') return;
@@ -88,7 +92,6 @@ export default function AdminCMSPage() {
   };
 
   const fetchPages = React.useCallback(async () => {
-    setIsLoading(true);
     try {
       const res = await fetch(`${API_URL}/cms/pages`);
       if (!res.ok) throw new Error('Nie udało się pobrać stron CMS');
@@ -100,7 +103,12 @@ export default function AdminCMSPage() {
     }
   }, [API_URL]);
 
-  React.useEffect(() => { void fetchPages(); }, [fetchPages]);
+  React.useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void fetchPages();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchPages]);
 
   const fetchMediaLibrary = React.useCallback(async () => {
     const token = getCookie('pb_auth_token');
@@ -133,7 +141,10 @@ export default function AdminCMSPage() {
 
   React.useEffect(() => {
     if (activeSection !== 'home') return;
-    void fetchMediaLibrary();
+    const timeoutId = window.setTimeout(() => {
+      void fetchMediaLibrary();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
   }, [activeSection, fetchMediaLibrary]);
 
   // Parse content for current section
@@ -147,13 +158,50 @@ export default function AdminCMSPage() {
   const content = getContent();
   const previewPath = PREVIEW_PATH_BY_SECTION[activeSection];
 
-  const update = (key: string, value: any) => {
-    setPages(prev => prev.map(p => {
-      if (p.slug !== activeSection) return p;
-      const old = typeof p.content === 'string' ? ((() => { try { return JSON.parse(p.content); } catch { return {}; } })()) : (p.content || {});
-      return { ...p, content: { ...old, [key]: value } };
-    }));
-  };
+  const update = React.useCallback((key: string, value: any) => {
+    setPages(prev => {
+      const hasActiveSection = prev.some((page) => page.slug === activeSection);
+      if (!hasActiveSection) {
+        return [
+          ...prev,
+          {
+            slug: activeSection,
+            title: SECTION_LABEL_BY_ID[activeSection] || activeSection,
+            content: { [key]: value },
+            isPublished: true,
+          },
+        ];
+      }
+
+      return prev.map((page) => {
+        if (page.slug !== activeSection) return page;
+        const old = typeof page.content === 'string'
+          ? (() => {
+              try {
+                return JSON.parse(page.content);
+              } catch {
+                return {};
+              }
+            })()
+          : (page.content || {});
+        return { ...page, content: { ...old, [key]: value } };
+      });
+    });
+  }, [activeSection]);
+
+  const copyMediaUrl = React.useCallback(async (url: string) => {
+    if (!navigator?.clipboard?.writeText) {
+      setError('Kopiowanie do schowka nie jest dostępne w tej przeglądarce.');
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setSuccess('Skopiowano URL do schowka.');
+      setTimeout(() => setSuccess(null), 2200);
+    } catch {
+      setError('Nie udało się skopiować URL do schowka.');
+    }
+  }, []);
 
   const handleMediaUpload = React.useCallback(
     async (field: HomeMediaField, file: File) => {
@@ -194,7 +242,7 @@ export default function AdminCMSPage() {
         setUploadingField(null);
       }
     },
-    [API_URL, fetchMediaLibrary],
+    [API_URL, fetchMediaLibrary, update],
   );
 
   const handleDeleteMedia = React.useCallback(
@@ -241,8 +289,9 @@ export default function AdminCMSPage() {
     setSuccess(null);
     const token = getCookie('pb_auth_token');
     const page = pages.find(p => p.slug === activeSection);
+    const title = page?.title || SECTION_LABEL_BY_ID[activeSection] || activeSection;
     try {
-      const body = { title: page?.title, content: JSON.stringify(content), isPublished: true };
+      const body = { title, content: JSON.stringify(content), isPublished: true };
       const res = await fetch(`${API_URL}/cms/pages/${activeSection}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -310,6 +359,7 @@ export default function AdminCMSPage() {
             deletingMediaUrl,
             onMediaUpload: handleMediaUpload,
             onMediaDelete: handleDeleteMedia,
+            onCopyMediaUrl: copyMediaUrl,
           })}
         </div>
       </div>
@@ -325,6 +375,7 @@ type HomeSectionEditorProps = {
   deletingMediaUrl: string | null;
   onMediaUpload: (field: HomeMediaField, file: File) => Promise<void>;
   onMediaDelete: (url: string) => Promise<void>;
+  onCopyMediaUrl: (url: string) => Promise<void>;
 };
 
 // ── Section Renderers ──
@@ -366,6 +417,7 @@ function HomeEditor({
   deletingMediaUrl,
   onMediaUpload,
   onMediaDelete,
+  onCopyMediaUrl,
 }: HomeEditorProps) {
   return (
     <div className="space-y-8 animate-fade-in">
@@ -474,7 +526,7 @@ function HomeEditor({
                   <button
                     type="button"
                     onClick={() => {
-                      void navigator.clipboard.writeText(item.url);
+                      void onCopyMediaUrl(item.url);
                     }}
                     className="rounded-lg border border-slate-200 px-2 py-1.5 text-[11px] font-bold text-slate-600 hover:bg-slate-50"
                   >
@@ -517,6 +569,106 @@ function HomeEditor({
 
       <SectionHeader title="Live Activity Ticker" icon="notifications_active" />
       <ListEditor label="Wpisy tickera" items={c.activityTicker || []} fields={[{key:'city',label:'Miasto'},{key:'status',label:'Status'},{key:'time',label:'Czas'}]} onChange={v => u('activityTicker', v)} />
+    </div>
+  );
+}
+
+type HomeImageFieldEditorProps = {
+  field: HomeMediaField;
+  label: string;
+  description: string;
+  value: string;
+  fallback: string;
+  isUploading: boolean;
+  onUrlChange: (value: string) => void;
+  onUpload: (field: HomeMediaField, file: File) => Promise<void>;
+};
+
+function HomeImageFieldEditor({
+  field,
+  label,
+  description,
+  value,
+  fallback,
+  isUploading,
+  onUrlChange,
+  onUpload,
+}: HomeImageFieldEditorProps) {
+  const inputId = React.useId();
+  const normalizedValue = (value || '').trim();
+  const previewSrc = normalizedValue || fallback;
+
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    await onUpload(field, file);
+    event.target.value = '';
+  };
+
+  return (
+    <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
+        <div className="space-y-2 xl:col-span-7">
+          <label
+            htmlFor={`${inputId}-url`}
+            className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1"
+          >
+            {label}
+          </label>
+          <input
+            id={`${inputId}-url`}
+            value={value || ''}
+            onChange={(event) => onUrlChange(event.target.value)}
+            placeholder={fallback}
+            className="w-full p-3 rounded-xl bg-white border border-slate-200 focus:border-[var(--color-primary)] outline-none transition-all text-sm"
+          />
+          <p className="text-[11px] text-slate-400">{description}</p>
+          <div className="flex items-center gap-2">
+            <input
+              id={inputId}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+              onChange={(event) => {
+                void handleFileUpload(event);
+              }}
+              className="hidden"
+            />
+            <label
+              htmlFor={inputId}
+              className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100"
+            >
+              <span className="material-symbols-outlined text-sm">
+                {isUploading ? 'hourglass_empty' : 'upload'}
+              </span>
+              {isUploading ? 'Wgrywanie...' : 'Wgraj plik'}
+            </label>
+            <button
+              type="button"
+              onClick={() => onUrlChange(fallback)}
+              className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-white"
+            >
+              Przywróć domyślną
+            </button>
+          </div>
+        </div>
+        <div className="xl:col-span-5">
+          <div className="aspect-[16/10] overflow-hidden rounded-xl border border-slate-200 bg-white">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={previewSrc}
+              alt={label}
+              className="h-full w-full object-cover"
+              loading="lazy"
+              onError={(event) => {
+                if (event.currentTarget.src.endsWith(fallback)) return;
+                event.currentTarget.src = fallback;
+              }}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

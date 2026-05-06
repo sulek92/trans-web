@@ -4,6 +4,7 @@ export const QuoteSchema = z.object({
   palletType: z.enum(['euro', 'semi_euro', 'industrial', 'semi_industrial', 'custom'], {
     message: 'Wybierz typ palety',
   }),
+  palletCount: z.number({ error: 'Podaj liczbę palet' }).int('Liczba palet musi być całkowita').min(1, 'Minimum 1 paleta').max(33, 'Maksymalnie 33 palety'),
   length: z.number({ error: 'Podaj długość' }).min(1, 'Długość musi być > 0').max(300, 'Zbyt duża długość'),
   width: z.number({ error: 'Podaj szerokość' }).min(1, 'Szerokość musi być > 0').max(300, 'Zbyt duża szerokość'),
   height: z.number({ error: 'Podaj wysokość' }).min(1, 'Wysokość musi być > 0').max(250, 'Zbyt duża wysokość'),

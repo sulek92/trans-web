@@ -28,6 +28,10 @@ function getErrorMessage(error: unknown): string {
   return 'Unexpected error';
 }
 
+function toBoolean(value: string | null): boolean {
+  return value === 'true';
+}
+
 export default function WycenaPage() {
   return (
     <React.Suspense fallback={<main className="pt-24 pb-section-padding max-w-[1280px] mx-auto px-8 min-h-screen flex items-center justify-center">
@@ -53,11 +57,20 @@ function WycenaContent() {
   // Pobieranie danych z URL
   const palletType = searchParams.get('palletType') || 'euro';
   const senderCode = searchParams.get('senderPostalCode') || '00-001';
+  const senderCountry = searchParams.get('senderCountry') || 'PL';
   const recipientCode = searchParams.get('recipientPostalCode') || '31-001';
-  const weight = Number(searchParams.get('weight')) || 350;
+  const recipientCountry = searchParams.get('recipientCountry') || 'PL';
+  const palletCount = Math.max(1, Number(searchParams.get('palletCount')) || 1);
+  const unitWeight = Number(searchParams.get('weight')) || 350;
+  const chargeableWeight = unitWeight * palletCount;
   const height = Number(searchParams.get('height')) || 140;
   const width = Number(searchParams.get('width')) || 80;
   const length = Number(searchParams.get('length')) || 120;
+  const senderPrivate = toBoolean(searchParams.get('senderIsPrivate'));
+  const recipientPrivate = toBoolean(searchParams.get('recipientIsPrivate'));
+  const stackable = toBoolean(searchParams.get('isStackable'));
+  const fragile = toBoolean(searchParams.get('isFragile'));
+  const adr = toBoolean(searchParams.get('hasAdr'));
 
   React.useEffect(() => {
     const fetchQuotes = async () => {
@@ -68,13 +81,16 @@ function WycenaContent() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             palletType,
-            weight,
+            weight: chargeableWeight,
             dimensions: { length, width, height },
-            sender: { postalCode: senderCode, country: 'PL' },
-            recipient: { postalCode: recipientCode, country: 'PL' },
+            sender: { postalCode: senderCode, country: senderCountry },
+            recipient: { postalCode: recipientCode, country: recipientCountry },
             options: {
-              senderPrivate: searchParams.get('senderIsPrivate') === 'true',
-              recipientPrivate: searchParams.get('recipientIsPrivate') === 'true',
+              senderPrivate,
+              recipientPrivate,
+              stackable,
+              fragile,
+              adr,
             }
           }),
         });
@@ -98,7 +114,26 @@ function WycenaContent() {
     };
 
     fetchQuotes();
-  }, [API_URL, height, length, palletType, recipientCode, senderCode, searchParams, weight, width]);
+  }, [
+    API_URL,
+    adr,
+    chargeableWeight,
+    fragile,
+    height,
+    length,
+    palletType,
+    palletCount,
+    recipientCode,
+    recipientCountry,
+    recipientPrivate,
+    searchParams,
+    senderCode,
+    senderCountry,
+    senderPrivate,
+    stackable,
+    unitWeight,
+    width,
+  ]);
 
   if (isLoading) return <div className="pt-24 pb-section-padding max-w-[1280px] mx-auto px-8 min-h-screen flex items-center justify-center">Ładowanie ofert...</div>;
 
@@ -114,7 +149,9 @@ function WycenaContent() {
       )}
       <div className="mb-8">
         <h1 className="font-h1-medium text-[24px] font-medium text-[var(--color-on-background)] mb-2">Wyniki Wyceny</h1>
-        <p className="font-body-base text-[16px] text-[var(--color-on-surface-variant)]">Znaleźliśmy najlepsze oferty dla Twojej przesyłki z {senderCode} do {recipientCode}.</p>
+        <p className="font-body-base text-[16px] text-[var(--color-on-surface-variant)]">
+          Znaleźliśmy najlepsze oferty dla Twojej przesyłki z {senderCode} ({senderCountry}) do {recipientCode} ({recipientCountry}).
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
@@ -135,14 +172,30 @@ function WycenaContent() {
                 <span className="font-bold text-[var(--color-on-background)] bg-slate-50 px-3 py-1 rounded-lg border border-slate-100 capitalize">{palletType.replace('_', ' ')}</span>
               </div>
               <div className="flex justify-between items-center group">
+                <span className="text-[var(--color-on-surface-variant)] text-sm">Liczba palet</span>
+                <span className="font-bold text-[var(--color-on-background)]">{palletCount}</span>
+              </div>
+              <div className="flex justify-between items-center group">
                 <span className="text-[var(--color-on-surface-variant)] text-sm">Waga i Wymiary</span>
-                <span className="font-bold text-[var(--color-on-background)]">{weight} kg • {height} cm (wys.)</span>
+                <span className="font-bold text-[var(--color-on-background)]">{unitWeight} kg/szt • {length}x{width}x{height} cm</span>
+              </div>
+              <div className="flex justify-between items-center group">
+                <span className="text-[var(--color-on-surface-variant)] text-sm">Waga do kalkulacji</span>
+                <span className="font-bold text-[var(--color-on-background)]">{chargeableWeight} kg</span>
               </div>
               <div className="flex justify-between items-center group">
                 <span className="text-[var(--color-on-surface-variant)] text-sm">Trasa</span>
                 <div className="text-right">
                    <div className="font-bold text-[var(--color-on-background)]">{senderCode} → {recipientCode}</div>
-                   <div className="text-[10px] text-slate-400 font-bold uppercase">Polska Krajowy</div>
+                   <div className="text-[10px] text-slate-400 font-bold uppercase">{senderCountry} → {recipientCountry}</div>
+                </div>
+              </div>
+              <div className="flex justify-between items-center group">
+                <span className="text-[var(--color-on-surface-variant)] text-sm">Warunki</span>
+                <div className="text-right text-[11px] text-slate-500">
+                  <div>{stackable ? 'Piętrowanie: TAK' : 'Piętrowanie: NIE'}</div>
+                  <div>{fragile ? 'Delikatny: TAK' : 'Delikatny: NIE'} • {adr ? 'ADR: TAK' : 'ADR: NIE'}</div>
+                  <div>{senderPrivate || recipientPrivate ? 'Adres prywatny: TAK' : 'Adres prywatny: NIE'}</div>
                 </div>
               </div>
             </div>

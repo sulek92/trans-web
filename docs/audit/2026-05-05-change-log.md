@@ -639,3 +639,187 @@
   - [logowanie/page.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/(auth)/logowanie/page.tsx)
   - [seed.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/api/src/db/seed.ts)
   - [admin-navigation.spec.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/tests/e2e/admin-navigation.spec.ts)
+
+### [2026-05-06 08:15] Admin CMS media library v5 (upload + autokreacja stron CMS)
+- **Domkniecie zarzadzania frontendem z panelu admina przy pustej bazie CMS**:
+  - Naprawiono krytyczny przypadek `cms_pages = []`: panel CMS nie gubil juz zmian lokalnych i pozwala na publikacje nawet przy pierwszej edycji.
+  - Frontend CMS tworzy lokalny wpis sekcji podczas pierwszej zmiany (`slug`, `title`, `content`) zamiast ignorowac update.
+  - `PUT /cms/pages/:slug` działa teraz jak bezpieczny upsert:
+    - aktualizuje, gdy strona istnieje,
+    - tworzy, gdy brak rekordu (`cms.page_created` w audit log),
+    - ma fallback aktualizacji przy konflikcie rownoleglym.
+- **Nowy komponent admin UX dla grafiki homepage**:
+  - Dodano `HomeImageFieldEditor` (preview + URL + upload + restore default),
+  - Podpieto kopiowanie URL do schowka z feedbackiem.
+- **Nowy test E2E (admin-first)**:
+  - rozszerzono `admin-navigation.spec.ts` o scenariusz:
+    - upload grafiki w `/admin/cms?section=home`,
+    - przypiecie `Ustaw Hero`,
+    - publikacja zmian,
+    - cleanup uploadu przez `DELETE /cms/media`.
+- **Weryfikacja**:
+  - ESLint (dotkniete pliki): OK.
+  - Playwright Docker (`localhost:3000`):
+    - `admin-navigation.spec.ts`: `2/2` pass,
+    - `admin-and-graphics.spec.ts`: `6/6` pass.
+- **Smoke API po zmianie**:
+  - `GET /cms/pages` po publikacji z panelu zwraca rekord `home` (koniec pustej listy jako bloker edycji).
+- Pliki:
+  - [cms/page.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/(admin)/admin/cms/page.tsx)
+  - [cms.service.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/api/src/modules/cms/cms.service.ts)
+  - [admin-navigation.spec.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/tests/e2e/admin-navigation.spec.ts)
+  - [2026-05-05-api-openapi.yaml](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/docs/audit/2026-05-05-api-openapi.yaml)
+
+### [2026-05-06 08:40] Domkniecie paska postepu (frontend flow + reset hasla + E2E Docker)
+- Zweryfikowano, ze wymagane flow sa zakonczone i dzialaja bez dodatkowych zmian kodu:
+  - formularze user-facing (`/kontakt`, homepage support, `/dla-firm`) sa podlaczone do `POST /leads` i maja statusy UX (`loading`, `success/error toast`, `disabled submit`),
+  - ekran `/reset-hasla` jest dostepny i podlaczony z `/logowanie`,
+  - testy E2E nowych flow sa uruchamialne na Docker `localhost:3000`.
+- Wykonana regresja Docker:
+  - `npm run test:e2e:docker -- tests/e2e/lead-funnel.spec.ts tests/e2e/auth-reset.spec.ts` => `2/2` pass.
+- Ten wpis jest finalnym potwierdzeniem wykonania (bez duplikowania opisu implementacji z poprzednich sekcji).
+
+### [2026-05-06 09:35] Full check CMS -> Frontend (wszystkie sekcje) + fix Docker server-side API
+- **Wykryty i naprawiony bloker reakcji frontendu po publikacji CMS w Docker**:
+  - Przyczyna: server-side Next.js (RSC) używał `NEXT_PUBLIC_API_URL=http://localhost:4000`, co w kontenerze `web` wskazywało na sam kontener, a nie `api`.
+  - Skutek: strony frontend często renderowały fallback i nie odzwierciedlały zmian z panelu admina.
+- **Wdrożona poprawka**:
+  - dodano resolver API URL: [api-url.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/lib/api-url.ts),
+  - `getCmsContent` korzysta z URL wewnętrznego na serwerze (`API_URL_INTERNAL`) i `no-store`,
+  - homepage (`app/page.tsx`) pobiera CMS przez ten sam mechanizm,
+  - Docker `web` otrzymał `API_URL_INTERNAL=http://api:4000`.
+- **Walidacja end-to-end (sekcja po sekcji)**:
+  - wykonano automatyczny check 13/13 sekcji CMS:
+    - panel admina renderuje poprawnie każdą sekcję,
+    - edycja + publikacja działa,
+    - odpowiadający widok frontend aktualizuje się poprawnie,
+    - brak poziomego overflow po zmianie,
+    - rollback do wartości pierwotnej wykonany po każdym teście.
+  - wynik: **13/13 PASS**.
+- Pliki:
+  - [api-url.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/lib/api-url.ts)
+  - [cms.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/lib/cms.ts)
+  - [page.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/page.tsx)
+  - [docker-compose.yml](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/docker-compose.yml)
+
+### [2026-05-06 12:25] Homepage visual alignment fix (hero + sekcje)
+- **Naprawiony glowny problem nierownego ukladu hero**:
+  - przyczyna: `items-center` w siatce hero przy znacznie wyzszej prawej kolumnie (obraz + kalkulator + tracking),
+  - poprawka: wyrownanie siatki do gornej krawedzi (`items-start`) i usuniecie animacji `animate-float` z calej prawej kolumny.
+- **Dalsza korekta po review UI (pelna szerokosc wyceny)**:
+  - sekcje przebudowano do ukladu 2-etapowego: hero (tekst + obraz) oraz osobny blok wyceny pod spodem,
+  - `Blyskawiczna wycena` przeniesiona do pelnoszerokiego kontenera (`id="calculator"`), co usuwa nadmiar pustej przestrzeni na desktopie,
+  - tracking pozostaje bezposrednio pod kalkulatorem jako osobny, rowniez szeroki panel.
+- **Ujednolicenie sekcji strony glownej**:
+  - wszystkie glowne kontenery dostaly spójny responsywny padding (`px-4 sm:px-6 lg:px-8`),
+  - poprawiono responsywnosc sekcji CTA (mniejsze promienie i padding na mniejszych viewportach, skalowanie typografii naglowka/opisu).
+- **Stabilizacja fallbacku obrazow CMS w homepage**:
+  - usunieto `setState` wykonywany w `useEffect` (lint `react-hooks/set-state-in-effect`),
+  - fallback obrazka realizowany bezposrednio w `onError`, bez kaskadowych renderow.
+- **Weryfikacja Docker live**:
+  - przebudowano i zrestartowano kontenery (`web` + `api`) na `localhost:3000`,
+  - wykonano screenshoty Playwright dla `1920x1080`, `1280x900`, `375x900` i potwierdzono poprawne wyrownanie hero oraz spojnosc sekcji.
+- Pliki:
+  - [home-client.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/home-client.tsx)
+
+### [2026-05-06 13:05] Rozbudowa panelu "Blyskawiczna wycena" (functional quote intake)
+- **Zakres UX/formularza**:
+  - rozszerzono formularz o komplet danych operacyjnych potrzebnych do szybkiej wyceny:
+    - typ palety,
+    - nadanie/dostawa: kod pocztowy + kraj,
+    - liczba palet,
+    - waga jednej palety,
+    - wymiary (dlugosc/szerokosc/wysokosc),
+    - warunki przewozu (`stackable`, `fragile`, `ADR`, adresy prywatne).
+- **Funkcjonalnosc i walidacja**:
+  - dodano walidacje `palletCount` (1-33) w schemacie Zod,
+  - poprawiono krytyczny brak danych wymiarowych (`length`/`width`) w formularzu, ktory wczesniej mogl blokowac submit,
+  - dla standardowych typow palet dlugosc i szerokosc ustawiane sa automatycznie wg presetu; dla `custom` pola sa edytowalne.
+- **Integracja z wycena wynikowa (`/wycena`)**:
+  - przekazywanie wszystkich kluczowych pol przez query params,
+  - `palletCount` jest uwzgledniany w kalkulacji wagi do requestu API (`weight = weightPerPallet * palletCount`),
+  - payload `/quotes` zawiera pelne `sender/recipient country` oraz `options` z warunkami przewozu.
+  - panel "Twoja konfiguracja" na stronie wynikow pokazuje teraz liczbe palet, wage jednostkowa, wage laczna, trase z krajami i warunki przewozu.
+- **Testy / Docker live**:
+  - nowe/aktualizowane E2E:
+    - `quote.spec.ts`:
+      - smoke hero + kalkulator,
+      - flow: wypelnienie najwazniejszych danych i przejscie do `/wycena`.
+  - wynik:
+    - `npm run test:e2e:docker --workspace apps/web -- tests/e2e/quote.spec.ts` => `2/2` pass,
+    - `npm run test:e2e:visual:docker --workspace apps/web` => `3/3` pass.
+  - potwierdzono dzialanie po rebuild/restart Docker na `localhost:3000`.
+- Pliki:
+  - [quote-form.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/components/calculator/quote-form.tsx)
+  - [quote.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/lib/validators/quote.ts)
+  - [wycena/page.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/wycena/page.tsx)
+  - [quote.spec.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/tests/e2e/quote.spec.ts)
+
+### [2026-05-06 13:35] Naprawa "Podglad ladunku" + dopasowanie sekcji pod desktop/mobile
+- **Naprawa kluczowego problemu UI**:
+  - `Podglad ladunku` byl nieczytelny (miniaturowy obiekt na duzej pustej powierzchni).
+  - Komponent preview dostal nowy model skalowania responsywnego:
+    - clamp wymiarow pod viewport,
+    - realna perspektywa (`perspective`) i `transformStyle: preserve-3d`,
+    - stale czytelny podpis i metadane wymiarow.
+- **Zmiany wizualne preview**:
+  - dodano siatke tla (reference grid),
+  - mocniejszy obiekt 3D (widoczny front/top/side + cien pod obiektem),
+  - dolny pasek informacyjny zawsze widoczny (typ palety + wymiary), a nie tylko na hover.
+- **Dodatkowe dostosowania responsywne sekcji wyceny**:
+  - panel kosztu (`Szacowany koszt od`) zmieniony na responsywny grid:
+    - mobile: pionowe stackowanie,
+    - desktop: trzykolumnowy uklad bez scisku tekstu.
+- **Weryfikacja**:
+  - lint dotknietych plikow: OK,
+  - Docker live (`localhost:3000`) po rebuild/restart: OK,
+  - regresja:
+    - `tests/e2e/quote.spec.ts`: `2/2` pass,
+    - `tests/e2e/visual-routes.spec.ts`: `3/3` pass.
+- Pliki:
+  - [pallet-preview.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/components/calculator/pallet-preview.tsx)
+  - [quote-form.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/components/calculator/quote-form.tsx)
+
+### [2026-05-06 14:20] Dalsze doszlifowanie homepage (desktop + mobile)
+- **Podglad ladunku - lepsze wykorzystanie przestrzeni**:
+  - powiekszono bryle 3D (wieksze zakresy clamp dla dlugosci/szerokosci/wysokosci),
+  - zwiekszono wysokosc kontenera preview na wszystkich breakpointach,
+  - utrzymano pelna czytelnosc podpisow i metadanych.
+- **Responsywnosc sekcji strony glownej**:
+  - zmniejszono nadmierne pionowe odstepy na mobile (hero, how-it-works, stats, testimonials, support, CTA),
+  - poprawiono skale elementow (przyciski hero, naglowki, teksty pomocnicze),
+  - przebudowano testimoniale pod mobile:
+    - mniejsze paddings i promienie,
+    - mniejsza typografia cytatu i avatarow,
+    - przyciski nawigacji dostaly `aria-label`.
+- **Spojnosc desktop/mobile**:
+  - utrzymano ten sam wizualny jezyk komponentow przy mniejszym "rozstrzale" na telefonach,
+  - zweryfikowano wyglad na 375/768/1280/1920.
+- **Weryfikacja**:
+  - lint: OK dla dotknietych plikow,
+  - E2E Docker:
+    - `tests/e2e/quote.spec.ts` => `2/2` pass,
+    - `tests/e2e/visual-routes.spec.ts` => `3/3` pass.
+- Pliki:
+  - [home-client.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/home-client.tsx)
+  - [pallet-preview.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/components/calculator/pallet-preview.tsx)
+
+### [2026-05-06 14:40] Test regresyjny responsywnosci sekcji wyceny
+- Dodano nowy test E2E w `quote.spec.ts`, ktory waliduje sekcje `Blyskawiczna wycena` na docelowych viewportach:
+  - `375x812`, `768x1024`, `1280x900`, `1920x1080`.
+- Test sprawdza:
+  - widocznosc sekcji i kluczowych elementow (`Podglad ladunku`, koszt, CTA),
+  - brak horyzontalnego overflow (`scrollWidth - clientWidth <= 2`),
+  - utrzymanie minimalnej szerokosci obszaru kalkulatora.
+- Dodano helper akceptacji cookies na starcie testow, aby ograniczyc flaky przy overlapie bannera.
+- Wynik:
+  - `npm run test:e2e:docker --workspace apps/web -- tests/e2e/quote.spec.ts` => `3/3` pass.
+- Pliki:
+  - [quote.spec.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/tests/e2e/quote.spec.ts)
+
+### [2026-05-06 14:50] Rewalidacja przeplywu admin -> frontend po zmianach UI
+- Po doszlifowaniu homepage i testach responsywnosci wykonano dodatkowy smoke E2E panelu admina:
+  - `tests/e2e/admin-navigation.spec.ts` => `2/2` pass.
+- Potwierdzono, ze kluczowy przeplyw nie zostal naruszony:
+  - nawigacja panelu admina,
+  - upload mediow i publikacja zmian CMS na frontendzie.

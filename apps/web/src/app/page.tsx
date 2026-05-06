@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { HomePageClient } from './home-client';
 import { Metadata } from 'next';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+import { getApiBaseUrl } from '@/lib/api-url';
 
 async function getCmsData() {
+  const apiUrl = getApiBaseUrl();
   try {
-    const res = await fetch(`${API_URL}/cms/pages/home`, { next: { revalidate: 60 } });
+    const res = await fetch(`${apiUrl}/cms/pages/home`, { cache: 'no-store' });
     if (!res.ok) return null;
     const data = await res.json();
     return typeof data.content === 'string' ? JSON.parse(data.content) : data.content;

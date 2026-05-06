@@ -1,9 +1,10 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+import { getApiBaseUrl } from '@/lib/api-url';
 
 export async function getCmsContent<T = Record<string, unknown>>(slug: string): Promise<T | null> {
+  const apiUrl = getApiBaseUrl();
   try {
-    const res = await fetch(`${API_URL}/cms/pages/${slug}`, {
-      next: { revalidate: 60 },
+    const res = await fetch(`${apiUrl}/cms/pages/${slug}`, {
+      cache: 'no-store',
     });
     if (!res.ok) return null;
     const data = await res.json();

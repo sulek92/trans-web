@@ -25,6 +25,7 @@
 - Web visual smoke (rozszerzony): `npx playwright test tests/e2e/visual-routes.spec.ts`
 - Web visual smoke na Docker `localhost:3000`: `npm run test:e2e:visual:docker --workspace apps/web`
 - Web admin navigation smoke: `npx playwright test tests/e2e/admin-navigation.spec.ts`
+- Web admin CMS media smoke: `npx playwright test tests/e2e/admin-navigation.spec.ts -g "admin can upload homepage media and publish cms changes"`
 
 ## 3. Unit Tests
 - Serwisy:
@@ -68,6 +69,7 @@
 - uzytkownicy: utworzenie, rola, dezaktywacja, reaktywacja (`PUT /users/:id/status`).
 - cms: publikacja i podglad.
 - cms (home media): walidacja pol `heroVisualImage`, `supportVisualImage`, `ctaVisualImage`, `testimonials[].avatarImage` i fallbacku grafik.
+- cms (home media upload): upload pliku, przypiecie do pola Hero, publikacja i cleanup (DELETE `/cms/media`).
 - audit log: `GET /admin/audit-log` (ostatnie operacje administracyjne).
 - automatyzacja e2e:
   - `tests/e2e/lead-funnel.spec.ts` (formularz `/kontakt` -> widocznosc leada w `/admin/leady`).

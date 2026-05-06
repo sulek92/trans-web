@@ -251,4 +251,10 @@ export class AdminController {
       }
     };
   }
+
+  @Get('tunnel')
+  async getTunnel() {
+    const url = await this.redisService.get('cloudflare_tunnel_url');
+    return { url };
+  }
 }
