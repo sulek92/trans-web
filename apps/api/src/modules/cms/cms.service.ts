@@ -332,6 +332,35 @@ export class CmsService {
     return { slug, deleted: true };
   }
 
+  async bulkDeletePages(slugs: string[], actor?: ActorContext) {
+    const results: { slug: string; deleted: boolean; error?: string }[] = [];
+    for (const slug of slugs) {
+      try {
+        const [existing] = await db
+          .select()
+          .from(cmsPages)
+          .where(eq(cmsPages.slug, slug));
+        if (!existing) {
+          results.push({ slug, deleted: false, error: 'not_found' });
+          continue;
+        }
+        await db.delete(cmsPages).where(eq(cmsPages.slug, slug));
+        await this.auditLogService.record({
+          actorUserId: actor?.userId,
+          actorEmail: actor?.email,
+          action: 'cms.page_deleted',
+          entityType: 'cms_page',
+          entityId: existing.id,
+          metadata: { slug },
+        });
+        results.push({ slug, deleted: true });
+      } catch {
+        results.push({ slug, deleted: false, error: 'error' });
+      }
+    }
+    return results;
+  }
+
   private async ensureMediaDirectory(): Promise<void> {
     await fs.mkdir(this.mediaDirectory, { recursive: true });
   }

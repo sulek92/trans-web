@@ -140,4 +140,12 @@ export class CmsController {
     const pages = payload.pages.map((p) => ({ slug: p.slug, title: p.title, content: p.content, metaTitle: p.metaTitle, metaDescription: p.metaDescription, isPublished: p.isPublished }));
     return this.cmsService.importPages(pages as any, { userId: req.user?.sub, email: req.user?.email });
   }
+
+  @Post('pages/bulk-delete')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async bulkDeletePages(@Body() payload: { slugs: string[] }, @Req() req: AuthenticatedRequest) {
+    const slugs = payload.slugs ?? [];
+    return this.cmsService.bulkDeletePages(slugs, { userId: req.user?.sub, email: req.user?.email });
+  }
 }
