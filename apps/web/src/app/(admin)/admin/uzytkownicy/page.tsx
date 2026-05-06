@@ -4,6 +4,7 @@ import * as React from 'react';
 import { getCookie } from '@/lib/utils';
 import { useToastStore } from '@/lib/store/toast-store';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getApiBaseUrl } from '@/lib/api-url';
 
 interface User {
   id: string;
@@ -17,20 +18,17 @@ interface User {
 export default function AdminUsersPage() {
   const [users, setUsers] = React.useState<User[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
   const [updatingUserId, setUpdatingUserId] = React.useState<string | null>(null);
   const [editingUser, setEditingUser] = React.useState<User | null>(null);
   const { addToast } = useToastStore();
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const API_URL = getApiBaseUrl();
 
   const fetchUsers = React.useCallback(async () => {
     const token = getCookie('pb_auth_token');
     try {
       const response = await fetch(`${API_URL}/users`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) throw new Error('Failed to fetch users');
       const data = await response.json();
@@ -63,10 +61,8 @@ export default function AdminUsersPage() {
 
       setUsers((prev) =>
         prev.map((user) =>
-          user.id === userId
-            ? { ...user, status }
-            : user,
-        ),
+          user.id === userId ? { ...user, status } : user
+        )
       );
       addToast({ title: 'Status zmieniony', description: `Użytkownik został ${status === 'ACTIVE' ? 'aktywowany' : 'zablokowany'}.`, type: 'success' });
     } catch (err) {
@@ -109,146 +105,83 @@ export default function AdminUsersPage() {
 
   const getStatusStyle = (status: string) => {
     switch (status.toUpperCase()) {
-      case 'ACTIVE': return 'bg-emerald-100 text-emerald-800';
-      case 'PENDING': return 'bg-amber-100 text-amber-800';
-      case 'BLOCKED': return 'bg-red-100 text-red-800';
-      default: return 'bg-slate-100 text-slate-800';
+      case 'ACTIVE': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'PENDING': return 'bg-amber-100 text-amber-800 border-amber-200';
+      case 'BLOCKED': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-slate-100 text-slate-800 border-slate-200';
     }
   };
 
-  React.useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setEditingUser(null);
-    };
-    window.addEventListener('keydown', handleEsc);
-    return () => window.removeEventListener('keydown', handleEsc);
-  }, []);
-
   return (
-    <div className="animate-fade-in space-y-8">
-      {editingUser && (
-        <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
-          onClick={() => setEditingUser(null)}
-        >
-          <div 
-            className="bg-white rounded-3xl w-full max-w-md min-w-[320px] p-8 shadow-2xl animate-in zoom-in-95 duration-200"
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-          >
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">Edytuj Użytkownika</h2>
-              <button onClick={() => setEditingUser(null)} className="text-slate-400 hover:text-slate-600 transition-colors">
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-            <form onSubmit={handleEditUser} className="space-y-6">
-              <div>
-                <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest mb-2 block">Adres Email</label>
-                <input 
-                  type="email"
-                  value={editingUser.email}
-                  onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[var(--color-primary)] font-bold text-sm"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest mb-2 block">Rola Systemowa</label>
-                <select 
-                  value={editingUser.role}
-                  onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-[var(--color-primary)] font-bold text-sm"
-                >
-                  <option value="customer">Klient B2B</option>
-                  <option value="admin">Administrator</option>
-                  <option value="broker">Broker</option>
-                </select>
-              </div>
-              <div className="flex gap-3 pt-4">
-                <button 
-                  type="button"
-                  onClick={() => setEditingUser(null)}
-                  className="flex-1 px-6 py-3 border border-slate-200 rounded-xl font-bold text-sm hover:bg-slate-50 transition-colors"
-                >
-                  Anuluj
-                </button>
-                <button 
-                  type="submit"
-                  disabled={updatingUserId === editingUser.id}
-                  className="flex-1 px-6 py-3 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors disabled:opacity-50"
-                >
-                  Zapisz Zmiany
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {error && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          {error}
-        </div>
-      )}
+    <div className="space-y-10 animate-fade-in pb-20">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="font-display-bold text-3xl font-bold text-[var(--color-on-background)] mb-2">Baza Klientów B2B</h1>
-          <p className="text-[var(--color-on-surface-variant)]">Zarządzaj kontami firmowymi i ich uprawnieniami.</p>
+          <span className="text-[var(--color-primary)] font-bold tracking-widest uppercase text-xs mb-3 block">Administracja</span>
+          <h1 className="text-4xl font-bold text-slate-900 mb-2 tracking-tight">Klienci B2B</h1>
+          <p className="text-slate-500 text-lg">Zarządzaj kontami firmowymi, rolami i dostępem do platformy.</p>
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl border border-[var(--color-divider)] shadow-sm overflow-hidden">
+      <div className="bg-white rounded-[40px] border border-slate-200 shadow-sm overflow-hidden">
         {isLoading ? (
           <div className="p-8 space-y-4">
-            {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-16 w-full" />)}
+            {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-16 w-full rounded-2xl" />)}
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50 text-[10px] uppercase tracking-widest font-bold text-[var(--color-on-surface-variant)]">
-                  <th className="px-8 py-5">Firma / NIP</th>
-                  <th className="px-8 py-5">Kontakt</th>
-                  <th className="px-8 py-5">Rola</th>
+            <table className="w-full text-left">
+              <thead className="bg-slate-50/50 border-b border-slate-200">
+                <tr className="text-[10px] uppercase tracking-widest font-bold text-slate-400">
+                  <th className="px-8 py-5">Firma / Podmiot</th>
+                  <th className="px-8 py-5">Kontakt & Rola</th>
                   <th className="px-8 py-5">Status</th>
-                  <th className="px-8 py-5 text-right">Akcje</th>
+                  <th className="px-8 py-5 text-right">Zarządzanie</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--color-divider)]">
+              <tbody className="divide-y divide-slate-100">
                 {users.map((u) => (
-                  <tr key={u.id} className="hover:bg-slate-50 transition-colors group">
-                    <td className="px-8 py-5">
-                      <div className="text-sm font-bold text-[var(--color-on-background)]">{u.companyName || 'Osoba prywatna'}</div>
-                      <div className="text-xs text-[var(--color-on-surface-variant)] mt-1 font-data-mono">NIP: {u.nip || 'N/A'}</div>
+                  <tr key={u.id} className="hover:bg-slate-50/50 transition-premium group">
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center font-bold text-xs uppercase group-hover:bg-[var(--color-primary-highlight)] group-hover:text-[var(--color-primary)] transition-colors">
+                          {u.companyName ? u.companyName.substring(0, 2) : 'OP'}
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-slate-900">{u.companyName || 'Osoba prywatna'}</div>
+                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">NIP: {u.nip || '---'}</div>
+                        </div>
+                      </div>
                     </td>
-                    <td className="px-8 py-5">
-                      <div className="text-sm text-[var(--color-on-surface-variant)]">{u.email}</div>
+                    <td className="px-8 py-6">
+                      <div className="text-sm font-medium text-slate-700">{u.email}</div>
+                      <div className="inline-flex items-center gap-1.5 mt-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)]" />
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{u.role}</span>
+                      </div>
                     </td>
-                    <td className="px-8 py-5 text-sm font-medium uppercase tracking-tight text-slate-500">{u.role}</td>
-                    <td className="px-8 py-5">
-                      <span className={`text-[10px] font-bold uppercase px-3 py-1.5 rounded-full ${getStatusStyle(u.status)}`}>
+                    <td className="px-8 py-6">
+                      <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getStatusStyle(u.status)}`}>
                         {u.status}
                       </span>
                     </td>
-                    <td className="px-8 py-5 text-right">
-                      <div className="inline-flex gap-2">
+                    <td className="px-8 py-6 text-right">
+                      <div className="flex items-center justify-end gap-3">
                         <button
                           onClick={() => setEditingUser(u)}
-                          className="rounded-lg border border-slate-200 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors"
+                          className="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-slate-900 hover:border-slate-900 transition-all shadow-sm"
                         >
                           <span className="material-symbols-outlined text-sm">edit</span>
                         </button>
                         <button
                           disabled={updatingUserId === u.id}
                           onClick={() => updateUserStatus(u.id, u.status === 'ACTIVE' ? 'BLOCKED' : 'ACTIVE')}
-                          className={`rounded-lg border px-3 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                          className={`h-10 px-4 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${
                             u.status === 'ACTIVE' 
-                              ? 'border-red-200 text-red-700 hover:bg-red-50' 
-                              : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50'
+                              ? 'border-red-100 text-red-600 hover:bg-red-50' 
+                              : 'border-emerald-100 text-emerald-600 hover:bg-emerald-50'
                           } disabled:opacity-50`}
                         >
-                          {u.status === 'ACTIVE' ? 'Zablokuj' : 'Aktywuj'}
+                          {updatingUserId === u.id ? '...' : u.status === 'ACTIVE' ? 'Zablokuj' : 'Aktywuj'}
                         </button>
                       </div>
                     </td>
@@ -259,6 +192,72 @@ export default function AdminUsersPage() {
           </div>
         )}
       </div>
+
+      {/* Edit Modal */}
+      {editingUser && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
+          onClick={() => setEditingUser(null)}
+        >
+          <div 
+            className="bg-white rounded-[40px] shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-10 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">Edytuj Profil</h2>
+                <p className="text-sm text-slate-400 font-medium">Zarządzaj danymi systemowymi użytkownika.</p>
+              </div>
+              <button onClick={() => setEditingUser(null)} className="w-10 h-10 flex items-center justify-center bg-white rounded-full text-slate-400 hover:text-slate-600 shadow-sm border border-slate-100">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            
+            <form onSubmit={handleEditUser} className="p-10 space-y-8">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest px-1">Adres E-mail</label>
+                <input 
+                  type="email"
+                  required
+                  className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold outline-none focus:border-[var(--color-primary)] focus:bg-white transition-all shadow-inner"
+                  value={editingUser.email}
+                  onChange={e => setEditingUser({...editingUser, email: e.target.value})}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest px-1">Rola w Systemie</label>
+                <select 
+                  className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold outline-none focus:border-[var(--color-primary)] focus:bg-white transition-all shadow-inner appearance-none"
+                  value={editingUser.role}
+                  onChange={e => setEditingUser({...editingUser, role: e.target.value})}
+                >
+                  <option value="customer">Klient Biznesowy</option>
+                  <option value="broker">Broker / Agent</option>
+                  <option value="admin">Administrator</option>
+                </select>
+              </div>
+
+              <div className="flex gap-6 pt-4">
+                <button 
+                  type="button"
+                  onClick={() => setEditingUser(null)}
+                  className="flex-1 px-8 py-5 rounded-2xl font-bold text-slate-500 hover:bg-slate-50 transition-premium"
+                >
+                  Anuluj
+                </button>
+                <button 
+                  type="submit"
+                  disabled={updatingUserId === editingUser.id}
+                  className="flex-[2] px-8 py-5 rounded-2xl bg-slate-900 text-white font-bold shadow-xl shadow-slate-900/10 hover:bg-slate-800 transition-premium disabled:opacity-50 active:scale-95"
+                >
+                  {updatingUserId === editingUser.id ? 'Zapisywanie...' : 'Zapisz Zmiany'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

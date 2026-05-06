@@ -8,6 +8,7 @@ import { useTranslation } from '@/lib/i18n/i18n-context';
 import { createLead } from '@/lib/leads';
 import { useToastStore } from '@/lib/store/toast-store';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 type CmsManagedImageProps = {
   src?: string;
@@ -197,21 +198,49 @@ export function HomePageClient({
         </div>
       </div>
 
+
       {/* Hero Section */}
-      <section className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 mb-16 sm:mb-20 lg:mb-24 animate-fade-in">
+      <section className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 mb-16 sm:mb-20 lg:mb-24">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-start">
           {/* Left Column */}
-          <div className="lg:col-span-7 flex flex-col gap-lg lg:pt-2">
+          <motion.div 
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+            className="lg:col-span-7 flex flex-col gap-lg lg:pt-2"
+          >
             <div>
-              <span className="inline-block px-4 py-1.5 bg-[var(--color-primary-highlight)] text-[var(--color-primary)] font-bold text-[12px] rounded-full mb-8 border border-[var(--color-primary)]/10 shadow-sm uppercase tracking-widest">{heroBadge}</span>
-              <h1 className="font-display-bold text-[42px] sm:text-[56px] lg:text-[72px] leading-[0.95] text-[var(--color-on-background)] mb-8 font-bold tracking-tighter">
+              <motion.span 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="inline-block px-4 py-1.5 bg-[var(--color-primary-highlight)] text-[var(--color-primary)] font-bold text-[12px] rounded-full mb-8 border border-[var(--color-primary)]/10 shadow-sm uppercase tracking-widest"
+              >
+                {heroBadge}
+              </motion.span>
+              <motion.h1 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.8 }}
+                className="font-display-bold text-[42px] sm:text-[56px] lg:text-[72px] leading-[0.95] text-[var(--color-on-background)] mb-8 font-bold tracking-tighter"
+              >
                 {heroTitle}
-              </h1>
-              <p className="font-body-base text-[18px] sm:text-[20px] lg:text-[22px] text-[var(--color-on-surface-variant)] max-w-2xl leading-relaxed mb-12">
+              </motion.h1>
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.8 }}
+                className="font-body-base text-[18px] sm:text-[20px] lg:text-[22px] text-[var(--color-on-surface-variant)] max-w-2xl leading-relaxed mb-12"
+              >
                 {heroSubtitle}
-              </p>
+              </motion.p>
               
-              <div className="flex flex-col sm:flex-row gap-5">
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.8 }}
+                className="flex flex-col sm:flex-row gap-5"
+              >
                 <button
                   onClick={() => document.getElementById('calculator')?.scrollIntoView({ behavior: 'smooth' })}
                   className="bg-[var(--color-primary)] text-white px-12 py-6 rounded-[24px] font-bold shadow-2xl shadow-[var(--color-primary)]/20 hover:scale-[1.02] transition-premium active:scale-95 flex items-center justify-center gap-4 text-xl"
@@ -223,12 +252,17 @@ export function HomePageClient({
                   Oferta B2B
                   <span className="material-symbols-outlined text-sm opacity-40">arrow_forward</span>
                 </Link>
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Right Column: Hero Visual */}
-          <div className="lg:col-span-5 flex flex-col gap-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1, ease: [0.23, 1, 0.32, 1], delay: 0.2 }}
+            className="lg:col-span-5 flex flex-col gap-4"
+          >
             <div className="relative overflow-hidden rounded-[48px] border border-[var(--color-divider)] shadow-[0_40px_80px_-15px_rgba(0,0,0,0.1)] bg-slate-900 group">
               <CmsManagedImage
                 src={heroVisualImage}
@@ -253,7 +287,7 @@ export function HomePageClient({
               </div>
               <span>Porównujemy oferty <span className="text-[var(--color-primary)] font-bold">12+ przewoźników</span> w czasie rzeczywistym.</span>
             </div>
-          </div>
+          </motion.div>
         </div>
 
         <div id="calculator" className="mt-16 lg:mt-24">
@@ -324,16 +358,29 @@ export function HomePageClient({
             <span className="text-[11px] font-bold uppercase tracking-[0.4em] text-slate-400 mb-4 block">{t.home.partners.title}</span>
             <div className="h-px w-20 bg-[var(--color-primary)] mx-auto opacity-30"></div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-12 items-center opacity-30 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-1000 ease-in-out">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 1 }}
+            viewport={{ once: true }}
+            className="grid grid-cols-2 md:grid-cols-5 gap-12 items-center opacity-30 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-1000 ease-in-out"
+          >
             {partners.map((p, i) => (
-              <div key={i} className="flex flex-col items-center gap-4 group cursor-default">
+              <motion.div 
+                key={i} 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                viewport={{ once: true }}
+                className="flex flex-col items-center gap-4 group cursor-default"
+              >
                 <div className="w-16 h-16 rounded-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-center shadow-sm group-hover:shadow-xl group-hover:border-[var(--color-primary)]/20 transition-premium">
                   <span className="material-symbols-outlined text-[var(--color-primary)] opacity-40 group-hover:opacity-100 transition-opacity">verified</span>
                 </div>
                 <span className="font-display-bold text-lg font-bold text-slate-900 dark:text-white tracking-tight">{p}</span>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -379,7 +426,14 @@ export function HomePageClient({
                 style={{ transform: `translateX(-${activeIndex * 100}%)` }}
               >
                 {testimonials.map((t, i) => (
-                  <div key={i} className="w-full flex-shrink-0 px-4">
+                  <motion.div 
+                    key={i} 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+                    viewport={{ once: true }}
+                    className="w-full flex-shrink-0 px-4"
+                  >
                     <div className="bg-slate-50 dark:bg-slate-950 p-12 lg:p-24 rounded-[64px] border border-slate-100 dark:border-slate-800 relative group overflow-hidden shadow-2xl">
                       <div className="absolute top-0 right-0 p-16 text-[var(--color-primary)] opacity-[0.05] group-hover:scale-110 group-hover:rotate-12 transition-transform duration-1000">
                         <span className="material-symbols-outlined text-[240px]">format_quote</span>
@@ -410,7 +464,7 @@ export function HomePageClient({
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </div>

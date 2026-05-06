@@ -8,12 +8,14 @@ import {
 import { CreateOrderDto } from './dto/create-order.dto';
 import { db } from '../../db';
 import { orders, quotes } from '../../db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { randomInt } from 'node:crypto';
 import { PaymentsService } from '../payments/payments.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CarriersService } from '../carriers/carriers.service';
 import { NotificationsGateway } from '../websockets/notifications.gateway';
+
+import { DocumentsService } from '../documents/documents.service';
 
 @Injectable()
 export class OrdersService {
@@ -23,6 +25,8 @@ export class OrdersService {
     private readonly notificationsService: NotificationsService,
     private readonly carriersService: CarriersService,
     private readonly wsGateway: NotificationsGateway,
+    @Inject(forwardRef(() => DocumentsService))
+    private readonly documentsService: DocumentsService,
   ) {}
 
   async createOrder(data: CreateOrderDto, userId?: string) {
@@ -110,6 +114,15 @@ export class OrdersService {
   async getOrder(id: string) {
     const [order] = await db.select().from(orders).where(eq(orders.id, id));
     if (!order) throw new NotFoundException(`Order with ID ${id} not found`);
+    return order;
+  }
+
+  async getMyOrder(id: string, userId: string) {
+    const [order] = await db
+      .select()
+      .from(orders)
+      .where(and(eq(orders.id, id), eq(orders.userId, userId)));
+    if (!order) throw new NotFoundException(`Order with ID ${id} not found or access denied`);
     return order;
   }
 
@@ -251,5 +264,17 @@ export class OrdersService {
 
   async getOrdersByUser(userId: string) {
     return db.select().from(orders).where(eq(orders.userId, userId));
+  }
+
+  async getOrderInvoicePdf(orderId: string, userId: string) {
+    const [order] = await db
+      .select()
+      .from(orders)
+      .where(and(eq(orders.id, orderId), eq(orders.userId, userId)));
+
+    if (!order) throw new NotFoundException('Order not found');
+    if (!order.invoiceId) throw new BadRequestException('Order has no invoice yet');
+
+    return this.documentsService.generateInvoicePdf(order.invoiceId);
   }
 }

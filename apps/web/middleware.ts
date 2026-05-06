@@ -9,13 +9,14 @@ export function middleware(req: NextRequest) {
   // Require a login token for admin access
   const pbToken = req.cookies.get('pb_auth_token')?.value
   // Try to read a role from cookies. Fallback to empty string.
-  const role = req.cookies.get('role')?.value || ''
+  const role = req.cookies.get('pb_user_role')?.value || ''
 
-  // If admin path and no token or not admin role, redirect
-  if (isAdminPath && (!pbToken || role !== 'admin')) {
+  // If admin path and no token or not an authorized role, redirect
+  if (isAdminPath && (!pbToken || (role !== 'admin' && role !== 'superadmin'))) {
     // Redirect unauthenticated/unauthorized users away from admin area
     const url = req.nextUrl.clone()
-    url.pathname = '/' // redirect to home; adjust as needed
+    url.pathname = '/logowanie' // redirect to login
+    url.searchParams.set('forbidden', '1')
     return NextResponse.redirect(url)
   }
 

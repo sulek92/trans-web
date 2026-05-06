@@ -37,7 +37,7 @@ type AnalyticsData = {
   carrierStats: Record<string, number>;
   recentActivity: ActivityLog[];
   revenueByCurrency: { currency: string; total: number }[];
-  topCustomers: { userId: string; orderCount: number; totalSpend: number }[];
+  topCustomers: { userId: string; email?: string; orderCount: number; totalSpend: number }[];
   summary: {
     totalRevenue: number;
     avgOrderValue: number;
@@ -186,7 +186,7 @@ export default function AdminDashboard() {
                     <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">
                       {i + 1}
                     </div>
-                    <div className="text-xs font-bold text-[var(--color-on-background)] truncate max-w-[120px]">{u.userId}</div>
+                    <div className="text-xs font-bold text-[var(--color-on-background)] truncate max-w-[120px]">{u.email || u.userId}</div>
                   </div>
                   <div className="text-right">
                     <div className="text-xs font-bold text-emerald-600">{Number(u.totalSpend).toLocaleString()} zł</div>

@@ -8,6 +8,7 @@ import {
   UseGuards,
   Req,
   Res,
+  BadRequestException,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -44,6 +45,14 @@ export class OrdersController {
       return [];
     }
     return this.ordersService.getMyOrders(userId);
+  }
+
+  @Get('my/:id')
+  @UseGuards(JwtAuthGuard)
+  async getMyOrder(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    const userId = req.user?.sub;
+    if (!userId) throw new BadRequestException();
+    return this.ordersService.getMyOrder(id, userId);
   }
 
   @Get()
@@ -108,6 +117,22 @@ export class OrdersController {
   @Roles('admin')
   async generateLabel(@Param('id') id: string) {
     return this.ordersService.generateLabel(id);
+  }
+
+  @Get('my/:id/invoice')
+  @UseGuards(JwtAuthGuard)
+  async getMyOrderInvoice(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+    @Res() res: Response,
+  ) {
+    const userId = req.user?.sub;
+    if (!userId) throw new BadRequestException();
+
+    const pdf = await this.ordersService.getOrderInvoicePdf(id, userId);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=faktura-${id}.pdf`);
+    return res.send(pdf);
   }
 
   @Post('bulk-status')

@@ -240,7 +240,7 @@ function WycenaContent() {
                     {carrier.priceBrutto.toFixed(2).replace('.', ',')} <span className="text-sm font-normal text-[var(--color-on-surface-variant)]">PLN brutto</span>
                   </div>
                   <Link 
-                    href={`/zamowienie/${carrier.carrierId}?quoteId=${resolvedQuoteId}`} 
+                    href={`/zamowienie/${resolvedQuoteId}`} 
                     onClick={() => setSelectedOffer(carrier)}
                     className="mt-sm w-full sm:w-auto bg-[var(--color-primary)] hover:bg-[var(--color-surface-tint)] text-[var(--color-on-primary)] font-body-medium text-[16px] font-medium py-xs px-lg rounded shadow-sm transition-colors flex items-center justify-center gap-xs"
                   >

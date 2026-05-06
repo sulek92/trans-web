@@ -7,6 +7,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useToastStore } from '@/lib/store/toast-store';
 import { AddressBookModal } from '@/components/checkout/AddressBookModal';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const STEPS = [
   'Oferta',
@@ -69,7 +70,7 @@ export default function CheckoutWizard() {
         if (res.ok) {
           const data = await res.json();
           addToast({ title: 'Sukces', description: 'Zamówienie zostało złożone pomyślnie.', type: 'success' });
-          router.push(`/zamowienie/potwierdzenie?id=${data.orderId}`);
+          router.push(`/zamowienie/sukces?orderId=${data.orderId}`);
         } else {
           const err = await res.json();
           addToast({ title: 'Błąd', description: err.message || 'Nie udało się złożyć zamówienia.', type: 'error' });
@@ -86,13 +87,17 @@ export default function CheckoutWizard() {
   };
 
   return (
-    <main className="flex-grow pt-8 pb-16 min-h-screen bg-[var(--color-background)]">
+    <main className="flex-grow pt-8 pb-16 min-h-screen bg-[var(--color-background)] overflow-hidden">
       <div className="max-w-[1280px] mx-auto px-8">
         {/* Header & Progress Bar */}
-        <div className="mb-[32px]">
-          <h1 className="font-display-bold text-[32px] text-[var(--color-on-background)] mb-8 font-bold">Finalizacja zamówienia</h1>
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-[32px]"
+        >
+          <h1 className="font-display-bold text-4xl text-[var(--color-on-background)] mb-10 font-bold tracking-tight">Finalizacja zamówienia</h1>
           
-          <div className="relative">
+          <div className="relative mb-12">
             <div aria-hidden="true" className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-[var(--color-divider)]"></div>
             </div>
@@ -104,68 +109,89 @@ export default function CheckoutWizard() {
                 
                 return (
                   <div key={step} className="flex flex-col items-center">
-                    <div className={`h-10 w-10 rounded-full flex items-center justify-center ring-8 ring-[var(--color-background)] ${
-                      isCompleted ? 'bg-[var(--color-primary)]' : isActive ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-surface-container-highest)]'
-                    }`}>
+                    <motion.div 
+                      animate={{ scale: isActive ? 1.1 : 1, backgroundColor: isCompleted || isActive ? 'var(--color-primary)' : 'var(--color-surface-container-highest)' }}
+                      className={`h-12 w-12 rounded-full flex items-center justify-center ring-8 ring-[var(--color-background)] shadow-sm transition-all`}
+                    >
                       {isCompleted ? (
                         <span className="material-symbols-outlined text-[var(--color-on-primary)]" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
                       ) : (
-                        <span className={`font-body-medium text-[16px] font-medium ${isActive ? 'text-[var(--color-on-primary)]' : 'text-[var(--color-on-surface-variant)]'}`}>{stepNum}</span>
+                        <span className={`font-body-medium text-[16px] font-bold ${isActive ? 'text-[var(--color-on-primary)]' : 'text-[var(--color-on-surface-variant)]'}`}>{stepNum}</span>
                       )}
-                    </div>
-                    <span className={`mt-2 font-label-sm text-[14px] font-medium ${
-                      isCompleted ? 'text-[var(--color-on-background)]' : isActive ? 'text-[var(--color-primary)] font-bold' : 'text-[var(--color-on-surface-variant)]'
+                    </motion.div>
+                    <span className={`mt-3 font-bold text-xs uppercase tracking-widest ${
+                      isCompleted ? 'text-[var(--color-on-background)]' : isActive ? 'text-[var(--color-primary)]' : 'text-slate-300'
                     }`}>{step}</span>
                   </div>
                 );
               })}
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-[24px] items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-[32px] items-start">
           {/* Left Column: Forms */}
-          <div className="lg:col-span-8 space-y-6">
-            {currentStep === 1 && <Step1Offer />}
-            {currentStep === 2 && <StepSender title="Dane Nadawcy" type="sender" />}
-            {currentStep === 3 && <StepSender title="Dane Odbiorcy" type="recipient" />}
-            {currentStep === 4 && <Step4Services />}
-            {currentStep === 5 && <Step5Payment />}
-            {currentStep === 6 && <Step6Confirmation />}
+          <div className="lg:col-span-8">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentStep}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-8"
+              >
+                {currentStep === 1 && <Step1Offer />}
+                {currentStep === 2 && <StepSender title="Dane Nadawcy" type="sender" />}
+                {currentStep === 3 && <StepSender title="Dane Odbiorcy" type="recipient" />}
+                {currentStep === 4 && <Step4Services />}
+                {currentStep === 5 && <Step5Payment />}
+                {currentStep === 6 && <Step6Confirmation />}
+              </motion.div>
+            </AnimatePresence>
 
-            <div className="flex justify-between items-center mt-12 pt-8 border-t border-[var(--color-divider)]">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex justify-between items-center mt-12 pt-10 border-t border-[var(--color-divider)]"
+            >
               <button 
                 onClick={prevStep} 
                 disabled={currentStep === 1 || isSubmitting}
-                className="px-8 py-3 border border-[var(--color-outline)] text-[var(--color-on-surface-variant)] font-body-medium text-[16px] font-medium rounded hover:bg-[var(--color-surface-container-low)] transition-colors disabled:opacity-50 flex items-center gap-2"
+                className="px-10 py-4 border-2 border-slate-100 text-slate-500 font-bold rounded-2xl hover:bg-slate-50 hover:border-slate-200 transition-premium disabled:opacity-30 flex items-center gap-2 group"
               >
-                <span className="material-symbols-outlined text-sm">arrow_back</span>
+                <span className="material-symbols-outlined text-xl transition-transform group-hover:-translate-x-1">arrow_back</span>
                 Wstecz
               </button>
               <button 
                 onClick={handleNext}
                 disabled={isSubmitting}
-                className="px-10 py-3 bg-[var(--color-primary)] text-[var(--color-on-primary)] font-body-medium text-[16px] font-medium rounded shadow-md hover:bg-[var(--color-surface-tint)] transition-all flex items-center gap-2 disabled:opacity-70"
+                className="px-12 py-4 bg-[var(--color-primary)] text-white font-bold rounded-2xl shadow-xl shadow-[var(--color-primary-highlight)] hover:bg-[var(--color-surface-tint)] transition-premium flex items-center gap-2 group disabled:opacity-70 active:scale-95"
               >
                 {isSubmitting ? (
                   <>
-                    <span className="animate-spin material-symbols-outlined text-sm">sync</span>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                     Przetwarzanie...
                   </>
                 ) : (
                   <>
-                    {currentStep === STEPS.length ? 'Zapłać i zamów' : 'Kontynuuj'}
-                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                    {currentStep === STEPS.length ? 'Finalizuj i zamów' : 'Dalej'}
+                    <span className="material-symbols-outlined text-xl transition-transform group-hover:translate-x-1">arrow_forward</span>
                   </>
                 )}
               </button>
-            </div>
+            </motion.div>
           </div>
 
           {/* Right Column: Summary */}
-          <div className="lg:col-span-4 sticky top-24">
+          <motion.div 
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+            className="lg:col-span-4 sticky top-24"
+          >
             <OrderSummary />
-          </div>
+          </motion.div>
         </div>
       </div>
     </main>

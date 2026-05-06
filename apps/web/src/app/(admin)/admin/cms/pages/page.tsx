@@ -107,7 +107,7 @@ export default function CmsPagesIndex() {
                 <strong className="mr-4">{p.title ?? p.slug}</strong>
                 <span className="text-xs text-slate-500">slug: {p.slug}</span>
               </div>
-              <Link href={`/admin/cms?slug=${encodeURIComponent(p.slug)}`} className="text-sm font-bold text-blue-600">Edytuj</Link>
+              <Link href={`/admin/cms/pages/edit/${encodeURIComponent(p.slug)}`} className="text-sm font-bold text-blue-600">Edytuj</Link>
               <button onClick={() => deletePage(p.slug)} className="ml-2 text-sm font-bold text-red-600 hover:underline">Usuń</button>
             </li>
           ))}

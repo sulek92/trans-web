@@ -72,11 +72,13 @@ export class AnalyticsService {
     const topCustomers = await db
       .select({
         userId: orders.userId,
+        email: users.email,
         orderCount: sql<number>`count(*)`,
         totalSpend: sql<number>`sum(${orders.priceBrutto})`,
       })
       .from(orders)
-      .groupBy(orders.userId)
+      .leftJoin(users, eq(orders.userId, users.id))
+      .groupBy(orders.userId, users.email)
       .orderBy(sql`sum(${orders.priceBrutto}) desc`)
       .limit(5);
 

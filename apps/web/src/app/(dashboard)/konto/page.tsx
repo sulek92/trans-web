@@ -2,15 +2,85 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { getCookie } from '@/lib/utils';
+import { useToastStore } from '@/lib/store/toast-store';
+import { Skeleton } from '@/components/ui/skeleton';
+import { getApiBaseUrl } from '@/lib/api-url';
 
-export default function DashboardPage() {
-  const [activeTab, setActiveTab] = React.useState('overview');
+interface User {
+  id: string;
+  email: string;
+  role: string;
+}
+
+interface Order {
+  id: string;
+  orderNumber: string;
+  createdAt: string;
+  status: string;
+  carrierCode: string;
+  senderAddress: { city?: string };
+  recipientAddress: { city?: string };
+}
+
+export default function DashboardOverviewPage() {
+  const [user, setUser] = React.useState<User | null>(null);
+  const [recentOrders, setRecentOrders] = React.useState<Order[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const { addToast } = useToastStore();
+
+  const fetchDashboardData = React.useCallback(async () => {
+    const token = getCookie('pb_auth_token');
+    try {
+      const [userRes, ordersRes] = await Promise.all([
+        fetch(`${getApiBaseUrl()}/users/me`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${getApiBaseUrl()}/orders/my`, { headers: { 'Authorization': `Bearer ${token}` } })
+      ]);
+
+      if (userRes.ok) setUser(await userRes.json());
+      if (ordersRes.ok) {
+        const orders = await ordersRes.json();
+        setRecentOrders(orders.slice(0, 3));
+      }
+    } catch (err) {
+      addToast({ title: 'Błąd', description: 'Nie udało się pobrać danych profilu.', type: 'error' });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [addToast]);
+
+  React.useEffect(() => {
+    void fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  if (isLoading) {
+    return (
+      <div className="pt-24 pb-24 max-w-[1280px] mx-auto px-8 space-y-12">
+        <Skeleton className="h-20 w-1/3 rounded-2xl" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[1,2,3].map(i => <Skeleton key={i} className="h-48 w-full rounded-[32px]" />)}
+        </div>
+        <Skeleton className="h-96 w-full rounded-[40px]" />
+      </div>
+    );
+  }
+
+  const activeOrdersCount = recentOrders.filter(o => ['PENDING', 'IN_TRANSIT', 'OCZEKIWANIE', 'W TRANSPORCIE'].includes(o.status.toUpperCase())).length;
 
   const stats = [
-    { label: 'Aktywne przesyłki', value: '3', sub: 'W drodze do celu', icon: 'local_shipping', trend: '+1' },
-    { label: 'Wysłane (30 dni)', value: '18', sub: 'Suma 4 520 kg', icon: 'package_2', trend: '+12%' },
-    { label: 'Oszczędności B2B', value: '840 PLN', sub: 'Dzięki umowie stałej', icon: 'payments', trend: 'Premium' },
+    { label: 'Aktywne przesyłki', value: activeOrdersCount.toString(), sub: 'W drodze do celu', icon: 'local_shipping', color: 'text-blue-600' },
+    { label: 'Wszystkie zlecenia', value: recentOrders.length.toString(), sub: 'Historia zamówień', icon: 'package_2', color: 'text-[var(--color-primary)]' },
+    { label: 'Twój status', value: user?.role === 'customer' ? 'B2B Basic' : 'Partner B2B', sub: 'Poziom partnerstwa', icon: 'verified', color: 'text-emerald-600' },
   ];
+
+  const getStatusStyle = (status: string) => {
+    switch (status.toUpperCase()) {
+      case 'DELIVERED': case 'DORĘCZONE': return 'bg-emerald-100 text-emerald-700';
+      case 'PENDING': case 'OCZEKIWANIE': return 'bg-amber-100 text-amber-700';
+      case 'IN_TRANSIT': case 'W TRANSPORCIE': return 'bg-blue-100 text-blue-700';
+      default: return 'bg-slate-100 text-slate-700';
+    }
+  };
 
   return (
     <main className="pt-24 pb-24 bg-[var(--color-background)] min-h-screen">
@@ -19,116 +89,114 @@ export default function DashboardPage() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12 animate-fade-in">
           <div>
             <div className="flex items-center gap-3 mb-2">
-               <span className="text-[var(--color-primary)] font-bold tracking-widest uppercase text-[10px] bg-[var(--color-primary-highlight)] px-2 py-0.5 rounded">Partner Gold B2B</span>
+               <span className="text-[var(--color-primary)] font-bold tracking-widest uppercase text-[10px] bg-[var(--color-primary-highlight)] px-2 py-0.5 rounded">
+                 {user?.role === 'admin' ? 'Administrator' : 'Partner Biznesowy'}
+               </span>
                <span className="text-slate-300">•</span>
-               <span className="text-slate-400 text-xs font-medium">Ostatnie logowanie: Dzisiaj, 08:12</span>
+               <span className="text-slate-400 text-xs font-medium">{user?.email}</span>
             </div>
-            <h1 className="font-display-bold text-4xl font-bold text-[var(--color-on-background)] mb-1">Cześć, Marek 👋</h1>
-            <p className="text-[var(--color-on-surface-variant)]">Zarządzaj logistyką GlobalCargo Sp. z o.o.</p>
+            <h1 className="font-display-bold text-4xl font-bold text-[var(--color-on-background)] mb-1">
+              Cześć, {user?.email.split('@')[0]} 👋
+            </h1>
+            <p className="text-[var(--color-on-surface-variant)] text-lg">Witaj z powrotem w swoim centrum logistycznym.</p>
           </div>
-          <div className="flex gap-4 w-full md:w-auto">
-            <Link href="/" className="flex-1 md:flex-none bg-[var(--color-primary)] text-white px-8 py-4 rounded-2xl font-bold hover:bg-[var(--color-surface-tint)] transition-premium flex items-center justify-center gap-2 shadow-xl shadow-[var(--color-primary-highlight)]">
-              <span className="material-symbols-outlined text-xl">add</span>
-              Zleć nową paletę
-            </Link>
-          </div>
+          <Link href="/" className="bg-[var(--color-primary)] text-white px-8 py-4 rounded-2xl font-bold hover:bg-[var(--color-surface-tint)] transition-premium flex items-center gap-2 shadow-xl shadow-[var(--color-primary)]/20 active:scale-95">
+            <span className="material-symbols-outlined">add</span>
+            Zleć nową paletę
+          </Link>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 animate-fade-in delay-100">
           {stats.map((s, i) => (
-            <div key={i} className="bg-white p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm hover:shadow-md transition-premium group">
+            <div key={i} className="bg-white p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm hover:shadow-xl transition-premium group">
               <div className="flex items-center justify-between mb-6">
-                <div className="w-12 h-12 rounded-2xl bg-slate-50 text-[var(--color-primary)] flex items-center justify-center group-hover:bg-[var(--color-primary)] group-hover:text-white transition-premium">
+                <div className={`w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center group-hover:bg-[var(--color-primary)] group-hover:text-white transition-premium ${s.color}`}>
                   <span className="material-symbols-outlined text-2xl">{s.icon}</span>
                 </div>
-                <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${s.trend.startsWith('+') ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>
-                  {s.trend}
-                </span>
               </div>
-              <div className="text-4xl font-bold text-[var(--color-on-background)] mb-1">{s.value}</div>
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">{s.label}</div>
+              <div className="text-4xl font-bold text-[var(--color-on-background)] mb-1 tracking-tight">{s.value}</div>
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{s.label}</div>
               <div className="mt-4 pt-4 border-t border-slate-50 text-[10px] text-slate-400 font-medium">{s.sub}</div>
             </div>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-8 space-y-8">
-            <div className="bg-white rounded-[40px] border border-[var(--color-divider)] shadow-sm overflow-hidden">
-               <div className="flex border-b border-[var(--color-divider)]">
-                  {['overview', 'active', 'history'].map((tab) => (
-                     <button 
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`px-8 py-6 text-sm font-bold transition-all relative ${activeTab === tab ? 'text-[var(--color-primary)]' : 'text-slate-400 hover:text-slate-600'}`}
-                     >
-                        {tab === 'overview' ? 'Przegląd' : tab === 'active' ? 'W drodze' : 'Historia'}
-                        {activeTab === tab && <div className="absolute bottom-0 left-8 right-8 h-1 bg-[var(--color-primary)] rounded-t-full"></div>}
-                     </button>
-                  ))}
-               </div>
-               
-               <div className="p-10">
-                  {activeTab === 'overview' && (
-                     <div className="space-y-6">
-                        <div className="flex items-center justify-between mb-4">
-                           <h3 className="font-bold text-xl">Ostatnia aktywność</h3>
-                           <Link href="/zamowienia" className="text-xs font-bold text-[var(--color-primary)] uppercase tracking-widest hover:underline">Wszystkie</Link>
-                        </div>
-                        
-                        {[
-                           { id: 'PB-2918', status: 'W doręczeniu', date: 'Dzisiaj, 08:45', carrier: 'DHL', loc: 'Warszawa → Kraków' },
-                           { id: 'PB-2892', status: 'Odebrana', date: 'Wczoraj, 14:20', carrier: 'Raben', loc: 'Łódź → Poznań' },
-                        ].map((order, i) => (
-                           <div key={i} className="flex items-center justify-between p-6 rounded-3xl bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer group">
-                              <div className="flex items-center gap-4">
-                                 <div className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center font-bold text-[10px] text-[var(--color-primary)] shadow-sm">
-                                    {order.carrier}
-                                 </div>
-                                 <div>
-                                    <div className="text-sm font-bold text-slate-800">{order.id} <span className="text-slate-300 font-normal ml-2">• {order.loc}</span></div>
-                                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{order.date}</div>
-                                 </div>
-                              </div>
-                              <span className={`text-[10px] font-bold px-3 py-1 rounded-full ${order.status === 'W doręczeniu' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                                 {order.status}
-                              </span>
-                           </div>
-                        ))}
-                     </div>
-                  )}
-               </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-fade-in delay-200">
+          {/* Recent Orders */}
+          <div className="lg:col-span-8 bg-white rounded-[40px] border border-[var(--color-divider)] shadow-sm overflow-hidden flex flex-col">
+            <div className="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
+               <h3 className="font-bold text-xl text-slate-900">Ostatnia aktywność</h3>
+               <Link href="/zamowienia" className="text-xs font-bold text-[var(--color-primary)] uppercase tracking-widest hover:underline flex items-center gap-1">
+                 Zobacz wszystko <span className="material-symbols-outlined text-xs">arrow_forward</span>
+               </Link>
+            </div>
+            
+            <div className="p-8 space-y-4 flex-grow">
+               {recentOrders.length === 0 ? (
+                 <div className="h-full flex flex-col items-center justify-center text-center p-12 text-slate-300">
+                   <span className="material-symbols-outlined text-5xl mb-4 opacity-20">history</span>
+                   <p className="font-medium italic">Brak niedawnej aktywności.</p>
+                 </div>
+               ) : (
+                 recentOrders.map((order) => (
+                   <div key={order.id} className="flex items-center justify-between p-6 rounded-3xl bg-slate-50 hover:bg-slate-100/80 transition-premium cursor-pointer border border-transparent hover:border-slate-200 group">
+                      <div className="flex items-center gap-5">
+                         <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center font-bold text-[10px] text-[var(--color-primary)] shadow-sm group-hover:scale-110 transition-transform">
+                            {order.carrierCode}
+                         </div>
+                         <div>
+                            <div className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                              {order.orderNumber} 
+                              <span className="text-slate-300 font-normal">• {order.senderAddress?.city || '---'} → {order.recipientAddress?.city || '---'}</span>
+                            </div>
+                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
+                              {new Date(order.createdAt).toLocaleDateString('pl-PL', { day: '2-digit', month: 'long' })}
+                            </div>
+                         </div>
+                      </div>
+                      <span className={`text-[10px] font-bold px-4 py-1.5 rounded-full shadow-sm ${getStatusStyle(order.status)}`}>
+                         {order.status}
+                      </span>
+                   </div>
+                 ))
+               )}
             </div>
           </div>
 
-          {/* Sidebar */}
+          {/* Right Sidebar */}
           <div className="lg:col-span-4 space-y-8">
             <div className="bg-slate-900 rounded-[40px] p-8 text-white relative overflow-hidden group shadow-2xl">
                <div className="absolute -top-10 -right-10 w-40 h-40 bg-[var(--color-primary)] opacity-20 rounded-full blur-3xl group-hover:opacity-30 transition-all"></div>
-               <h3 className="font-bold text-lg mb-4 relative z-10">Mój Opiekun Klienta</h3>
+               <h3 className="font-bold text-lg mb-6 relative z-10 flex items-center gap-2">
+                 <span className="material-symbols-outlined text-amber-400">support_agent</span>
+                 Twoje Wsparcie
+               </h3>
                <div className="flex items-center gap-4 mb-8 relative z-10">
-                  <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center font-bold text-xl border border-white/10">AK</div>
+                  <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center font-bold text-2xl border border-white/10 shadow-inner">PB</div>
                   <div>
-                     <div className="font-bold">Adam Kowalski</div>
-                     <div className="text-xs opacity-60">Key Account Manager</div>
+                     <div className="font-bold text-lg leading-tight">Dział Logistyki</div>
+                     <div className="text-xs opacity-50 uppercase tracking-widest font-bold mt-1">Dostępny 24/7</div>
                   </div>
                </div>
                <div className="space-y-3 relative z-10">
-                  <button className="w-full py-4 rounded-2xl bg-[var(--color-primary)] font-bold text-sm hover:scale-[1.02] transition-premium shadow-lg active:scale-95">Zadzwoń teraz</button>
-                  <button className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 font-bold text-sm hover:bg-white/10 transition-premium">Wyślij zapytanie</button>
+                  <a href="tel:+48221234567" className="w-full py-4 rounded-2xl bg-[var(--color-primary)] font-bold text-sm hover:scale-[1.02] transition-premium shadow-lg flex items-center justify-center gap-2">
+                    <span className="material-symbols-outlined text-sm">call</span> Zadzwoń
+                  </a>
+                  <Link href="/kontakt" className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 font-bold text-sm hover:bg-white/10 transition-premium flex items-center justify-center gap-2">
+                    <span className="material-symbols-outlined text-sm">mail</span> Napisz wiadomość
+                  </Link>
                </div>
             </div>
 
             <div className="bg-white rounded-[40px] border border-[var(--color-divider)] p-8 shadow-sm">
-               <h3 className="font-bold text-lg mb-6">Szybkie narzędzia</h3>
+               <h3 className="font-bold text-lg mb-6">Szybki dostęp</h3>
                <div className="grid grid-cols-2 gap-4">
                   {[
                      { label: 'Ustawienia', icon: 'settings', href: '/konto/ustawienia' },
                      { label: 'Adresy', icon: 'location_on', href: '/konto/adresy' },
-                     { label: 'Faktury', icon: 'description', href: '/konto/faktury' },
-                     { label: 'API', icon: 'code', href: '/api' },
+                     { label: 'Zamówienia', icon: 'package_2', href: '/zamowienia' },
+                     { label: 'Pomoc', icon: 'help_center', href: '/pomoc' },
                   ].map((tool, i) => (
                      <Link key={i} href={tool.href} className="flex flex-col items-center justify-center p-6 rounded-3xl bg-slate-50 hover:bg-[var(--color-primary-highlight)] hover:text-[var(--color-primary)] transition-premium group border border-transparent hover:border-[var(--color-primary)]">
                         <span className="material-symbols-outlined text-2xl mb-2 group-hover:scale-110 transition-transform">{tool.icon}</span>
@@ -143,4 +211,3 @@ export default function DashboardPage() {
     </main>
   );
 }
-

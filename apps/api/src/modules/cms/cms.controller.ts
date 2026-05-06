@@ -57,7 +57,7 @@ export class CmsController {
   @Delete('pages/:slug')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async deletePage(@ControllerParam('slug') slug: string, @Req() req: AuthenticatedRequest) {
+  async deletePage(@Param('slug') slug: string, @Req() req: AuthenticatedRequest) {
     // Delete a CMS page and log the action
     return this.cmsService.deletePage(slug, { userId: req.user?.sub, email: req.user?.email });
   }
@@ -78,8 +78,39 @@ export class CmsController {
 
   @Get('articles')
   @UseInterceptors(CacheControlInterceptor)
-  async getArticles() {
-    return this.cmsService.getArticles();
+  async getArticles(@Req() req: Request) {
+    const onlyPublished = req.query.public === 'true';
+    return this.cmsService.getArticles(onlyPublished);
+  }
+
+  @Get('articles/:slug')
+  @UseInterceptors(CacheControlInterceptor)
+  async getArticle(@Param('slug') slug: string) {
+    return this.cmsService.getArticleBySlug(slug);
+  }
+
+  @Put('articles/:slug')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async updateArticle(
+    @Param('slug') slug: string,
+    @Body() data: any,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.cmsService.updateArticle(slug, data, {
+      userId: req.user?.sub,
+      email: req.user?.email,
+    });
+  }
+
+  @Delete('articles/:slug')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async deleteArticle(@Param('slug') slug: string, @Req() req: AuthenticatedRequest) {
+    return this.cmsService.deleteArticle(slug, {
+      userId: req.user?.sub,
+      email: req.user?.email,
+    });
   }
 
   @Get('media')

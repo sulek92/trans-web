@@ -317,3 +317,18 @@ export const auditLogs = pgTable(
     };
   },
 );
+
+export const newsletterSubscribers = pgTable(
+  'newsletter_subscribers',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    email: varchar('email', { length: 255 }).unique().notNull(),
+    isActive: boolean('is_active').default(true),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+  },
+  (table) => ({
+    emailIdx: index('newsletter_email_idx').on(table.email),
+    activeIdx: index('newsletter_active_idx').on(table.isActive),
+  }),
+);

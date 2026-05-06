@@ -7,7 +7,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { db } from '../../db';
 import { cmsPages, cmsArticles } from '../../db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 import { UpdateCmsPageDto } from './dto/update-cms-page.dto';
 type CmsPageInput = {
   slug: string;
@@ -147,8 +147,98 @@ export class CmsService {
     }
   }
 
-  async getArticles() {
-    return db.select().from(cmsArticles);
+  async getArticles(onlyPublished = false) {
+    if (onlyPublished) {
+      return db
+        .select()
+        .from(cmsArticles)
+        .where(eq(cmsArticles.isPublished, true))
+        .orderBy(desc(cmsArticles.publishedAt));
+    }
+
+    return db
+      .select()
+      .from(cmsArticles)
+      .orderBy(desc(cmsArticles.updatedAt));
+  }
+
+  async getArticleBySlug(slug: string) {
+    const [article] = await db
+      .select()
+      .from(cmsArticles)
+      .where(eq(cmsArticles.slug, slug));
+    if (!article) throw new NotFoundException(`Article with slug ${slug} not found`);
+    return article;
+  }
+
+  async updateArticle(slug: string, data: any, actor?: ActorContext) {
+    const now = new Date();
+    const [updated] = await db
+      .update(cmsArticles)
+      .set({ ...data, updatedAt: now })
+      .where(eq(cmsArticles.slug, slug))
+      .returning();
+
+    if (updated) {
+      await this.auditLogService.record({
+        actorUserId: actor?.userId,
+        actorEmail: actor?.email,
+        action: 'cms.article_updated',
+        entityType: 'cms_article',
+        entityId: updated.id,
+        metadata: { slug, title: data.title },
+      });
+      return updated;
+    }
+
+    // Upsert logic if not exists
+    const [created] = await db
+      .insert(cmsArticles)
+      .values({
+        slug,
+        title: data.title,
+        excerpt: data.excerpt ?? null,
+        content: data.content ?? null,
+        category: data.category ?? null,
+        metaTitle: data.metaTitle ?? null,
+        metaDescription: data.metaDescription ?? null,
+        isPublished: data.isPublished ?? false,
+        publishedAt: data.isPublished ? now : null,
+        updatedAt: now,
+      })
+      .returning();
+
+    await this.auditLogService.record({
+      actorUserId: actor?.userId,
+      actorEmail: actor?.email,
+      action: 'cms.article_created',
+      entityType: 'cms_article',
+      entityId: created.id,
+      metadata: { slug, title: data.title },
+    });
+
+    return created;
+  }
+
+  async deleteArticle(slug: string, actor?: ActorContext) {
+    const [existing] = await db
+      .select()
+      .from(cmsArticles)
+      .where(eq(cmsArticles.slug, slug));
+    if (!existing) throw new NotFoundException(`Article with slug ${slug} not found`);
+
+    await db.delete(cmsArticles).where(eq(cmsArticles.slug, slug));
+
+    await this.auditLogService.record({
+      actorUserId: actor?.userId,
+      actorEmail: actor?.email,
+      action: 'cms.article_deleted',
+      entityType: 'cms_article',
+      entityId: existing.id,
+      metadata: { slug },
+    });
+
+    return { slug, deleted: true };
   }
 
   async listMedia(): Promise<CmsMediaItem[]> {

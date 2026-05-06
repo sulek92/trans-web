@@ -29,6 +29,7 @@ interface User { id: string; email: string; role: string; }
     { label: 'Wygląd', icon: 'palette', href: '/admin/wyglad' },
     { label: 'Cennik', icon: 'payments', href: '/admin/cennik' },
     { label: 'Finanse', icon: 'receipt_long', href: '/admin/finanse' },
+    { label: 'Newsletter', icon: 'mail', href: '/admin/newsletter' },
     { label: 'Logi systemowe', icon: 'history', href: '/admin/logi-systemowe' },
     { label: 'Ustawienia', icon: 'settings', href: '/admin/ustawienia' },
   ];

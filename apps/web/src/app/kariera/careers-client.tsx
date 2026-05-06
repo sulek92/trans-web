@@ -4,8 +4,31 @@ import * as React from 'react';
 import { useTranslation } from '@/lib/i18n/i18n-context';
 import { motion } from 'framer-motion';
 
-export function CareersClient() {
+interface CareersClientProps {
+  cmsContent?: string;
+}
+
+export function CareersClient({ cmsContent }: CareersClientProps) {
   const { t, locale } = useTranslation();
+
+  const content = React.useMemo(() => {
+    if (!cmsContent) return t.careers;
+    try {
+      const parsed = JSON.parse(cmsContent);
+      return {
+        title: parsed.title || t.careers.title,
+        subtitle: parsed.subtitle || t.careers.subtitle,
+        applyNow: parsed.applyNow || t.careers.applyNow,
+        whyJoin: parsed.whyJoin || t.careers.whyJoin,
+        values: parsed.values && parsed.values.length > 0 ? parsed.values : t.careers.values,
+        openPositions: parsed.openPositions || t.careers.openPositions,
+        offers: parsed.offers && parsed.offers.length > 0 ? parsed.offers : t.careers.offers,
+        noPositions: parsed.noPositions || t.careers.noPositions,
+      };
+    } catch {
+      return t.careers;
+    }
+  }, [cmsContent, t.careers]);
 
   return (
     <div key={locale} className="max-w-[1280px] mx-auto px-4 py-20">
@@ -16,10 +39,10 @@ export function CareersClient() {
         className="bg-[#005258] dark:bg-slate-800 rounded-[60px] p-12 md:p-20 text-white mb-24 relative overflow-hidden shadow-3xl"
       >
         <div className="relative z-10 max-w-3xl">
-          <h1 className="text-5xl md:text-7xl font-bold mb-8 tracking-tight">{t.careers.title}</h1>
-          <p className="text-xl md:text-2xl opacity-80 leading-relaxed mb-10">{t.careers.subtitle}</p>
+          <h1 className="text-5xl md:text-7xl font-bold mb-8 tracking-tight">{content.title}</h1>
+          <p className="text-xl md:text-2xl opacity-80 leading-relaxed mb-10">{content.subtitle}</p>
           <button className="px-10 py-5 bg-white text-[#005258] font-bold rounded-2xl hover:bg-slate-100 transition-premium shadow-xl active:scale-95">
-            {t.careers.applyNow}
+            {content.applyNow}
           </button>
         </div>
         <div className="absolute top-0 right-0 p-12 opacity-10 hidden lg:block">
@@ -29,9 +52,9 @@ export function CareersClient() {
 
       {/* Values Section */}
       <div className="mb-32">
-        <h2 className="text-4xl font-bold mb-16 text-[var(--color-on-background)] text-center">{t.careers.whyJoin}</h2>
+        <h2 className="text-4xl font-bold mb-16 text-[var(--color-on-background)] text-center">{content.whyJoin}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {t.careers.values.map((v, i) => (
+          {content.values.map((v: any, i: number) => (
             <motion.div 
               key={v.title}
               initial={{ opacity: 0, y: 20 }}
@@ -51,9 +74,9 @@ export function CareersClient() {
 
       {/* Open Positions */}
       <div>
-        <h2 className="text-4xl font-bold mb-16 text-[var(--color-on-background)] text-center">{t.careers.openPositions}</h2>
+        <h2 className="text-4xl font-bold mb-16 text-[var(--color-on-background)] text-center">{content.openPositions}</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {t.careers.offers.map((offer, i) => (
+          {content.offers.map((offer: any, i: number) => (
             <motion.div 
               key={offer.title}
               initial={{ opacity: 0, x: -20 }}
@@ -74,9 +97,9 @@ export function CareersClient() {
             </motion.div>
           ))}
         </div>
-        {t.careers.offers.length === 0 && (
+        {content.offers.length === 0 && (
           <div className="text-center p-20 bg-[var(--color-surface-container-low)] rounded-[48px] border border-dashed border-[var(--color-divider)]">
-            <p className="text-[var(--color-on-surface-variant)] text-xl">{t.careers.noPositions}</p>
+            <p className="text-[var(--color-on-surface-variant)] text-xl">{content.noPositions}</p>
           </div>
         )}
       </div>

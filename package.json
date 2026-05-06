@@ -16,5 +16,8 @@
   "devDependencies": {
     "turbo": "latest",
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "react-markdown": "^10.1.0"
   }
 }

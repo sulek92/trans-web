@@ -4,6 +4,7 @@ import * as React from 'react';
 import { getCookie } from '@/lib/utils';
 import { useToastStore } from '@/lib/store/toast-store';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getApiBaseUrl } from '@/lib/api-url';
 
 interface PricingRule {
   id: string;
@@ -12,6 +13,8 @@ interface PricingRule {
   basePrice: string;
   marginPercent: string;
   isActive: boolean;
+  minWeight?: string;
+  maxWeight?: string;
 }
 
 export default function AdminPricingRulesPage() {
@@ -21,15 +24,11 @@ export default function AdminPricingRulesPage() {
   const [isSaving, setIsSaving] = React.useState(false);
   const { addToast } = useToastStore();
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-
   const fetchRules = React.useCallback(async () => {
     const token = getCookie('pb_auth_token');
     try {
-      const response = await fetch(`${API_URL}/admin/pricing-rules`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await fetch(`${getApiBaseUrl()}/admin/pricing-rules`, {
+        headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
         const data = await response.json();
@@ -40,7 +39,7 @@ export default function AdminPricingRulesPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [API_URL, addToast]);
+  }, [addToast]);
 
   React.useEffect(() => {
     void fetchRules();
@@ -53,7 +52,7 @@ export default function AdminPricingRulesPage() {
     setIsSaving(true);
     const token = getCookie('pb_auth_token');
     try {
-      const response = await fetch(`${API_URL}/admin/pricing-rules`, {
+      const response = await fetch(`${getApiBaseUrl()}/admin/pricing-rules`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -73,79 +72,76 @@ export default function AdminPricingRulesPage() {
     }
   };
 
-  React.useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setEditingRule(null);
-    };
-    window.addEventListener('keydown', handleEsc);
-    return () => window.removeEventListener('keydown', handleEsc);
-  }, []);
-
   return (
-    <div className="space-y-8 animate-fade-in relative">
-      <div className="flex justify-between items-center">
+    <div className="space-y-10 animate-fade-in relative pb-20">
+      <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Reguły Cennika</h1>
-          <p className="text-slate-500">Zarządzaj marżami i cenami bazowymi przewoźników.</p>
+          <span className="text-[var(--color-primary)] font-bold tracking-widest uppercase text-xs mb-3 block">Silnik Wyceń</span>
+          <h1 className="text-4xl font-bold text-slate-900 mb-2 tracking-tight">Reguły Cennika</h1>
+          <p className="text-slate-500 text-lg">Konfiguruj marże i ceny bazowe dla usług przewoźników.</p>
         </div>
         <button 
           onClick={() => setEditingRule({ id: '', carrierCode: '', serviceName: '', basePrice: '0', marginPercent: '15', isActive: true })}
-          className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-blue-700 transition-all flex items-center gap-2"
+          className="bg-[var(--color-primary)] text-white px-8 py-4 rounded-2xl font-bold shadow-xl shadow-[var(--color-primary)]/20 hover:bg-[var(--color-surface-tint)] transition-premium flex items-center gap-2 active:scale-95"
         >
           <span className="material-symbols-outlined">add</span>
-          Nowa Reguła
+          Dodaj Regułę
         </button>
       </div>
 
-      <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden">
-        {isLoading ? (
-          <div className="p-8 space-y-4">
-            {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-16 w-full" />)}
-          </div>
-        ) : (
-          <table className="w-full text-left">
-            <thead className="bg-slate-50/50 border-b border-slate-200">
-              <tr className="text-[10px] uppercase tracking-widest font-bold text-slate-400">
-                <th className="px-8 py-5">Przewoźnik</th>
-                <th className="px-8 py-5">Usługa</th>
-                <th className="px-8 py-5">Cena Bazowa</th>
-                <th className="px-8 py-5">Marża (%)</th>
-                <th className="px-8 py-5">Status</th>
-                <th className="px-8 py-5"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {rules.map((rule) => (
-                <tr key={rule.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-8 py-6">
-                    <div className="font-bold text-slate-900 uppercase">{rule.carrierCode}</div>
-                  </td>
-                  <td className="px-8 py-6 text-sm text-slate-600">{rule.serviceName}</td>
-                  <td className="px-8 py-6 font-medium">{rule.basePrice} PLN</td>
-                  <td className="px-8 py-6 font-bold text-blue-600">{rule.marginPercent}%</td>
-                  <td className="px-8 py-6">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${rule.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
-                      {rule.isActive ? 'Aktywna' : 'Nieaktywna'}
-                    </span>
-                  </td>
-                  <td className="px-8 py-6 text-right">
-                    <button onClick={() => setEditingRule(rule)} className="text-slate-300 hover:text-blue-600 transition-colors">
-                      <span className="material-symbols-outlined">edit</span>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {rules.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-8 py-20 text-center text-slate-400 italic">
-                    Brak zdefiniowanych reguł cennika.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        )}
-      </div>
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {[1,2,3,4,5,6].map(i => <Skeleton key={i} className="h-64 w-full rounded-[40px]" />)}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {rules.map((rule) => (
+            <div key={rule.id} className="group bg-white rounded-[40px] border border-slate-200 p-8 shadow-sm hover:shadow-2xl transition-premium relative overflow-hidden flex flex-col">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-bl-[100px] -z-10 group-hover:bg-[var(--color-primary-highlight)] transition-colors opacity-50" />
+              
+              <div className="flex justify-between items-start mb-8">
+                <div className="w-12 h-12 rounded-2xl bg-slate-50 text-[var(--color-primary)] flex items-center justify-center font-bold text-sm uppercase">
+                  {rule.carrierCode}
+                </div>
+                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${rule.isActive ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                  {rule.isActive ? 'Aktywna' : 'Włączona'}
+                </span>
+              </div>
+
+              <h3 className="text-xl font-bold text-slate-900 mb-1 group-hover:text-[var(--color-primary)] transition-colors">{rule.serviceName}</h3>
+              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-8">{rule.carrierCode} Service</p>
+
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Cena Bazowa</div>
+                  <div className="text-lg font-bold text-slate-900">{rule.basePrice} <span className="text-[10px] font-normal text-slate-400">PLN</span></div>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Marża</div>
+                  <div className="text-lg font-bold text-[var(--color-primary)]">{rule.marginPercent}%</div>
+                </div>
+              </div>
+
+              <div className="mt-auto flex justify-between items-center pt-4 border-t border-slate-50">
+                <div className="text-[10px] text-slate-400 font-medium">
+                  Waga: {rule.minWeight || 0} - {rule.maxWeight || 1200} kg
+                </div>
+                <button 
+                  onClick={() => setEditingRule(rule)} 
+                  className="p-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-premium shadow-lg shadow-slate-900/10 active:scale-90"
+                >
+                  <span className="material-symbols-outlined text-sm">edit</span>
+                </button>
+              </div>
+            </div>
+          ))}
+          {rules.length === 0 && (
+            <div className="col-span-full p-20 text-center text-slate-300 border-2 border-dashed border-slate-100 rounded-[40px] font-bold">
+              Brak zdefiniowanych reguł. Kliknij &quot;Dodaj Regułę&quot;, aby zacząć.
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Edit Modal */}
       {editingRule && (
@@ -154,33 +150,36 @@ export default function AdminPricingRulesPage() {
           onClick={() => setEditingRule(null)}
         >
           <div 
-            className="bg-white rounded-[32px] shadow-2xl w-full max-w-lg min-w-[360px] overflow-hidden animate-in zoom-in-95 duration-200"
+            className="bg-white rounded-[40px] shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <h2 className="text-xl font-bold">{editingRule.id ? 'Edytuj Regułę' : 'Nowa Reguła'}</h2>
-              <button onClick={() => setEditingRule(null)} className="text-slate-400 hover:text-slate-600">
+            <div className="p-10 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">{editingRule.id ? 'Edytuj Regułę' : 'Nowa Reguła'}</h2>
+                <p className="text-sm text-slate-400 font-medium">Skonfiguruj parametry wyceny usługi.</p>
+              </div>
+              <button onClick={() => setEditingRule(null)} className="w-10 h-10 flex items-center justify-center bg-white rounded-full text-slate-400 hover:text-slate-600 shadow-sm border border-slate-100">
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
             
-            <form onSubmit={handleSave} className="p-8 space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+            <form onSubmit={handleSave} className="p-10 space-y-8">
+              <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Kod Przewoźnika</label>
+                  <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest px-1">Kod Przewoźnika</label>
                   <input 
                     required
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-blue-500 transition-colors"
+                    className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold outline-none focus:border-[var(--color-primary)] focus:bg-white transition-all shadow-inner"
                     value={editingRule.carrierCode}
-                    onChange={e => setEditingRule({...editingRule, carrierCode: e.target.value})}
+                    onChange={e => setEditingRule({...editingRule, carrierCode: e.target.value.toUpperCase()})}
                     placeholder="np. DHL"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Nazwa Usługi</label>
+                  <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest px-1">Nazwa Usługi</label>
                   <input 
                     required
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-blue-500 transition-colors"
+                    className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold outline-none focus:border-[var(--color-primary)] focus:bg-white transition-all shadow-inner"
                     value={editingRule.serviceName}
                     onChange={e => setEditingRule({...editingRule, serviceName: e.target.value})}
                     placeholder="np. Paleta Standard"
@@ -188,55 +187,65 @@ export default function AdminPricingRulesPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Cena Bazowa (PLN)</label>
-                  <input 
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm font-bold outline-none focus:border-blue-500 transition-colors"
-                    value={editingRule.basePrice}
-                    onChange={e => setEditingRule({...editingRule, basePrice: e.target.value})}
-                  />
+                  <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest px-1">Cena Bazowa (PLN)</label>
+                  <div className="relative">
+                    <input 
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      className="w-full pl-6 pr-16 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold outline-none focus:border-[var(--color-primary)] focus:bg-white transition-all shadow-inner"
+                      value={editingRule.basePrice}
+                      onChange={e => setEditingRule({...editingRule, basePrice: e.target.value})}
+                    />
+                    <span className="absolute right-6 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">PLN</span>
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Marża (%)</label>
-                  <input 
-                    type="number"
-                    min="0"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm font-bold outline-none focus:border-blue-500 transition-colors"
-                    value={editingRule.marginPercent}
-                    onChange={e => setEditingRule({...editingRule, marginPercent: e.target.value})}
-                  />
+                  <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest px-1">Marża (%)</label>
+                  <div className="relative">
+                    <input 
+                      type="number"
+                      min="0"
+                      className="w-full pl-6 pr-16 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold outline-none focus:border-[var(--color-primary)] focus:bg-white transition-all shadow-inner"
+                      value={editingRule.marginPercent}
+                      onChange={e => setEditingRule({...editingRule, marginPercent: e.target.value})}
+                    />
+                    <span className="absolute right-6 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">%</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <input 
-                  type="checkbox"
-                  id="isActive"
-                  className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                  checked={editingRule.isActive}
-                  onChange={e => setEditingRule({...editingRule, isActive: e.target.checked})}
-                />
-                <label htmlFor="isActive" className="text-sm font-medium text-slate-700 cursor-pointer">Reguła aktywna</label>
+              <div className="flex items-center gap-4 p-6 bg-slate-50 rounded-3xl border border-slate-100 shadow-inner">
+                <div className="relative inline-flex items-center cursor-pointer">
+                  <input 
+                    type="checkbox"
+                    id="isActive"
+                    className="sr-only peer"
+                    checked={editingRule.isActive}
+                    onChange={e => setEditingRule({...editingRule, isActive: e.target.checked})}
+                  />
+                  <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--color-primary)]"></div>
+                </div>
+                <label htmlFor="isActive" className="text-sm font-bold text-slate-700 cursor-pointer">Reguła aktywna</label>
               </div>
 
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-6 pt-4">
                 <button 
                   type="button"
                   onClick={() => setEditingRule(null)}
-                  className="flex-1 px-6 py-4 rounded-2xl font-bold text-slate-500 hover:bg-slate-50 transition-colors"
+                  className="flex-1 px-8 py-5 rounded-2xl font-bold text-slate-500 hover:bg-slate-50 transition-premium"
                 >
                   Anuluj
                 </button>
                 <button 
                   type="submit"
                   disabled={isSaving}
-                  className="flex-1 px-6 py-4 rounded-2xl bg-blue-600 text-white font-bold shadow-lg hover:bg-blue-700 transition-all disabled:opacity-50"
+                  className="flex-[2] px-8 py-5 rounded-2xl bg-[var(--color-primary)] text-white font-bold shadow-xl shadow-[var(--color-primary)]/20 hover:bg-[var(--color-surface-tint)] transition-premium disabled:opacity-50 active:scale-95 flex items-center justify-center gap-3"
                 >
-                  {isSaving ? 'Zapisywanie...' : 'Zapisz Regułę'}
+                  {isSaving && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>}
+                  {isSaving ? 'Zapisywanie...' : 'Zatwierdź Regułę'}
                 </button>
               </div>
             </form>
