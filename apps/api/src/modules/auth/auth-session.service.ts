@@ -25,7 +25,7 @@ export class AuthSessionService {
 
   async isTokenRevoked(jti?: string): Promise<boolean> {
     if (!jti) return false;
-    const redisResult = await this.withRedis((client) =>
+    const redisResult = await this.withRedis<number>((client) =>
       client.exists(this.revokedKey(jti)),
     );
     if (redisResult !== null) {
@@ -51,7 +51,7 @@ export class AuthSessionService {
   async getLockState(
     key: string,
   ): Promise<{ isLocked: boolean; remainingMs: number }> {
-    const redisLogin = await this.withRedis((client) =>
+    const redisLogin = await this.withRedis<string | null>((client) =>
       client.get(this.loginKey(key)),
     );
     if (redisLogin) {
@@ -79,7 +79,7 @@ export class AuthSessionService {
   ): Promise<void> {
     this.pruneLoginAttempts();
     const now = Date.now();
-    const redisValue = await this.withRedis((client) =>
+    const redisValue = await this.withRedis<string | null>((client) =>
       client.get(this.loginKey(key)),
     );
     const current = redisValue

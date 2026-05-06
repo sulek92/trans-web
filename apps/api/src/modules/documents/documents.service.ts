@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import * as PDFDocument from 'pdfkit';
+import PDFDocument from 'pdfkit';
 import { OrdersService } from '../orders/orders.service';
 
 @Injectable()
@@ -14,9 +14,9 @@ export class DocumentsService {
       const doc = new PDFDocument({ size: 'A6', margin: 20 });
       const chunks: Buffer[] = [];
 
-      doc.on('data', (chunk) => chunks.push(chunk));
+      doc.on('data', (chunk: Buffer) => chunks.push(chunk));
       doc.on('end', () => resolve(Buffer.concat(chunks)));
-      doc.on('error', (err) => reject(err));
+      doc.on('error', (err: Error) => reject(err));
 
       // Draw Label Content
       doc.rect(0, 0, doc.page.width, doc.page.height).stroke();
@@ -154,9 +154,9 @@ export class DocumentsService {
   }
 
   async generateInvoicePdf(invoiceId: string): Promise<Buffer> {
-    const { invoices, companies } = await import('../../db/schema');
+    const { invoices, companies } = await import('../../db/schema.js');
     const { eq } = await import('drizzle-orm');
-    const { db } = await import('../../db');
+    const { db } = await import('../../db.js');
 
     const [invoice] = await db
       .select()
