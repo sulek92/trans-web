@@ -3,9 +3,9 @@
 import type { FC } from 'react';
 
 interface Props {
-  content: any;
+  data: any;
 }
 
-export const BusinessClient: FC<Props> = ({ content }) => {
+export const BusinessClient: FC<Props> = () => {
   return null;
 };

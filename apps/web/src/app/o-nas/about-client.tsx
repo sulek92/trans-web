@@ -3,9 +3,9 @@
 import type { FC } from 'react';
 
 interface Props {
-  content: any;
+  data: any;
 }
 
-export const AboutClient: FC<Props> = ({ content }) => {
+export const AboutClient: FC<Props> = () => {
   return null;
 };
