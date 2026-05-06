@@ -45,6 +45,14 @@ export class CmsController {
     return this.cmsService.getPageBySlug(slug);
   }
 
+  @Delete('pages/:slug')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async deletePage(@ControllerParam('slug') slug: string, @Req() req: AuthenticatedRequest) {
+    // Delete a CMS page and log the action
+    return this.cmsService.deletePage(slug, { userId: req.user?.sub, email: req.user?.email });
+  }
+
   @Put('pages/:slug')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')

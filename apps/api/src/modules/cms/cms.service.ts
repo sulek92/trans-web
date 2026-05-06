@@ -253,6 +253,30 @@ export class CmsService {
     return { success: true, deleted: trimmed };
   }
 
+  async deletePage(slug: string, actor?: ActorContext) {
+    // Check if page exists
+    const [existing] = await db
+      .select()
+      .from(cmsPages)
+      .where(eq(cmsPages.slug, slug));
+    if (!existing) {
+      throw new NotFoundException(`Page with slug ${slug} not found`);
+    }
+
+    await db.delete(cmsPages).where(eq(cmsPages.slug, slug));
+
+    await this.auditLogService.record({
+      actorUserId: actor?.userId,
+      actorEmail: actor?.email,
+      action: 'cms.page_deleted',
+      entityType: 'cms_page',
+      entityId: existing.id,
+      metadata: { slug },
+    });
+
+    return { slug, deleted: true };
+  }
+
   private async ensureMediaDirectory(): Promise<void> {
     await fs.mkdir(this.mediaDirectory, { recursive: true });
   }
