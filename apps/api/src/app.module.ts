@@ -30,12 +30,10 @@ import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
-    ThrottlerModule.forRoot([
-      {
-        ttl: Number(process.env.RATE_LIMIT_TTL_MS || 60000),
-        limit: Number(process.env.RATE_LIMIT_MAX || 120),
-      },
-    ]),
+    ThrottlerModule.forRoot({
+      ttl: Number(process.env.RATE_LIMIT_TTL_MS ?? 60000),
+      limit: Number(process.env.RATE_LIMIT_MAX ?? 120),
+    }),
     QuoteModule,
     AuthModule,
     OrdersModule,
