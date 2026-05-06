@@ -25,7 +25,7 @@ export class AuthSessionService {
 
   async isTokenRevoked(jti?: string): Promise<boolean> {
     if (!jti) return false;
-    const redisResult = await this.withRedis((client) =>
+    const redisResult = await this.withRedis<number>((client) =>
       client.exists(this.revokedKey(jti)),
     );
     if (redisResult !== null) {
