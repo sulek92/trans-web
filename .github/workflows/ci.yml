@@ -41,6 +41,13 @@ jobs:
         if: ${{ always() }}
         run: npm test --silent || true
 
+      - name: Install Playwright Browsers
+        run: npx playwright install
+
+      - name: Run end-to-end tests
+        if: ${{ always() }}
+        run: npm run test:e2e --silent || true
+
       - name: Upload artifacts (optional)
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
