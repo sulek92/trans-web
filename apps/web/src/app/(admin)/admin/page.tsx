@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { getCookie } from '@/lib/utils';
+import { getApiBaseUrl } from '@/lib/api-url';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 
@@ -49,7 +50,8 @@ export default function AdminDashboard() {
   const [analytics, setAnalytics] = React.useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  // Use centralized API URL resolver for consistency between server and client
+  const API_URL = getApiBaseUrl();
 
   React.useEffect(() => {
     const fetchDashboard = async () => {
