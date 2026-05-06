@@ -378,4 +378,37 @@ export class CmsService {
       .slice(0, 48);
     return normalized || 'media';
   }
+
+  async renameMedia(oldName: string, newName: string, actor?: ActorContext) {
+    const oldPath = path.join(this.mediaDirectory, oldName);
+    const newPath = path.join(this.mediaDirectory, newName);
+
+    // Validate old file exists
+    try {
+      await fs.access(oldPath);
+    } catch {
+      throw new NotFoundException(`File not found: ${oldName}`);
+    }
+
+    // Validate destination does not exist
+    try {
+      await fs.access(newPath);
+      throw new BadRequestException('Target file already exists.');
+    } catch {
+      // If not exists, proceed
+    }
+
+    await fs.rename(oldPath, newPath);
+
+    await this.auditLogService.record({
+      actorUserId: actor?.userId,
+      actorEmail: actor?.email,
+      action: 'cms.media_renamed',
+      entityType: 'cms_media',
+      entityId: newName,
+      metadata: { oldName, newName },
+    });
+
+    return { oldName, newName, success: true };
+  }
 }
