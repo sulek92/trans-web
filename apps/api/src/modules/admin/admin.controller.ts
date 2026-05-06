@@ -141,7 +141,10 @@ export class AdminController {
     @Req() req: AuthenticatedRequest,
   ) {
     if (rule.id) {
-      const [oldRule] = await db.select().from(pricingRules).where(eq(pricingRules.id, rule.id));
+      const [oldRule] = await db
+        .select()
+        .from(pricingRules)
+        .where(eq(pricingRules.id, rule.id));
       const { id, ...updateValues } = rule;
       await db
         .update(pricingRules)
@@ -191,20 +194,24 @@ export class AdminController {
     const foundOrders = await db
       .select()
       .from(orders)
-      .where(or(
-        ilike(orders.orderNumber, searchStr),
-        ilike(orders.carrierTrackingNumber, searchStr)
-      ))
+      .where(
+        or(
+          ilike(orders.orderNumber, searchStr),
+          ilike(orders.carrierTrackingNumber, searchStr),
+        ),
+      )
       .limit(5);
 
     const foundLeads = await db
       .select()
       .from(leads)
-      .where(or(
-        ilike(leads.name, searchStr),
-        ilike(leads.email, searchStr),
-        ilike(leads.company, searchStr)
-      ))
+      .where(
+        or(
+          ilike(leads.name, searchStr),
+          ilike(leads.email, searchStr),
+          ilike(leads.company, searchStr),
+        ),
+      )
       .limit(5);
 
     const foundUsers = await db
@@ -216,39 +223,52 @@ export class AdminController {
     return {
       orders: foundOrders,
       leads: foundLeads,
-      users: foundUsers
+      users: foundUsers,
     };
   }
 
   @Get('analytics')
   async getAnalytics() {
     const adminStats = await this.analyticsService.getAdminStats();
-    
+
     // Legacy support or combining with other data if needed
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const recentOrders = await db.select().from(orders).where(gte(orders.createdAt, thirtyDaysAgo));
-    
+    const recentOrders = await db
+      .select()
+      .from(orders)
+      .where(gte(orders.createdAt, thirtyDaysAgo));
+
     const carrierStats: Record<string, number> = {};
-    recentOrders.forEach(o => {
+    recentOrders.forEach((o) => {
       carrierStats[o.carrierCode] = (carrierStats[o.carrierCode] || 0) + 1;
     });
 
     const recentActivity = await this.auditLogService.listRecent(10);
 
     return {
-      chartData: adminStats.ordersOverTime.map(d => ({ date: d.date, value: d.count })),
+      chartData: adminStats.ordersOverTime.map((d) => ({
+        date: d.date,
+        value: d.count,
+      })),
       carrierStats,
       recentActivity,
       revenueByCurrency: adminStats.revenueByCurrency,
       topCustomers: adminStats.topCustomers,
       summary: {
-        totalRevenue: adminStats.revenueByCurrency.reduce((sum, c) => sum + Number(c.total), 0),
-        avgOrderValue: recentOrders.length > 0 
-          ? (adminStats.revenueByCurrency.reduce((sum, c) => sum + Number(c.total), 0) / recentOrders.length) 
-          : 0,
-        ordersCount: recentOrders.length
-      }
+        totalRevenue: adminStats.revenueByCurrency.reduce(
+          (sum, c) => sum + Number(c.total),
+          0,
+        ),
+        avgOrderValue:
+          recentOrders.length > 0
+            ? adminStats.revenueByCurrency.reduce(
+                (sum, c) => sum + Number(c.total),
+                0,
+              ) / recentOrders.length
+            : 0,
+        ordersCount: recentOrders.length,
+      },
     };
   }
 

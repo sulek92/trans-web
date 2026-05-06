@@ -12,8 +12,13 @@ export class CarriersService {
     private readonly dpdService: DpdCarrierService,
   ) {}
 
-  async createShipment(carrierCode: string, order: any): Promise<ShipmentResponse> {
-    this.logger.log(`Creating shipment for carrier: ${carrierCode}, Order: ${order.orderNumber}`);
+  async createShipment(
+    carrierCode: string,
+    order: any,
+  ): Promise<ShipmentResponse> {
+    this.logger.log(
+      `Creating shipment for carrier: ${carrierCode}, Order: ${order.orderNumber}`,
+    );
 
     switch (carrierCode.toUpperCase()) {
       case 'DHL':
@@ -21,7 +26,9 @@ export class CarriersService {
       case 'DPD':
         return this.dpdService.createShipment(order);
       default:
-        throw new BadRequestException(`Carrier ${carrierCode} is not supported for automated label generation.`);
+        throw new BadRequestException(
+          `Carrier ${carrierCode} is not supported for automated label generation.`,
+        );
     }
   }
 }

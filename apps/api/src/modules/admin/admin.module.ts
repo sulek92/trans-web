@@ -8,7 +8,13 @@ import { ApiKeyModule } from '../api-key/api-key.module';
 import { AnalyticsModule } from '../analytics/analytics.module';
 
 @Module({
-  imports: [AuthModule, AuditLogModule, OrdersModule, ApiKeyModule, AnalyticsModule],
+  imports: [
+    AuthModule,
+    AuditLogModule,
+    OrdersModule,
+    ApiKeyModule,
+    AnalyticsModule,
+  ],
   controllers: [AdminController, InternalTunnelController],
 })
 export class AdminModule {}

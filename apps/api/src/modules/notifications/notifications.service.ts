@@ -24,9 +24,11 @@ export class NotificationsService {
     } else {
       // Mock / Dev transporter
       this.transporter = nodemailer.createTransport({
-        jsonTransport: true // Logs emails as JSON to console
+        jsonTransport: true, // Logs emails as JSON to console
       });
-      this.logger.warn('SMTP NOT CONFIGURED. Emails will be logged to console in JSON format.');
+      this.logger.warn(
+        'SMTP NOT CONFIGURED. Emails will be logged to console in JSON format.',
+      );
     }
   }
 
@@ -104,13 +106,19 @@ export class NotificationsService {
         subject: `PaletBroker: Status zamówienia ${orderNumber} - ${newStatus}`,
         html: this.getEmailTemplate(title, content),
       });
-      this.logger.log(`Status update email sent to ${to} for order ${orderNumber}`);
+      this.logger.log(
+        `Status update email sent to ${to} for order ${orderNumber}`,
+      );
     } catch (error) {
       this.logger.error(`Failed to send status email to ${to}:`, error);
     }
   }
 
-  async sendPaymentConfirmation(to: string, orderNumber: string, amount: string) {
+  async sendPaymentConfirmation(
+    to: string,
+    orderNumber: string,
+    amount: string,
+  ) {
     const title = 'Płatność otrzymana';
     const content = `
       <p>Otrzymaliśmy płatność za zamówienie <strong>${orderNumber}</strong>.</p>
@@ -126,7 +134,9 @@ export class NotificationsService {
         subject: `PaletBroker: Płatność za zamówienie ${orderNumber} została zaksięgowana`,
         html: this.getEmailTemplate(title, content),
       });
-      this.logger.log(`Payment confirmation email sent to ${to} for order ${orderNumber}`);
+      this.logger.log(
+        `Payment confirmation email sent to ${to} for order ${orderNumber}`,
+      );
     } catch (error) {
       this.logger.error(`Failed to send payment email to ${to}:`, error);
     }

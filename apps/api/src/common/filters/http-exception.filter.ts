@@ -25,15 +25,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     const message =
       typeof errorResponse === 'object' && 'message' in errorResponse
-        ? (errorResponse as any).message
+        ? errorResponse.message
         : errorResponse;
 
     const error =
       typeof errorResponse === 'object' && 'error' in errorResponse
-        ? (errorResponse as any).error
+        ? errorResponse.error
         : status === HttpStatus.INTERNAL_SERVER_ERROR
-        ? 'Internal Server Error'
-        : undefined;
+          ? 'Internal Server Error'
+          : undefined;
 
     response.status(status).json({
       statusCode: status,

@@ -1,4 +1,13 @@
-import { Controller, Post, Body, UseGuards, Req, Get, Query, Res } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Req,
+  Get,
+  Query,
+  Res,
+} from '@nestjs/common';
 import { InvoicesService } from './invoices.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -21,7 +30,12 @@ export class InvoicesController {
 
   @Post('correction')
   async createCorrection(
-    @Body() body: { originalInvoiceId: string; diffAmountNet: number; reason: string },
+    @Body()
+    body: {
+      originalInvoiceId: string;
+      diffAmountNet: number;
+      reason: string;
+    },
   ) {
     return this.invoicesService.createCorrection(
       body.originalInvoiceId,
@@ -51,7 +65,10 @@ export class InvoicesController {
 
     const archive = archiver('zip', { zlib: { level: 9 } });
     res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', `attachment; filename=faktury-${startDate}-${endDate}.zip`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=faktury-${startDate}-${endDate}.zip`,
+    );
 
     archive.pipe(res);
 

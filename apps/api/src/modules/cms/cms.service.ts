@@ -165,9 +165,7 @@ export class CmsService {
     );
 
     return withStats.sort((a, b) => {
-      return (
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-      );
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
     });
   }
 

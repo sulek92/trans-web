@@ -42,10 +42,13 @@ export class PaymentsController {
       const orderId = session.metadata?.orderId;
       if (orderId) {
         // Update order status to PAID
-        const updatedOrder = await this.ordersService.updateStatus(orderId, 'PAID');
-        
+        const updatedOrder = await this.ordersService.updateStatus(
+          orderId,
+          'PAID',
+        );
+
         // Generate Carrier Label (Async)
-        void this.ordersService.generateLabel(orderId).catch(err => {
+        void this.ordersService.generateLabel(orderId).catch((err) => {
           console.error(`Failed to generate label for order ${orderId}:`, err);
         });
 
@@ -53,9 +56,9 @@ export class PaymentsController {
         const email = (updatedOrder.senderAddress as any)?.email;
         if (email) {
           void this.notificationsService.sendPaymentConfirmation(
-            email, 
-            updatedOrder.orderNumber, 
-            updatedOrder.priceBrutto
+            email,
+            updatedOrder.orderNumber,
+            updatedOrder.priceBrutto,
           );
         }
       }

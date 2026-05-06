@@ -27,7 +27,10 @@ export class OrdersController {
 
   @Post()
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
-  async createOrder(@Body() createOrderDto: CreateOrderDto, @Req() req: AuthenticatedRequest) {
+  async createOrder(
+    @Body() createOrderDto: CreateOrderDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
     // If user is logged in (token provided), req.user will be populated
     // Note: This requires the route to be processed by a strategy but not blocked
     return this.ordersService.createOrder(createOrderDto, req.user?.sub);
@@ -56,35 +59,38 @@ export class OrdersController {
   async getOrder(@Param('id') id: string) {
     return this.ordersService.getOrder(id);
   }
-  
+
   @Get('export/csv')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   async exportCsv(@Res() res: Response) {
     const orders = await this.ordersService.getAllOrders();
-    
+
     const escapeCsv = (str: string) => {
       if (!str) return '""';
       const escaped = str.toString().replace(/"/g, '""');
       return `"${escaped}"`;
     };
 
-    const header = 'ID,Nr Zamowienia,Data,Klient,Firma,Przewoznik,Status,Kwota Netto,Kwota Brutto\n';
-    const rows = orders.map(o => {
-      const sender = (o.senderAddress as any) || {};
-      return [
-        o.id,
-        o.orderNumber,
-        new Date(o.createdAt).toISOString(),
-        escapeCsv(sender.name),
-        escapeCsv(sender.companyName),
-        o.carrierCode,
-        o.status,
-        o.priceNetto,
-        o.priceBrutto
-      ].join(',');
-    }).join('\n');
-    
+    const header =
+      'ID,Nr Zamowienia,Data,Klient,Firma,Przewoznik,Status,Kwota Netto,Kwota Brutto\n';
+    const rows = orders
+      .map((o) => {
+        const sender = (o.senderAddress as any) || {};
+        return [
+          o.id,
+          o.orderNumber,
+          new Date(o.createdAt).toISOString(),
+          escapeCsv(sender.name),
+          escapeCsv(sender.companyName),
+          o.carrierCode,
+          o.status,
+          o.priceNetto,
+          o.priceBrutto,
+        ].join(',');
+      })
+      .join('\n');
+
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', 'attachment; filename=zamowienia.csv');
     return res.send('\ufeff' + header + rows); // Add BOM for Excel UTF-8 support

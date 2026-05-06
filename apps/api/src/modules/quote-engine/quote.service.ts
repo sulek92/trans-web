@@ -53,13 +53,17 @@ export class QuoteService {
         .select()
         .from(pricingRules)
         .where(eq(pricingRules.isActive, true));
-      
+
       // Cache for 1 hour (3600s)
-      await this.redisService.set(cacheKey, JSON.stringify(allActiveRules), 3600);
+      await this.redisService.set(
+        cacheKey,
+        JSON.stringify(allActiveRules),
+        3600,
+      );
     }
 
     // Filter rules by weight in memory
-    const activeRules = allActiveRules.filter(rule => {
+    const activeRules = allActiveRules.filter((rule) => {
       const minW = parseFloat(rule.minWeight);
       const maxW = parseFloat(rule.maxWeight);
       return params.weight >= minW && params.weight <= maxW;

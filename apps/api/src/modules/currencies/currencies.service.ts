@@ -19,7 +19,11 @@ export class CurrenciesService {
       GBP: 5.15,
     };
 
-    await this.redisService.setMs(this.CACHE_KEY, JSON.stringify(rates), 3600 * 1000); // 1h
+    await this.redisService.setMs(
+      this.CACHE_KEY,
+      JSON.stringify(rates),
+      3600 * 1000,
+    ); // 1h
     return rates;
   }
 

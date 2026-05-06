@@ -17,7 +17,7 @@ export class IntegrationsController {
   async listOrders(@Req() req: any) {
     // For now, simple list. In production, add pagination.
     const allOrders = await this.ordersService.getOrdersByUser(req.user.sub);
-    return allOrders.map(o => ({
+    return allOrders.map((o) => ({
       id: o.id,
       orderNumber: o.orderNumber,
       status: o.status,

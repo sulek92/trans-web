@@ -22,7 +22,8 @@ export class DocumentsController {
   @Get('invoice/:orderId')
   @UseGuards(JwtAuthGuard)
   async getInvoice(@Param('orderId') orderId: string, @Res() res: Response) {
-    const buffer = await this.documentsService.generateInvoicePlaceholder(orderId);
+    const buffer =
+      await this.documentsService.generateInvoicePlaceholder(orderId);
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename=invoice-${orderId}.pdf`,

@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { db } from '../../db';
 import { orders, quotes } from '../../db/schema';
@@ -16,27 +22,34 @@ export class OrdersService {
     private readonly paymentsService: PaymentsService,
     private readonly notificationsService: NotificationsService,
     private readonly carriersService: CarriersService,
-    private readonly wsGateway: NotificationsGateway
+    private readonly wsGateway: NotificationsGateway,
   ) {}
 
   async createOrder(data: CreateOrderDto, userId?: string) {
     // 1. Fetch Quote
-    const [quote] = await db.select().from(quotes).where(eq(quotes.id, data.quoteId));
-    if (!quote) throw new NotFoundException(`Quote with ID ${data.quoteId} not found`);
+    const [quote] = await db
+      .select()
+      .from(quotes)
+      .where(eq(quotes.id, data.quoteId));
+    if (!quote)
+      throw new NotFoundException(`Quote with ID ${data.quoteId} not found`);
 
     // 2. Find selected offer in results
     const results = (quote.results as any[]) || [];
-    const offer = results.find(o => o.carrierId === data.carrierOfferId);
-    if (!offer) throw new BadRequestException(`Offer with ID ${data.carrierOfferId} not found in quote`);
+    const offer = results.find((o) => o.carrierId === data.carrierOfferId);
+    if (!offer)
+      throw new BadRequestException(
+        `Offer with ID ${data.carrierOfferId} not found in quote`,
+      );
 
     // 3. Calculate final prices with additional services
     let priceNetto = parseFloat(offer.priceNetto);
-    
+
     if (data.additionalServices?.insurance) {
-      priceNetto += 25.00;
+      priceNetto += 25.0;
     }
     if (data.additionalServices?.cod) {
-      priceNetto += 15.00;
+      priceNetto += 15.0;
     }
 
     const priceVat = priceNetto * 0.23;
@@ -61,7 +74,11 @@ export class OrdersService {
         palletData: {
           palletType: quote.palletType,
           weight: quote.weight,
-          dimensions: { length: quote.length, width: quote.width, height: quote.height }
+          dimensions: {
+            length: quote.length,
+            width: quote.width,
+            height: quote.height,
+          },
         },
         additionalServices: data.additionalServices as any,
         status: 'PENDING',
@@ -72,7 +89,8 @@ export class OrdersService {
       .returning();
 
     // 6. Create Payment Session
-    const paymentUrl = await this.paymentsService.createCheckoutSession(newOrder);
+    const paymentUrl =
+      await this.paymentsService.createCheckoutSession(newOrder);
 
     // 7. Send Notification (Async)
     const email = (newOrder.senderAddress as any)?.email;
@@ -109,13 +127,17 @@ export class OrdersService {
       .set({ status, updatedAt: new Date() })
       .where(eq(orders.id, id))
       .returning();
-    
+
     if (!updated) throw new NotFoundException(`Order with ID ${id} not found`);
 
     // Notify user
     const email = (updated.senderAddress as any)?.email;
     if (email) {
-      void this.notificationsService.sendStatusUpdate(email, updated.orderNumber, status);
+      void this.notificationsService.sendStatusUpdate(
+        email,
+        updated.orderNumber,
+        status,
+      );
     }
 
     // Real-time WS notification
@@ -138,12 +160,16 @@ export class OrdersService {
       .set({ status, updatedAt: new Date() })
       .where(inArray(orders.id, ids))
       .returning();
-    
+
     // Notify users
     for (const order of updated) {
       const email = (order.senderAddress as any)?.email;
       if (email) {
-        void this.notificationsService.sendStatusUpdate(email, order.orderNumber, status);
+        void this.notificationsService.sendStatusUpdate(
+          email,
+          order.orderNumber,
+          status,
+        );
       }
 
       this.wsGateway.sendToOrder(order.id, 'order_updated', order);
@@ -167,7 +193,10 @@ export class OrdersService {
       return order; // Already generated
     }
 
-    const response = await this.carriersService.createShipment(order.carrierCode, order);
+    const response = await this.carriersService.createShipment(
+      order.carrierCode,
+      order,
+    );
 
     if (response.success) {
       const [updated] = await db
@@ -184,7 +213,11 @@ export class OrdersService {
       // Notify user about status change
       const email = (updated.senderAddress as any)?.email;
       if (email) {
-        void this.notificationsService.sendStatusUpdate(email, updated.orderNumber, 'IN_TRANSIT');
+        void this.notificationsService.sendStatusUpdate(
+          email,
+          updated.orderNumber,
+          'IN_TRANSIT',
+        );
       }
 
       return updated;
@@ -202,7 +235,10 @@ export class OrdersService {
         const res = await this.generateLabel(id);
         results.push(res);
       } catch (err) {
-        errors.push({ id, error: err instanceof Error ? err.message : 'Unknown error' });
+        errors.push({
+          id,
+          error: err instanceof Error ? err.message : 'Unknown error',
+        });
       }
     }
 

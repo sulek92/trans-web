@@ -21,7 +21,7 @@ export class ApiKeyService {
       .from(users)
       .where(eq(users.apiKey, key))
       .limit(1);
-    
+
     return user || null;
   }
 

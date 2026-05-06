@@ -27,7 +27,7 @@ export class ErpAdaptersController {
     @Req() req: any,
   ) {
     if (!file) throw new BadRequestException('File is required');
-    
+
     const content = file.buffer.toString('utf-8');
     return this.erpAdaptersService.processSubiektXml(content, req.user.sub);
   }

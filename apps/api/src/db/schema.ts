@@ -69,7 +69,9 @@ export const addresses = pgTable(
   },
   (table) => ({
     userIdIdx: index('addresses_user_id_idx').on(table.userId),
-    defaultSenderIdx: index('addresses_default_sender_idx').on(table.isDefaultSender),
+    defaultSenderIdx: index('addresses_default_sender_idx').on(
+      table.isDefaultSender,
+    ),
   }),
 );
 
@@ -207,7 +209,9 @@ export const trackingEvents = pgTable(
   },
   (table) => ({
     orderIdIdx: index('tracking_events_order_id_idx').on(table.orderId),
-    occurredAtIdx: index('tracking_events_occurred_at_idx').on(table.occurredAt),
+    occurredAtIdx: index('tracking_events_occurred_at_idx').on(
+      table.occurredAt,
+    ),
   }),
 );
 
@@ -274,9 +278,10 @@ export const pricingRules = pgTable(
     serviceName: varchar('service_name', { length: 100 }).notNull(),
     basePrice: decimal('base_price', { precision: 10, scale: 2 }).notNull(),
     kmRate: decimal('km_rate', { precision: 10, scale: 2 }).default('0'),
-    marginPercent: decimal('margin_percent', { precision: 5, scale: 2 }).default(
-      '15.00',
-    ),
+    marginPercent: decimal('margin_percent', {
+      precision: 5,
+      scale: 2,
+    }).default('15.00'),
     minWeight: decimal('min_weight', { precision: 10, scale: 2 }).default('0'),
     maxWeight: decimal('max_weight', { precision: 10, scale: 2 }).default(
       '1200',

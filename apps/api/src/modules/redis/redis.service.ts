@@ -1,4 +1,9 @@
-import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  Logger,
+} from '@nestjs/common';
 import { createClient, RedisClientType } from 'redis';
 
 @Injectable()
@@ -9,7 +14,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit() {
     if (!this.redisUrl) {
-      this.logger.warn('REDIS_URL not set. Redis functionality will be disabled.');
+      this.logger.warn(
+        'REDIS_URL not set. Redis functionality will be disabled.',
+      );
       return;
     }
 
@@ -17,7 +24,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       url: this.redisUrl,
     });
 
-    this.client.on('error', (err) => this.logger.error('Redis Client Error', err));
+    this.client.on('error', (err) =>
+      this.logger.error('Redis Client Error', err),
+    );
 
     try {
       await this.client.connect();

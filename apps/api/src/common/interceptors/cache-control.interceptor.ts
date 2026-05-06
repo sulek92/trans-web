@@ -12,10 +12,13 @@ export class CacheControlInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const response = context.switchToHttp().getResponse();
-    
+
     // Apply Cache-Control header
-    response.setHeader('Cache-Control', `public, max-age=${this.maxAge}, s-maxage=${this.maxAge}, stale-while-revalidate=600`);
-    
+    response.setHeader(
+      'Cache-Control',
+      `public, max-age=${this.maxAge}, s-maxage=${this.maxAge}, stale-while-revalidate=600`,
+    );
+
     return next.handle();
   }
 }

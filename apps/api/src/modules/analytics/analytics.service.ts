@@ -17,7 +17,9 @@ export class AnalyticsService {
     const [recentSpend] = await db
       .select({ total: sql<number>`sum(${orders.priceBrutto})` })
       .from(orders)
-      .where(and(eq(orders.userId, userId), gte(orders.createdAt, thirtyDaysAgo)));
+      .where(
+        and(eq(orders.userId, userId), gte(orders.createdAt, thirtyDaysAgo)),
+      );
 
     const carrierStats = await db
       .select({

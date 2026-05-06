@@ -47,10 +47,13 @@ export class LeadsController {
   async exportCsv(@Res() res: Response) {
     const leads = await this.leadsService.getLeads();
     const header = 'ID,Data,Imie i Nazwisko,Email,Firma,Status\n';
-    const rows = leads.map(l => 
-      `${l.id},${new Date(l.createdAt).toLocaleDateString()},${l.name},${l.email},${l.company},${l.status}`
-    ).join('\n');
-    
+    const rows = leads
+      .map(
+        (l) =>
+          `${l.id},${new Date(l.createdAt).toLocaleDateString()},${l.name},${l.email},${l.company},${l.status}`,
+      )
+      .join('\n');
+
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename=leady.csv');
     return res.send(header + rows);

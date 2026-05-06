@@ -20,10 +20,13 @@ export class DocumentsService {
 
       // Draw Label Content
       doc.rect(0, 0, doc.page.width, doc.page.height).stroke();
-      
-      doc.fontSize(16).font('Helvetica-Bold').text('PALETBROKER.PL', { align: 'center' });
+
+      doc
+        .fontSize(16)
+        .font('Helvetica-Bold')
+        .text('PALETBROKER.PL', { align: 'center' });
       doc.moveDown();
-      
+
       doc.fontSize(10).font('Helvetica-Bold').text('NADAWCA:');
       const sender = order.senderAddress as any;
       doc.fontSize(9).font('Helvetica').text(`${sender.name}`);
@@ -31,7 +34,7 @@ export class DocumentsService {
       doc.text(`${sender.addressLine}`);
       doc.text(`${sender.postalCode} ${sender.city}`);
       doc.text(`Tel: ${sender.phone}`);
-      
+
       doc.moveDown();
       doc.fontSize(10).font('Helvetica-Bold').text('ODBIORCA:');
       const recipient = order.recipientAddress as any;
@@ -41,12 +44,22 @@ export class DocumentsService {
       doc.text(`Tel: ${recipient.phone}`);
 
       doc.moveDown(2);
-      doc.fontSize(8).text('PRZEWOŹNIK:', { continued: true }).font('Helvetica-Bold').text(` ${order.carrierCode}`);
-      doc.font('Helvetica').text('USŁUGA:', { continued: true }).font('Helvetica-Bold').text(` ${order.carrierService || 'Standard'}`);
-      
+      doc
+        .fontSize(8)
+        .text('PRZEWOŹNIK:', { continued: true })
+        .font('Helvetica-Bold')
+        .text(` ${order.carrierCode}`);
+      doc
+        .font('Helvetica')
+        .text('USŁUGA:', { continued: true })
+        .font('Helvetica-Bold')
+        .text(` ${order.carrierService || 'Standard'}`);
+
       doc.moveDown();
       doc.rect(20, doc.y, doc.page.width - 40, 40).stroke();
-      doc.fontSize(14).text(order.orderNumber, 20, doc.y + 12, { align: 'center' });
+      doc
+        .fontSize(14)
+        .text(order.orderNumber, 20, doc.y + 12, { align: 'center' });
 
       doc.end();
     });
@@ -67,12 +80,20 @@ export class DocumentsService {
       doc.on('error', (err) => reject(err));
 
       // Invoice Header
-      doc.fontSize(20).font('Helvetica-Bold').text('INVOICE / FAKTURA', { align: 'right' });
-      doc.fontSize(10).font('Helvetica').text(`Number: FV/${order.orderNumber}`, { align: 'right' });
-      doc.text(`Date / Data: ${new Date().toLocaleDateString('pl-PL')}`, { align: 'right' });
-      
+      doc
+        .fontSize(20)
+        .font('Helvetica-Bold')
+        .text('INVOICE / FAKTURA', { align: 'right' });
+      doc
+        .fontSize(10)
+        .font('Helvetica')
+        .text(`Number: FV/${order.orderNumber}`, { align: 'right' });
+      doc.text(`Date / Data: ${new Date().toLocaleDateString('pl-PL')}`, {
+        align: 'right',
+      });
+
       doc.moveDown(2);
-      
+
       const startY = doc.y;
       doc.fontSize(10).font('Helvetica-Bold').text('Seller / Sprzedawca:');
       doc.font('Helvetica').text('PaletBroker Sp. z o.o.');
@@ -88,7 +109,7 @@ export class DocumentsService {
       if (sender.country) doc.text(sender.country, 300, doc.y);
 
       doc.moveDown(4);
-      
+
       // Table Header
       const tableTop = doc.y;
       doc.font('Helvetica-Bold');
@@ -97,9 +118,12 @@ export class DocumentsService {
       doc.text('Net / Netto', 330, tableTop);
       doc.text('VAT', 420, tableTop);
       doc.text('Gross / Brutto', 480, tableTop);
-      
-      doc.moveTo(50, tableTop + 15).lineTo(550, tableTop + 15).stroke();
-      
+
+      doc
+        .moveTo(50, tableTop + 15)
+        .lineTo(550, tableTop + 15)
+        .stroke();
+
       // Table Row
       const rowY = tableTop + 25;
       doc.font('Helvetica');
@@ -110,10 +134,20 @@ export class DocumentsService {
       doc.text(`${order.priceBrutto} ${currency}`, 480, rowY);
 
       doc.moveDown(5);
-      doc.fontSize(14).font('Helvetica-Bold').text(`TOTAL / DO ZAPŁATY: ${order.priceBrutto} ${currency}`, { align: 'right' });
+      doc
+        .fontSize(14)
+        .font('Helvetica-Bold')
+        .text(`TOTAL / DO ZAPŁATY: ${order.priceBrutto} ${currency}`, {
+          align: 'right',
+        });
 
       doc.moveDown(2);
-      doc.fontSize(8).font('Helvetica').text('Generated automatically by PaletBroker Platform.', { align: 'center' });
+      doc
+        .fontSize(8)
+        .font('Helvetica')
+        .text('Generated automatically by PaletBroker Platform.', {
+          align: 'center',
+        });
 
       doc.end();
     });
@@ -124,12 +158,18 @@ export class DocumentsService {
     const { eq } = await import('drizzle-orm');
     const { db } = await import('../../db');
 
-    const [invoice] = await db.select().from(invoices).where(eq(invoices.id, invoiceId));
+    const [invoice] = await db
+      .select()
+      .from(invoices)
+      .where(eq(invoices.id, invoiceId));
     if (!invoice) throw new NotFoundException('Invoice not found');
 
     let buyer: any = null;
     if (invoice.companyId) {
-      [buyer] = await db.select().from(companies).where(eq(companies.id, invoice.companyId));
+      [buyer] = await db
+        .select()
+        .from(companies)
+        .where(eq(companies.id, invoice.companyId));
     }
 
     return new Promise((resolve, reject) => {
@@ -143,12 +183,23 @@ export class DocumentsService {
       const isCorrection = !!invoice.correctionFor;
 
       // Header
-      doc.fontSize(20).font('Helvetica-Bold').text(isCorrection ? 'CORRECTION / KOREKTA' : 'INVOICE / FAKTURA', { align: 'right' });
-      doc.fontSize(10).font('Helvetica').text(`Number: ${invoice.invoiceNumber}`, { align: 'right' });
-      doc.text(`Date / Data: ${new Date(invoice.createdAt || '').toLocaleDateString('pl-PL')}`, { align: 'right' });
-      
+      doc
+        .fontSize(20)
+        .font('Helvetica-Bold')
+        .text(isCorrection ? 'CORRECTION / KOREKTA' : 'INVOICE / FAKTURA', {
+          align: 'right',
+        });
+      doc
+        .fontSize(10)
+        .font('Helvetica')
+        .text(`Number: ${invoice.invoiceNumber}`, { align: 'right' });
+      doc.text(
+        `Date / Data: ${new Date(invoice.createdAt || '').toLocaleDateString('pl-PL')}`,
+        { align: 'right' },
+      );
+
       doc.moveDown(2);
-      
+
       const startY = doc.y;
       doc.fontSize(10).font('Helvetica-Bold').text('Seller / Sprzedawca:');
       doc.font('Helvetica').text('PaletBroker Sp. z o.o.');
@@ -165,7 +216,7 @@ export class DocumentsService {
       }
 
       doc.moveDown(4);
-      
+
       // Table
       const tableTop = doc.y;
       doc.font('Helvetica-Bold');
@@ -173,18 +224,33 @@ export class DocumentsService {
       doc.text('Net / Netto', 330, tableTop);
       doc.text('VAT', 420, tableTop);
       doc.text('Gross / Brutto', 480, tableTop);
-      
-      doc.moveTo(50, tableTop + 15).lineTo(550, tableTop + 15).stroke();
-      
+
+      doc
+        .moveTo(50, tableTop + 15)
+        .lineTo(550, tableTop + 15)
+        .stroke();
+
       const rowY = tableTop + 25;
       doc.font('Helvetica');
-      doc.text(isCorrection ? `Correction for ${invoice.correctionFor}` : 'Transport Services', 50, rowY);
+      doc.text(
+        isCorrection
+          ? `Correction for ${invoice.correctionFor}`
+          : 'Transport Services',
+        50,
+        rowY,
+      );
       doc.text(`${invoice.totalNetto} ${invoice.currency}`, 330, rowY);
       doc.text('23%', 420, rowY);
       doc.text(`${invoice.totalBrutto} ${invoice.currency}`, 480, rowY);
 
       doc.moveDown(5);
-      doc.fontSize(14).font('Helvetica-Bold').text(`TOTAL / DO ZAPŁATY: ${invoice.totalBrutto} ${invoice.currency}`, { align: 'right' });
+      doc
+        .fontSize(14)
+        .font('Helvetica-Bold')
+        .text(
+          `TOTAL / DO ZAPŁATY: ${invoice.totalBrutto} ${invoice.currency}`,
+          { align: 'right' },
+        );
 
       doc.end();
     });

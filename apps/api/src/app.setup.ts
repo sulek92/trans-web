@@ -95,6 +95,6 @@ export function configureApp(app: INestApplication) {
       transform: true,
     }),
   );
-  
+
   app.useGlobalFilters(new HttpExceptionFilter());
 }

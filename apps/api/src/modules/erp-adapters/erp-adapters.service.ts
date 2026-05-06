@@ -14,7 +14,7 @@ export class ErpAdaptersService {
     return {
       processed: 0,
       errors: [],
-      message: 'Subiekt XML adapter ready for implementation with real schema.'
+      message: 'Subiekt XML adapter ready for implementation with real schema.',
     };
   }
 
@@ -24,7 +24,7 @@ export class ErpAdaptersService {
     return {
       processed: 0,
       errors: [],
-      message: 'Optima CSV adapter ready for implementation.'
+      message: 'Optima CSV adapter ready for implementation.',
     };
   }
 }

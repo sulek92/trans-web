@@ -41,7 +41,10 @@ export class PaymentsService {
     } catch (error) {
       this.logger.error(`Stripe Session Creation Failed: ${error.message}`);
       // Fallback for development if no key or mock key
-      if (process.env.NODE_ENV !== 'production' || !process.env.STRIPE_SECRET_KEY) {
+      if (
+        process.env.NODE_ENV !== 'production' ||
+        !process.env.STRIPE_SECRET_KEY
+      ) {
         return `https://checkout.stripe.com/mock/${order.id}`;
       }
       throw error;
@@ -53,11 +56,13 @@ export class PaymentsService {
       const event = this.stripe.webhooks.constructEvent(
         payload,
         signature,
-        process.env.STRIPE_WEBHOOK_SECRET || ''
+        process.env.STRIPE_WEBHOOK_SECRET || '',
       );
       return event;
     } catch (err) {
-      this.logger.error(`Webhook signature verification failed: ${err.message}`);
+      this.logger.error(
+        `Webhook signature verification failed: ${err.message}`,
+      );
       throw err;
     }
   }

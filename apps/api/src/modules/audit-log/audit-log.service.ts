@@ -59,7 +59,7 @@ export class AuditLogService {
   }): Promise<void> {
     const { oldData, newData, ...rest } = params;
     const diff = this.calculateDiff(oldData, newData);
-    
+
     await this.record({
       ...rest,
       metadata: {

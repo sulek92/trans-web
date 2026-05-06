@@ -23,13 +23,13 @@ export class AddressBookService {
   }
 
   async bulkAddAddresses(userId: string, dataArray: any[]) {
-    const values = dataArray.map(item => ({
+    const values = dataArray.map((item) => ({
       ...item,
       userId,
       createdAt: new Date(),
       updatedAt: new Date(),
     }));
-    
+
     return db.insert(addresses).values(values).returning();
   }
 
@@ -38,8 +38,9 @@ export class AddressBookService {
       .delete(addresses)
       .where(and(eq(addresses.id, id), eq(addresses.userId, userId)))
       .returning();
-    
-    if (!deleted) throw new NotFoundException('Address not found or access denied');
+
+    if (!deleted)
+      throw new NotFoundException('Address not found or access denied');
     return deleted;
   }
 }

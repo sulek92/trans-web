@@ -16,7 +16,9 @@ import { Logger, UseGuards } from '@nestjs/common';
   },
   namespace: 'notifications',
 })
-export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class NotificationsGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 
@@ -39,7 +41,7 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
   @SubscribeMessage('subscribe_to_order')
   handleOrderSubscription(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { orderId: string }
+    @MessageBody() data: { orderId: string },
   ) {
     client.join(`order_${data.orderId}`);
     return { status: 'joined', room: `order_${data.orderId}` };

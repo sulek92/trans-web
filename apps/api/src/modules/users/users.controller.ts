@@ -189,56 +189,83 @@ export class UsersController {
 
   @Post('me/addresses')
   @UseGuards(JwtAuthGuard)
-  async addAddress(@Body() dto: CreateAddressDto, @Req() req: AuthenticatedRequest) {
+  async addAddress(
+    @Body() dto: CreateAddressDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
     const userId = req.user?.sub;
     if (!userId) throw new BadRequestException();
 
     if (dto.isDefaultSender) {
-      await db.update(addresses).set({ isDefaultSender: false }).where(eq(addresses.userId, userId));
+      await db
+        .update(addresses)
+        .set({ isDefaultSender: false })
+        .where(eq(addresses.userId, userId));
     }
     if (dto.isDefaultRecipient) {
-      await db.update(addresses).set({ isDefaultRecipient: false }).where(eq(addresses.userId, userId));
+      await db
+        .update(addresses)
+        .set({ isDefaultRecipient: false })
+        .where(eq(addresses.userId, userId));
     }
 
-    const [newAddress] = await db.insert(addresses).values({
-      ...dto,
-      userId,
-    }).returning();
+    const [newAddress] = await db
+      .insert(addresses)
+      .values({
+        ...dto,
+        userId,
+      })
+      .returning();
     return newAddress;
   }
 
   @Put('me/addresses/:id')
   @UseGuards(JwtAuthGuard)
-  async updateAddress(@Param('id') id: string, @Body() dto: UpdateAddressDto, @Req() req: AuthenticatedRequest) {
+  async updateAddress(
+    @Param('id') id: string,
+    @Body() dto: UpdateAddressDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
     const userId = req.user?.sub;
     if (!userId) throw new BadRequestException();
 
     if (dto.isDefaultSender) {
-      await db.update(addresses).set({ isDefaultSender: false }).where(eq(addresses.userId, userId));
+      await db
+        .update(addresses)
+        .set({ isDefaultSender: false })
+        .where(eq(addresses.userId, userId));
     }
     if (dto.isDefaultRecipient) {
-      await db.update(addresses).set({ isDefaultRecipient: false }).where(eq(addresses.userId, userId));
+      await db
+        .update(addresses)
+        .set({ isDefaultRecipient: false })
+        .where(eq(addresses.userId, userId));
     }
 
-    const [updated] = await db.update(addresses)
+    const [updated] = await db
+      .update(addresses)
       .set(dto)
       .where(and(eq(addresses.id, id), eq(addresses.userId, userId)))
       .returning();
-    
+
     if (!updated) throw new BadRequestException('Address not found');
     return updated;
   }
 
   @Delete('me/addresses/:id')
   @UseGuards(JwtAuthGuard)
-  async deleteAddress(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+  async deleteAddress(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     const userId = req.user?.sub;
     if (!userId) throw new BadRequestException();
 
-    const [deleted] = await db.delete(addresses)
+    const [deleted] = await db
+      .delete(addresses)
       .where(and(eq(addresses.id, id), eq(addresses.userId, userId)))
       .returning();
-    
+
     if (!deleted) throw new BadRequestException('Address not found');
     return { success: true };
   }
@@ -250,21 +277,28 @@ export class UsersController {
     if (!userId) throw new BadRequestException();
 
     const [user] = await db.select().from(users).where(eq(users.id, userId));
-    if (!user?.companyId) throw new BadRequestException('No company associated');
+    if (!user?.companyId)
+      throw new BadRequestException('No company associated');
 
-    const [updated] = await db.update(companies)
+    const [updated] = await db
+      .update(companies)
       .set(dto)
       .where(eq(companies.id, user.companyId))
       .returning();
-    
+
     return updated;
   }
 
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async updateUser(@Param('id') id: string, @Body() dto: any, @Req() req: AuthenticatedRequest) {
-    const [updated] = await db.update(users)
+  async updateUser(
+    @Param('id') id: string,
+    @Body() dto: any,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const [updated] = await db
+      .update(users)
       .set({
         email: dto.email,
         role: dto.role,
@@ -272,7 +306,7 @@ export class UsersController {
       })
       .where(eq(users.id, id))
       .returning();
-    
+
     if (!updated) throw new BadRequestException('User not found');
 
     await this.auditLogService.record({
