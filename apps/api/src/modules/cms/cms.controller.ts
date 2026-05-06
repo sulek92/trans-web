@@ -118,4 +118,26 @@ export class CmsController {
       email: req.user?.email,
     });
   }
+
+  // Bulk import/upsert CMS pages
+  // Local TS type for payload representation
+  type CmsPageInput = {
+    slug: string;
+    title: string;
+    content?: string;
+    metaTitle?: string;
+    metaDescription?: string;
+    isPublished?: boolean;
+  };
+
+  @Post('pages/import')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async importPages(
+    @Body() payload: { pages: CmsPageInput[] },
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const pages = payload.pages.map((p) => ({ slug: p.slug, title: p.title, content: p.content, metaTitle: p.metaTitle, metaDescription: p.metaDescription, isPublished: p.isPublished }));
+    return this.cmsService.importPages(pages as any, { userId: req.user?.sub, email: req.user?.email });
+  }
 }
