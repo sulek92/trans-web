@@ -823,3 +823,43 @@
 - Potwierdzono, ze kluczowy przeplyw nie zostal naruszony:
   - nawigacja panelu admina,
   - upload mediow i publikacja zmian CMS na frontendzie.
+
+### [2026-05-06 16:20] Uzupełnienie `/polityka-prywatnosci`, `/regulamin`, `/pomoc` zgodnie z aktualnym działaniem systemu
+- **Zakres zmian (bez duplikacji istniejących funkcji)**:
+  - uzupełniono treści prawne i pomocowe o fakty wynikające z aktualnej implementacji:
+    - limity auto-wyceny (300/300/250 cm, 1500 kg),
+    - płatności Stripe (metody zależne od konfiguracji checkout),
+    - ścieżka resetu hasła,
+    - tracking po numerze zamówienia,
+    - mechanizmy bezpieczeństwa (walidacja, role, throttling, hashowanie haseł).
+- **`/regulamin` i `/polityka-prywatnosci` (frontend)**:
+  - strony nadal mają fallback i18n, ale dla języka PL pobierają także zawartość z CMS (`regulamin`, `polityka-prywatnosci`) i używają jej po walidacji struktury sekcji.
+  - dzięki temu panel admina może aktualizować treści prawne bez zmian w kodzie.
+- **`/pomoc` (frontend)**:
+  - dodano normalizację danych CMS i bezpieczny merge FAQ:
+    - kluczowe pytania fallback nie znikają przy niepełnej zawartości CMS,
+    - poprawiono obsługę pustych/niekompletnych pól CMS,
+    - CTA kontaktowe pobiera telefon i e-mail z `global-settings`.
+- **Seed CMS (nowe środowiska)**:
+  - zaktualizowano `pomoc`, `regulamin`, `polityka-prywatnosci` tak, aby świeży seed od razu zawierał pełne, spójne dane.
+- **Walidacja techniczna**:
+  - lint dla zmienionych plików: OK,
+  - build produkcyjny `apps/web`: OK.
+- **Live Docker (`localhost:3000`)**:
+  - po przywróceniu Docker daemon wykonano `docker compose up -d --build web api`,
+  - usunięto konflikt portu `3000` (lokalny `next dev` zajmował port),
+  - naprawiono runtime web kontenera (brakujące zależności workspace `web`, m.in. `framer-motion`),
+  - zaktualizowano istniejące rekordy CMS w bazie (`regulamin`, `polityka-prywatnosci`, `pomoc`) do nowej wersji treści, aby live widok nie nadpisywał fallbacku starymi danymi.
+- **Smoke E2E treści po wdrożeniu**:
+  - Playwright (headless, `localhost:3000`) potwierdził obecność nowych treści na:
+    - `/polityka-prywatnosci`,
+    - `/regulamin`,
+    - `/pomoc`.
+- Pliki:
+  - [regulamin/page.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/regulamin/page.tsx)
+  - [polityka-prywatnosci/page.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/polityka-prywatnosci/page.tsx)
+  - [pomoc/page.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/pomoc/page.tsx)
+  - [help-client.tsx](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/app/pomoc/help-client.tsx)
+  - [pl.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/lib/i18n/dictionaries/pl.ts)
+  - [en.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/web/src/lib/i18n/dictionaries/en.ts)
+  - [seed.ts](/Users/damiansulkowski/Documents/Strona-transport-wizytowka/apps/api/src/db/seed.ts)

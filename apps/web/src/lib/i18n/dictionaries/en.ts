@@ -229,22 +229,104 @@ export const en: TranslationType = {
   legal: {
     terms: {
       title: 'Terms of Service',
-      lastUpdated: 'Last updated: May 05, 2024',
+      lastUpdated: 'Last updated: May 06, 2026',
       sections: [
-        { title: 'General Provisions', content: 'These terms and conditions define the rules for using the PaletBroker platform and the rules for mediation in the provision of transport services.' },
-        { title: 'Placing Orders', content: 'The user places an order by filling out the valuation form and paying for the order. The Broker forwards the order to the selected Carrier.' },
-        { title: 'Packing and Preparation', content: 'The Ordering Party is obliged to properly prepare the shipment in accordance with the instructions available on the website.' },
-        { title: 'Complaints', content: 'Complaints regarding damage to goods should be reported within 24 hours of delivery along with a damage report.' }
+        {
+          title: 'Scope of the Service',
+          content:
+            'PaletBroker is a digital platform for pallet-shipping quotes and order handling. The service provides a quote calculator, carrier offer selection, a customer panel, and an admin panel. Transport is performed by cooperating carriers; PaletBroker provides the platform and process orchestration.',
+        },
+        {
+          title: 'User Account and Access',
+          content:
+            'Account registration requires at least an email address and password. Users are responsible for protecting their credentials. The platform may temporarily block login after repeated failed attempts. Access roles (for example, customer or admin) define available features.',
+        },
+        {
+          title: 'Quote and Automatic Limits',
+          content:
+            'Automatic quoting applies within technical limits: length up to 300 cm, width up to 300 cm, height up to 250 cm, and weight up to 1500 kg. Shipments outside these limits or custom cases are routed to manual handling.',
+        },
+        {
+          title: 'Placing an Order',
+          content:
+            'An order is placed after selecting an offer, filling sender and recipient details, and completing payment. Providing correct address and contact data is mandatory. Incorrect data can cause delays, corrections, or additional operator fees.',
+        },
+        {
+          title: 'Payments and Invoices',
+          content:
+            'Online payments are handled via Stripe (including methods available in checkout, such as cards, BLIK, and Przelewy24, subject to configuration and availability). After payment confirmation, the order status is updated and accounting documents are made available through platform features.',
+        },
+        {
+          title: 'Shipment Preparation Obligations',
+          content:
+            'The sender is responsible for proper pallet preparation: stable loading, proper securing, and consistency with declared parameters. Goods requiring special conditions (for example fragile or ADR) must be marked in the form.',
+        },
+        {
+          title: 'Tracking and Status Communication',
+          content:
+            'The platform provides shipment status tracking based on order number and operational data stored in the system. Availability and detail level depend on logistics status data and carrier integrations.',
+        },
+        {
+          title: 'Complaints and Support Requests',
+          content:
+            'Issues related to service execution, data inconsistencies, or operations should be submitted through channels listed in Contact/Help pages. Please include the order number and a detailed description to speed up verification.',
+        },
+        {
+          title: 'Final Provisions',
+          content:
+            'These terms apply from publication and may be updated due to functional, legal, or security changes. The latest version is always available on this page with its update date.',
+        },
       ]
     },
     privacy: {
       title: 'Privacy Policy',
-      lastUpdated: 'Last updated: May 05, 2024',
+      lastUpdated: 'Last updated: May 06, 2026',
       sections: [
-        { title: 'Data Administrator', content: 'The administrator of your personal data is PaletBroker Sp. z o.o. based in Warsaw.' },
-        { title: 'Purpose of Data Processing', content: 'Data is processed for the purpose of providing transport services, issuing invoices, and logistics communication.' },
-        { title: 'Your Rights', content: 'In accordance with GDPR, you have the right to access your data, rectify it, and delete it.' },
-        { title: 'Cookies', content: 'Our website uses cookies to ensure the proper functioning of the customer panel.' }
+        {
+          title: 'Data Controller and Contact',
+          content:
+            'The data controller is PaletBroker Sp. z o.o., ul. Logistyczna 12, 00-001 Warszawa, Poland, email: kontakt@paletbroker.pl, phone: +48 22 123 45 67. Contact details are also published on the Contact page and in the website footer.',
+        },
+        {
+          title: 'What Data We Process',
+          content:
+            'We process data provided in forms and panels, including: account data (email, password hash), company and billing data, sender/recipient data, shipment parameters (dimensions, weight, route), contact lead data, and technical data related to security and service operation.',
+        },
+        {
+          title: 'Purposes and Legal Bases',
+          content:
+            'Data is processed for: pre-contract and contract performance (GDPR Art. 6(1)(b)), legal obligations including tax/accounting (Art. 6(1)(c)), and the controller’s legitimate interests such as platform security, abuse prevention, and claims handling (Art. 6(1)(f)).',
+        },
+        {
+          title: 'Data Recipients',
+          content:
+            'Data may be shared with entities supporting service delivery: carriers, Stripe as the payment operator, infrastructure/technical providers (hosting, email, error monitoring), and authorized public authorities when required by law.',
+        },
+        {
+          title: 'Cookies and Technical Data',
+          content:
+            'The service uses cookies and similar technologies, for example to maintain login sessions (session tokens), store preferences (language, theme), and support request security. The cookie banner is used to handle user-level consent interactions in the UI.',
+        },
+        {
+          title: 'Retention Periods',
+          content:
+            'We retain data for as long as needed for processing purposes, and accounting documents for periods required by law. Security-related technical data (for example failed login metadata or password-reset tokens) is retained short-term according to system configuration.',
+        },
+        {
+          title: 'Your Rights',
+          content:
+            'You have rights under GDPR, including access, rectification, erasure, restriction, portability, and objection (where applicable). You may also lodge a complaint with your competent supervisory authority.',
+        },
+        {
+          title: 'Security',
+          content:
+            'We apply technical and organizational measures appropriate to risk, including input validation, role-based access control, request throttling, and session-protection mechanisms. User passwords are stored only as cryptographic hashes.',
+        },
+        {
+          title: 'Policy Updates',
+          content:
+            'This policy may be updated due to functional, technological, or legal changes. The latest version is always published on this page together with the update date.',
+        },
       ]
     }
   }

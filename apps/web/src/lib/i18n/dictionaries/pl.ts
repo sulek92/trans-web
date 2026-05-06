@@ -227,22 +227,104 @@ export const pl = {
   legal: {
     terms: {
       title: 'Regulamin Świadczenia Usług',
-      lastUpdated: 'Ostatnia aktualizacja: 05 maja 2024 r.',
+      lastUpdated: 'Ostatnia aktualizacja: 06 maja 2026 r.',
       sections: [
-        { title: 'Postanowienia Ogólne', content: 'Niniejszy regulamin określa zasady korzystania z platformy PaletBroker oraz zasady pośrednictwa w świadczeniu usług transportowych.' },
-        { title: 'Składanie Zamówień', content: 'Użytkownik składa zamówienie poprzez wypełnienie formularza wyceny i opłacenie zlecenia. Broker przekazuje zlecenie do wybranego Przewoźnika.' },
-        { title: 'Pakowanie i Przygotowanie', content: 'Zlecający jest zobowiązany do prawidłowego przygotowania przesyłki zgodnie z instrukcjami dostępnymi na stronie.' },
-        { title: 'Reklamacje', content: 'Reklamacje dotyczące uszkodzeń towaru należy zgłaszać w ciągu 24h od doręczenia przesyłki wraz z protokołem szkody.' }
+        {
+          title: 'Zakres i charakter usługi',
+          content:
+            'PaletBroker jest platformą cyfrową do wyceny i obsługi zleceń transportu paletowego. Serwis udostępnia kalkulator wyceny, wybór oferty przewoźnika, panel klienta oraz panel administracyjny. Przewóz realizują przewoźnicy współpracujący; PaletBroker odpowiada za działanie platformy i obsługę procesu zamówienia.',
+        },
+        {
+          title: 'Konto użytkownika i dostęp',
+          content:
+            'Rejestracja wymaga podania co najmniej adresu e-mail i hasła. Użytkownik odpowiada za poufność danych logowania. System może czasowo blokować logowanie po serii nieudanych prób. Role dostępu (np. klient, administrator) określają zakres widocznych funkcji.',
+        },
+        {
+          title: 'Wycena i limity automatyczne',
+          content:
+            'Automatyczna wycena dotyczy przesyłek w limitach technicznych formularza: długość do 300 cm, szerokość do 300 cm, wysokość do 250 cm i waga do 1500 kg. Dla parametrów przekraczających limity lub przesyłek niestandardowych system przekierowuje do trybu obsługi ręcznej.',
+        },
+        {
+          title: 'Składanie zamówienia',
+          content:
+            'Zamówienie jest składane po wyborze oferty, uzupełnieniu danych nadawcy i odbiorcy oraz przejściu do płatności. Podanie prawidłowych danych adresowych i kontaktowych jest obowiązkowe. Błędne dane mogą powodować opóźnienie, konieczność korekty lub dodatkowe koszty operatora logistycznego.',
+        },
+        {
+          title: 'Płatności i dokumenty sprzedaży',
+          content:
+            'Płatność online obsługiwana jest przez Stripe (w tym metody dostępne w checkout, np. karta, BLIK, Przelewy24 – zależnie od konfiguracji i dostępności). Po zaksięgowaniu płatności status zamówienia jest aktualizowany, a dokumenty księgowe są udostępniane w ramach funkcji systemu.',
+        },
+        {
+          title: 'Obowiązki nadawcy w zakresie przygotowania ładunku',
+          content:
+            'Nadawca odpowiada za prawidłowe przygotowanie palety: stabilne ułożenie towaru, zabezpieczenie ładunku i zgodność parametrów z deklaracją. W przypadku towarów wymagających szczególnych warunków przewozu (np. delikatnych lub ADR) należy je oznaczyć w formularzu.',
+        },
+        {
+          title: 'Śledzenie i komunikacja statusów',
+          content:
+            'Platforma udostępnia podgląd statusu przesyłki na podstawie numeru zamówienia oraz danych operacyjnych zapisanych w systemie. Dostępność i szczegółowość informacji zależy od statusów zwracanych przez proces logistyczny i integracje przewoźników.',
+        },
+        {
+          title: 'Reklamacje i zgłoszenia',
+          content:
+            'Zgłoszenia dotyczące realizacji usługi, niezgodności danych lub problemów operacyjnych należy kierować przez kanały kontaktowe wskazane w serwisie (zakładka Kontakt/Pomoc). W zgłoszeniu należy podać numer zamówienia i opis zdarzenia, co przyspiesza weryfikację.',
+        },
+        {
+          title: 'Postanowienia końcowe',
+          content:
+            'Regulamin obowiązuje od chwili publikacji i może być aktualizowany w przypadku zmian funkcjonalnych, prawnych lub bezpieczeństwa. Aktualna wersja jest publikowana na tej stronie wraz z datą ostatniej aktualizacji.',
+        },
       ]
     },
     privacy: {
       title: 'Polityka Prywatności',
-      lastUpdated: 'Ostatnia aktualizacja: 05 maja 2024 r.',
+      lastUpdated: 'Ostatnia aktualizacja: 06 maja 2026 r.',
       sections: [
-        { title: 'Administrator Danych', content: 'Administratorem Twoich danych osobowych jest PaletBroker Sp. z o.o. z siedzibą w Warszawie.' },
-        { title: 'Cel przetwarzania danych', content: 'Dane są przetwarzane w celu realizacji usług transportowych, wystawiania faktur oraz komunikacji logistycznej.' },
-        { title: 'Twoje prawa', content: 'Zgodnie z RODO przysługuje Ci prawo do dostępu do swoich danych, ich sprostowania oraz usunięcia.' },
-        { title: 'Pliki Cookies', content: 'Nasza witryna wykorzystuje pliki cookies w celu zapewnienia prawidłowego działania panelu klienta.' }
+        {
+          title: 'Administrator danych i kontakt',
+          content:
+            'Administratorem danych jest PaletBroker Sp. z o.o., ul. Logistyczna 12, 00-001 Warszawa, e-mail: kontakt@paletbroker.pl, tel.: +48 22 123 45 67. Dane kontaktowe są także publikowane w zakładce Kontakt oraz w stopce serwisu.',
+        },
+        {
+          title: 'Jakie dane przetwarzamy',
+          content:
+            'Przetwarzamy dane podawane w formularzach i panelu, w szczególności: dane konta (e-mail, hasło w postaci skrótu), dane firmy i rozliczeń, dane nadawcy/odbiorcy, dane przesyłki (wymiary, waga, trasa), dane leadów kontaktowych oraz informacje techniczne związane z bezpieczeństwem i działaniem serwisu.',
+        },
+        {
+          title: 'Cele i podstawy prawne przetwarzania',
+          content:
+            'Dane przetwarzamy w celu: realizacji działań przed zawarciem umowy i wykonania usługi (art. 6 ust. 1 lit. b RODO), realizacji obowiązków prawnych, w tym księgowych i podatkowych (art. 6 ust. 1 lit. c RODO), oraz w prawnie uzasadnionym interesie administratora, np. bezpieczeństwa systemu, ochrony przed nadużyciami i dochodzenia roszczeń (art. 6 ust. 1 lit. f RODO).',
+        },
+        {
+          title: 'Odbiorcy danych',
+          content:
+            'Dane mogą być przekazywane podmiotom wspierającym realizację usługi: przewoźnikom, operatorowi płatności Stripe, podmiotom infrastrukturalnym i technicznym (hosting, poczta, monitoring błędów) oraz uprawnionym organom publicznym – wyłącznie w zakresie wynikającym z przepisów.',
+        },
+        {
+          title: 'Cookies i dane techniczne',
+          content:
+            'Serwis używa plików cookies i podobnych technologii m.in. do utrzymania sesji logowania (np. tokeny sesyjne), zapamiętania ustawień (np. język, motyw) oraz ochrony bezpieczeństwa żądań. Baner cookies służy do obsługi zgody/interakcji użytkownika na poziomie interfejsu.',
+        },
+        {
+          title: 'Okres przechowywania',
+          content:
+            'Dane przechowujemy przez okres niezbędny do realizacji celu przetwarzania, a w przypadku dokumentów księgowych przez okres wymagany przepisami prawa. Dane techniczne bezpieczeństwa (np. informacje o próbach logowania lub tokenach resetu) są przechowywane krótkoterminowo zgodnie z konfiguracją systemu.',
+        },
+        {
+          title: 'Twoje prawa',
+          content:
+            'Przysługuje Ci prawo dostępu do danych, ich sprostowania, usunięcia, ograniczenia przetwarzania, przenoszenia danych oraz sprzeciwu – w zakresie przewidzianym RODO. Możesz również wnieść skargę do Prezesa Urzędu Ochrony Danych Osobowych.',
+        },
+        {
+          title: 'Bezpieczeństwo',
+          content:
+            'Stosujemy środki techniczne i organizacyjne adekwatne do ryzyka, w tym walidację danych wejściowych, kontrolę dostępu opartą o role, ograniczenia liczby żądań i mechanizmy ochrony sesji. Hasła użytkowników są przechowywane wyłącznie w postaci haszy kryptograficznych.',
+        },
+        {
+          title: 'Zmiany polityki',
+          content:
+            'Polityka prywatności może być aktualizowana w razie zmian funkcjonalnych, technologicznych lub prawnych. Aktualna wersja publikowana jest na tej stronie wraz z datą ostatniej aktualizacji.',
+        },
       ]
     }
   }

@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 
 function HelpFaqItem({ question, answer }: { question: string; answer: string }) {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -29,9 +30,21 @@ interface HelpData {
   categories: { title: string; icon: string; count: number }[];
   faqItems: { q: string; a: string }[];
   ctaTitle: string; ctaSubtitle: string;
+  contactPhone?: string;
+  contactEmail?: string;
 }
 
 export function HelpClient({ data: d }: { data: HelpData }) {
+  const [query, setQuery] = React.useState('');
+  const normalizedQuery = query.trim().toLowerCase();
+
+  const visibleFaq = React.useMemo(() => {
+    if (!normalizedQuery) return d.faqItems;
+    return d.faqItems.filter((item) =>
+      `${item.q} ${item.a}`.toLowerCase().includes(normalizedQuery),
+    );
+  }, [d.faqItems, normalizedQuery]);
+
   return (
     <main className="pt-24 pb-24 bg-[var(--color-background)] min-h-screen">
       <div className="max-w-[1280px] mx-auto px-8">
@@ -40,7 +53,12 @@ export function HelpClient({ data: d }: { data: HelpData }) {
           <p className="text-[var(--color-on-surface-variant)] text-xl mb-12">{d.subtitle}</p>
           <div className="max-w-3xl mx-auto relative group">
             <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 text-2xl group-focus-within:text-[var(--color-primary)] transition-colors">search</span>
-            <input className="w-full pl-16 pr-8 py-6 rounded-3xl border border-[var(--color-divider)] shadow-lg focus:border-[var(--color-primary)] outline-none transition-premium text-lg bg-white" placeholder="Wpisz słowa kluczowe, np. 'pakowanie', 'faktura'..." />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              className="w-full pl-16 pr-8 py-6 rounded-3xl border border-[var(--color-divider)] shadow-lg focus:border-[var(--color-primary)] outline-none transition-premium text-lg bg-white"
+              placeholder="Wpisz słowa kluczowe, np. 'wycena', 'status', 'faktura'..."
+            />
           </div>
         </div>
 
@@ -58,11 +76,17 @@ export function HelpClient({ data: d }: { data: HelpData }) {
 
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold mb-12 text-center">Najczęściej zadawane pytania</h2>
-          <div className="space-y-4">
-            {d.faqItems.map((f) => (
-              <HelpFaqItem key={f.q} question={f.q} answer={f.a} />
-            ))}
-          </div>
+          {visibleFaq.length > 0 ? (
+            <div className="space-y-4">
+              {visibleFaq.map((f) => (
+                <HelpFaqItem key={f.q} question={f.q} answer={f.a} />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-3xl border border-dashed border-[var(--color-divider)] bg-white p-10 text-center text-[var(--color-on-surface-variant)]">
+              Nie znaleziono odpowiedzi dla: <span className="font-bold">&ldquo;{query}&rdquo;</span>. Spróbuj innej frazy lub skontaktuj się z nami bezpośrednio.
+            </div>
+          )}
         </div>
 
         <div className="mt-32 bg-[var(--color-primary)] rounded-[50px] p-20 text-center text-white shadow-2xl relative overflow-hidden">
@@ -70,8 +94,24 @@ export function HelpClient({ data: d }: { data: HelpData }) {
           <h2 className="text-4xl font-bold mb-6">{d.ctaTitle}</h2>
           <p className="text-xl opacity-80 mb-12 max-w-2xl mx-auto">{d.ctaSubtitle}</p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <button className="bg-white text-[var(--color-primary)] px-12 py-5 rounded-2xl font-bold hover:bg-slate-100 transition-premium shadow-xl active:scale-95">Zadzwoń do nas</button>
-            <button className="bg-transparent border-2 border-white/30 text-white px-12 py-5 rounded-2xl font-bold hover:bg-white/10 transition-premium active:scale-95">Wyślij e-mail</button>
+            <a
+              href={`tel:${(d.contactPhone || '+48 22 123 45 67').replace(/\s+/g, '')}`}
+              className="bg-white text-[var(--color-primary)] px-12 py-5 rounded-2xl font-bold hover:bg-slate-100 transition-premium shadow-xl active:scale-95"
+            >
+              Zadzwoń: {d.contactPhone || '+48 22 123 45 67'}
+            </a>
+            <a
+              href={`mailto:${d.contactEmail || 'kontakt@paletbroker.pl'}`}
+              className="bg-transparent border-2 border-white/30 text-white px-12 py-5 rounded-2xl font-bold hover:bg-white/10 transition-premium active:scale-95"
+            >
+              Napisz: {d.contactEmail || 'kontakt@paletbroker.pl'}
+            </a>
+            <Link
+              href="/kontakt"
+              className="bg-white/10 border-2 border-white/30 text-white px-12 py-5 rounded-2xl font-bold hover:bg-white/20 transition-premium active:scale-95"
+            >
+              Formularz kontaktowy
+            </Link>
           </div>
         </div>
       </div>

@@ -317,34 +317,51 @@ async function main() {
       isPublished: true,
       content: JSON.stringify({
         title: 'W czym możemy pomóc?',
-        subtitle: 'Przeszukaj bazę wiedzy lub wybierz kategorię poniżej.',
+        subtitle:
+          'Najważniejsze zasady działania platformy, płatności i realizacji zleceń w jednym miejscu.',
         categories: [
-          { title: 'Pierwsze kroki', icon: 'rocket_launch', count: 12 },
-          { title: 'Przygotowanie palet', icon: 'inventory_2', count: 8 },
-          { title: 'Płatności i faktury', icon: 'payments', count: 5 },
-          { title: 'Reklamacje', icon: 'gavel', count: 4 },
+          { title: 'Konto i logowanie', icon: 'badge', count: 4 },
+          { title: 'Wycena i limity', icon: 'calculate', count: 5 },
+          { title: 'Płatności i dokumenty', icon: 'payments', count: 4 },
+          { title: 'Transport i statusy', icon: 'local_shipping', count: 5 },
         ],
         faqItems: [
           {
-            q: 'Jak przygotować paletę do wysyłki?',
-            a: 'Paleta powinna być stabilna, a towar nie powinien wystawać poza jej obrys. Zalecamy owinięcie całości folią stretch i zabezpieczenie taśmami spinającymi.',
+            q: 'Jakie dane są wymagane do szybkiej wyceny?',
+            a: 'W formularzu podajesz typ palety, kod pocztowy nadania i dostawy, wagę oraz wymiary ładunku. Dla standardowych typów palet część wymiarów uzupełnia się automatycznie.',
           },
           {
-            q: 'Czy muszę mieć własną paletę?',
-            a: 'Tak, kurier przyjeżdża odebrać gotową, zapakowaną przesyłkę. Jeśli nie masz palety, możesz ją zakupić w punktach sprzedaży opakowań lub składach palet.',
+            q: 'Jakie są limity automatycznej wyceny?',
+            a: 'Automatyczna wycena działa dla parametrów do 300 cm (długość), 300 cm (szerokość), 250 cm (wysokość) i 1500 kg. Powyżej limitów system kieruje do ścieżki obsługi niestandardowej.',
           },
           {
-            q: 'Kiedy kurier odbierze moją przesyłkę?',
-            a: 'Większość zleceń złożonych do godziny 11:00 jest odbierana tego samego dnia roboczego. Dokładne godziny zależą od trasy kuriera w Twoim rejonie.',
+            q: 'Jakie kody pocztowe i kraje obsługuje formularz?',
+            a: 'System waliduje format kodu pocztowego PL (XX-XXX) lub DE (XXXXX). W aktualnej konfiguracji formularza dostępne są kierunki PL i DE.',
           },
           {
-            q: 'Jak otrzymać fakturę VAT?',
-            a: 'Faktury są generowane automatycznie po opłaceniu zamówienia i przesyłane na podany adres e-mail oraz dostępne w panelu klienta.',
+            q: 'Jakie metody płatności są dostępne?',
+            a: 'Płatności online realizowane są przez Stripe. W checkout mogą być dostępne m.in. karta, BLIK i Przelewy24 – zależnie od konfiguracji i dostępności operatora.',
+          },
+          {
+            q: 'Kiedy status zamówienia zmienia się na opłacone?',
+            a: 'Po potwierdzeniu płatności przez webhook operatora płatności status zamówienia jest aktualizowany automatycznie, a system może uruchomić dalsze kroki realizacji.',
+          },
+          {
+            q: 'Jak sprawdzić status przesyłki?',
+            a: 'W zakładce Śledzenie wpisz numer zamówienia (np. OR-...). System pokaże aktualny status i historię zdarzeń, jeśli są dostępne dla przesyłki.',
+          },
+          {
+            q: 'Czy mogę zresetować hasło samodzielnie?',
+            a: 'Tak. Na stronie logowania dostępny jest reset hasła. Token resetu jest czasowy, a po ustawieniu nowego hasła poprzednie dane logowania przestają obowiązywać.',
+          },
+          {
+            q: 'Jak skontaktować się w sprawie zlecenia lub reklamacji?',
+            a: 'Najszybciej przez formularz kontaktowy lub e-mail z numerem zamówienia i opisem sprawy. Dzięki temu zespół może od razu sprawdzić historię operacyjną.',
           },
         ],
-        ctaTitle: 'Nadal masz wątpliwości?',
+        ctaTitle: 'Nie widzisz odpowiedzi na swoje pytanie?',
         ctaSubtitle:
-          'Nasz zespół wsparcia technicznego i logistycznego jest do Twojej dyspozycji. Średni czas odpowiedzi to mniej niż 2 godziny.',
+          'Skontaktuj się z nami bezpośrednio. W zgłoszeniu podaj numer zamówienia i opis problemu, a szybciej przeprowadzimy weryfikację.',
       }),
     },
     {
@@ -513,26 +530,27 @@ async function main() {
       title: 'Regulamin',
       isPublished: true,
       content: JSON.stringify({
+        lastUpdated: '06 maja 2026 r.',
         sections: [
           {
-            title: 'Postanowienia Ogólne',
+            title: 'Zakres i charakter usługi',
             content:
-              'Niniejszy regulamin określa zasady korzystania z platformy PaletBroker oraz zasady pośrednictwa w świadczeniu usług transportowych.',
+              'PaletBroker jest platformą cyfrową do wyceny i obsługi zleceń transportu paletowego. Przewóz realizują przewoźnicy współpracujący; PaletBroker odpowiada za działanie platformy i obsługę procesu zamówienia.',
           },
           {
-            title: 'Składanie Zamówień',
+            title: 'Wycena i limity automatyczne',
             content:
-              'Użytkownik składa zamówienie poprzez wypełnienie formularza wyceny i opłacenie zlecenia. Broker przekazuje zlecenie do wybranego Przewoźnika.',
+              'Automatyczna wycena dotyczy przesyłek o parametrach do: 300 cm (długość), 300 cm (szerokość), 250 cm (wysokość), 1500 kg (waga). Powyżej limitów system kieruje do obsługi niestandardowej.',
           },
           {
-            title: 'Pakowanie i Przygotowanie',
+            title: 'Składanie zamówienia i płatność',
             content:
-              'Zlecający jest zobowiązany do prawidłowego przygotowania przesyłki zgodnie z instrukcjami dostępnymi na stronie "Typy palet".',
+              'Zamówienie składa się po wyborze oferty, uzupełnieniu danych adresowych i przejściu płatności online. Płatności internetowe realizowane są przez Stripe (metody zależne od konfiguracji checkout).',
           },
           {
-            title: 'Reklamacje',
+            title: 'Obowiązki nadawcy i reklamacje',
             content:
-              'Reklamacje dotyczące uszkodzeń towaru należy zgłaszać w ciągu 24h od doręczenia przesyłki wraz z protokołem szkody.',
+              'Nadawca odpowiada za prawidłowe przygotowanie i zabezpieczenie ładunku oraz zgodność danych zlecenia. Zgłoszenia dotyczące realizacji usługi należy kierować przez kanały kontaktowe z podaniem numeru zamówienia i opisu sprawy.',
           },
         ],
       }),
@@ -542,29 +560,29 @@ async function main() {
       title: 'Polityka Prywatności',
       isPublished: true,
       content: JSON.stringify({
+        lastUpdated: '06 maja 2026 r.',
         sections: [
           {
-            title: 'Administrator Danych',
+            title: 'Administrator danych i kontakt',
             content:
-              'Administratorem Twoich danych osobowych jest PaletBroker Sp. z o.o. z siedzibą w Warszawie, ul. Logistyczna 12, 00-001 Warszawa, NIP: 5252223334.',
+              'Administratorem danych jest podmiot prowadzący serwis PaletBroker. Aktualne dane identyfikacyjne i kontaktowe administratora są publikowane w zakładce Kontakt oraz w stopce serwisu.',
           },
           {
-            title: 'Cel przetwarzania danych',
+            title: 'Zakres danych i cele przetwarzania',
             content:
-              'Dane są przetwarzane w celu realizacji usług transportowych, obsługi zleceń w systemie, wystawiania faktur oraz komunikacji z przewoźnikami biorącymi udział w procesie logistycznym.',
+              'Przetwarzamy dane konta, dane firmy, dane przesyłek i dane kontaktowe z formularzy w celu wyceny, obsługi zamówień, płatności, dokumentów księgowych i komunikacji operacyjnej.',
           },
           {
             title: 'Twoje prawa',
             content:
-              'Zgodnie z RODO przysługuje Ci prawo do dostępu do swoich danych, ich sprostowania, usunięcia, ograniczenia przetwarzania oraz przenoszenia danych.',
+              'Przysługuje Ci prawo dostępu do danych, ich sprostowania, usunięcia, ograniczenia przetwarzania, przenoszenia danych oraz sprzeciwu – w zakresie przewidzianym RODO. Przysługuje Ci również prawo wniesienia skargi do Prezesa UODO.',
           },
           {
-            title: 'Pliki Cookies',
+            title: 'Cookies i bezpieczeństwo',
             content:
-              'Nasza witryna wykorzystuje pliki cookies w celu zapewnienia prawidłowego działania panelu klienta oraz w celach analitycznych (Google Analytics).',
+              'Serwis używa cookies m.in. do utrzymania sesji logowania, zapamiętania ustawień (np. język, motyw) i ochrony żądań. Stosujemy też mechanizmy bezpieczeństwa, w tym walidację danych wejściowych, role dostępu oraz ograniczenia liczby żądań.',
           },
         ],
-        lastUpdated: '05 maja 2024 r.',
       }),
     },
     {
