@@ -1,10 +1,11 @@
 import type { FC } from 'react';
 
 interface Props {
-  content: string;
-  onChange: (value: string) => void;
+  initialContent: string;
+  onSave: (json: any) => Promise<void>;
+  saving: boolean;
 }
 
-export const OfferEditor: FC<Props> = ({ content, onChange }) => {
+export const OfferEditor: FC<Props> = () => {
   return null;
 };
