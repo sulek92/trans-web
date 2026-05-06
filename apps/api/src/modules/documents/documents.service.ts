@@ -154,9 +154,9 @@ export class DocumentsService {
   }
 
   async generateInvoicePdf(invoiceId: string): Promise<Buffer> {
-    const { invoices, companies } = await import('../../db/schema.js');
+    const { invoices, companies } = await import('../../db/schema');
     const { eq } = await import('drizzle-orm');
-    const { db } = await import('../../db.js');
+    const { db } = await import('../../db');
 
     const [invoice] = await db
       .select()
