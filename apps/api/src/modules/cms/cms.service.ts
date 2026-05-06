@@ -9,6 +9,14 @@ import { db } from '../../db';
 import { cmsPages, cmsArticles } from '../../db/schema';
 import { eq } from 'drizzle-orm';
 import { UpdateCmsPageDto } from './dto/update-cms-page.dto';
+type CmsPageInput = {
+  slug: string;
+  title: string;
+  content?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  isPublished?: boolean;
+};
 import { AuditLogService } from '../audit-log/audit-log.service';
 
 type ActorContext = {
@@ -251,6 +259,53 @@ export class CmsService {
     });
 
     return { success: true, deleted: trimmed };
+  }
+
+  async importPages(pages: CmsPageInput[], actor?: ActorContext) {
+    const now = new Date();
+    const results: any[] = [];
+    for (const p of pages) {
+      const existing = await db
+        .select()
+        .from(cmsPages)
+        .where(eq(cmsPages.slug, p.slug));
+
+      if (existing && existing.length > 0) {
+        const [updated] = await db
+          .update(cmsPages)
+          .set({ title: p.title, content: p.content ?? null, metaTitle: p.metaTitle ?? null, metaDescription: p.metaDescription ?? null, isPublished: p.isPublished ?? true, updatedAt: now })
+          .where(eq(cmsPages.slug, p.slug))
+          .returning();
+        if (updated) {
+          await this.auditLogService.record({
+            actorUserId: actor?.userId,
+            actorEmail: actor?.email,
+            action: 'cms.page_updated',
+            entityType: 'cms_page',
+            entityId: updated.id,
+            metadata: { slug: p.slug, title: p.title, isPublished: p.isPublished },
+          });
+          results.push(updated);
+        }
+      } else {
+        const [created] = await db
+          .insert(cmsPages)
+          .values({ slug: p.slug, title: p.title, content: p.content ?? null, metaTitle: p.metaTitle ?? null, metaDescription: p.metaDescription ?? null, isPublished: p.isPublished ?? true, updatedAt: now })
+          .returning();
+        if (created) {
+          await this.auditLogService.record({
+            actorUserId: actor?.userId,
+            actorEmail: actor?.email,
+            action: 'cms.page_created',
+            entityType: 'cms_page',
+            entityId: created.id,
+            metadata: { slug: p.slug, title: p.title, isPublished: p.isPublished },
+          });
+          results.push(created);
+        }
+      }
+    }
+    return results;
   }
 
   async deletePage(slug: string, actor?: ActorContext) {
