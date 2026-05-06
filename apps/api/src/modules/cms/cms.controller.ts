@@ -141,6 +141,13 @@ export class CmsController {
     return this.cmsService.importPages(pages as any, { userId: req.user?.sub, email: req.user?.email });
   }
 
+  @Get('pages/export')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async exportPages() {
+    return this.cmsService.exportPages();
+  }
+
   @Post('pages/bulk-delete')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')

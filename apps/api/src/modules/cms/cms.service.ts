@@ -361,6 +361,11 @@ export class CmsService {
     return results;
   }
 
+  async exportPages(): Promise<any[]> {
+    const rows = await db.select().from(cmsPages);
+    return rows.map((r) => ({ slug: r.slug, title: r.title, content: r.content, metaTitle: r.metaTitle, metaDescription: r.metaDescription, isPublished: r.isPublished, updatedAt: r.updatedAt }));
+  }
+
   private async ensureMediaDirectory(): Promise<void> {
     await fs.mkdir(this.mediaDirectory, { recursive: true });
   }
