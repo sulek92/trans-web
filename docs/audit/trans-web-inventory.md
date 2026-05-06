@@ -2,7 +2,13 @@
 
 Scope: This document captures the current state of the trans-web app within the monorepo at /apps/web, including tech stack, project structure, and immediate risk areas observed during a quick audit.
 
-1) Repository structure (high level)
+- 1) Repository structure (high level)
+- Root is a Turborepo with workspaces: [apps/*, packages/*].
+- Main web application located at: apps/web.
+- Backend services and seeds under apps/api (e.g., apps/api/src/db/seed.ts).
+
+- 2) Key tech stack observed
+- Left as-is from previous audit
 - Root is a Turborepo with workspaces: [apps/*, packages/*].
 - Main web application located at: apps/web.
 - Backend services and seeds under apps/api (e.g., apps/api/src/db/seed.ts).
