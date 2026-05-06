@@ -21,6 +21,15 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { CacheControlInterceptor } from '../../common/interceptors/cache-control.interceptor';
 import type { Request } from 'express';
 
+type CmsPageInput = {
+  slug: string;
+  title: string;
+  content?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  isPublished?: boolean;
+};
+
 type AuthenticatedRequest = Request & {
   user?: { sub?: string; email?: string };
 };
@@ -119,16 +128,7 @@ export class CmsController {
     });
   }
 
-  // Bulk import/upsert CMS pages
-  // Local TS type for payload representation
-  type CmsPageInput = {
-    slug: string;
-    title: string;
-    content?: string;
-    metaTitle?: string;
-    metaDescription?: string;
-    isPublished?: boolean;
-  };
+  // CMS Page input type moved to top-level for TypeScript validity
 
   @Post('pages/import')
   @UseGuards(JwtAuthGuard, RolesGuard)
