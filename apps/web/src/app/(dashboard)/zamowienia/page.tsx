@@ -95,7 +95,7 @@ export default function OrdersPage() {
   };
 
   return (
-    <main className="pt-24 pb-24 min-h-screen bg-[var(--color-background)]">
+    <main className="pb-24 min-h-screen bg-[var(--color-background)]">
       <div className="max-w-[1280px] mx-auto px-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12 animate-fade-in">
           <div>

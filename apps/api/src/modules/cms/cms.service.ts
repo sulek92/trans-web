@@ -18,6 +18,7 @@ type CmsPageInput = {
   isPublished?: boolean;
 };
 import { AuditLogService } from '../audit-log/audit-log.service';
+import { RedisService } from '../redis/redis.service';
 
 type ActorContext = {
   userId?: string;
@@ -47,19 +48,73 @@ export class CmsService {
     'apps/web/public/images/uploads',
   );
 
-  constructor(private readonly auditLogService: AuditLogService) {}
+  constructor(
+    private readonly auditLogService: AuditLogService,
+    private readonly redisService: RedisService,
+  ) {}
 
   async getPages() {
-    return db.select().from(cmsPages);
+    const cacheKey = 'cms:pages';
+    const cached = await this.redisService.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
+    const result = await db.select().from(cmsPages);
+    await this.redisService.set(cacheKey, JSON.stringify(result), 1800);
+    return result;
   }
 
   async getPageBySlug(slug: string) {
+    const cacheKey = `cms:page:${slug}`;
+    const cached = await this.redisService.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
     const [page] = await db
       .select()
       .from(cmsPages)
       .where(eq(cmsPages.slug, slug));
     if (!page) throw new NotFoundException(`Page with slug ${slug} not found`);
+
+    await this.redisService.set(cacheKey, JSON.stringify(page), 1800);
     return page;
+  }
+
+  async getArticles(onlyPublished = false) {
+    const cacheKey = `cms:articles:${onlyPublished ? 'published' : 'all'}`;
+    const cached = await this.redisService.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
+    let result;
+    if (onlyPublished) {
+      result = await db
+        .select()
+        .from(cmsArticles)
+        .where(eq(cmsArticles.isPublished, true))
+        .orderBy(desc(cmsArticles.publishedAt));
+    } else {
+      result = await db
+        .select()
+        .from(cmsArticles)
+        .orderBy(desc(cmsArticles.updatedAt));
+    }
+
+    await this.redisService.set(cacheKey, JSON.stringify(result), 1800);
+    return result;
+  }
+
+  async getArticleBySlug(slug: string) {
+    const cacheKey = `cms:article:${slug}`;
+    const cached = await this.redisService.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
+    const [article] = await db
+      .select()
+      .from(cmsArticles)
+      .where(eq(cmsArticles.slug, slug));
+    if (!article)
+      throw new NotFoundException(`Article with slug ${slug} not found`);
+
+    await this.redisService.set(cacheKey, JSON.stringify(article), 1800);
+    return article;
   }
 
   async updatePage(slug: string, data: UpdateCmsPageDto, actor?: ActorContext) {
@@ -84,6 +139,7 @@ export class CmsService {
         },
       });
 
+      await this.invalidateCmsCache(slug);
       return updated;
     }
 
@@ -118,6 +174,7 @@ export class CmsService {
         },
       });
 
+      await this.invalidateCmsCache(slug);
       return created;
     } catch {
       const [afterConflict] = await db
@@ -143,32 +200,9 @@ export class CmsService {
         },
       });
 
+      await this.invalidateCmsCache(slug);
       return afterConflict;
     }
-  }
-
-  async getArticles(onlyPublished = false) {
-    if (onlyPublished) {
-      return db
-        .select()
-        .from(cmsArticles)
-        .where(eq(cmsArticles.isPublished, true))
-        .orderBy(desc(cmsArticles.publishedAt));
-    }
-
-    return db
-      .select()
-      .from(cmsArticles)
-      .orderBy(desc(cmsArticles.updatedAt));
-  }
-
-  async getArticleBySlug(slug: string) {
-    const [article] = await db
-      .select()
-      .from(cmsArticles)
-      .where(eq(cmsArticles.slug, slug));
-    if (!article) throw new NotFoundException(`Article with slug ${slug} not found`);
-    return article;
   }
 
   async updateArticle(slug: string, data: any, actor?: ActorContext) {
@@ -225,7 +259,8 @@ export class CmsService {
       .select()
       .from(cmsArticles)
       .where(eq(cmsArticles.slug, slug));
-    if (!existing) throw new NotFoundException(`Article with slug ${slug} not found`);
+    if (!existing)
+      throw new NotFoundException(`Article with slug ${slug} not found`);
 
     await db.delete(cmsArticles).where(eq(cmsArticles.slug, slug));
 
@@ -363,7 +398,14 @@ export class CmsService {
       if (existing && existing.length > 0) {
         const [updated] = await db
           .update(cmsPages)
-          .set({ title: p.title, content: p.content ?? null, metaTitle: p.metaTitle ?? null, metaDescription: p.metaDescription ?? null, isPublished: p.isPublished ?? true, updatedAt: now })
+          .set({
+            title: p.title,
+            content: p.content ?? null,
+            metaTitle: p.metaTitle ?? null,
+            metaDescription: p.metaDescription ?? null,
+            isPublished: p.isPublished ?? true,
+            updatedAt: now,
+          })
           .where(eq(cmsPages.slug, p.slug))
           .returning();
         if (updated) {
@@ -373,14 +415,26 @@ export class CmsService {
             action: 'cms.page_updated',
             entityType: 'cms_page',
             entityId: updated.id,
-            metadata: { slug: p.slug, title: p.title, isPublished: p.isPublished },
+            metadata: {
+              slug: p.slug,
+              title: p.title,
+              isPublished: p.isPublished,
+            },
           });
           results.push(updated);
         }
       } else {
         const [created] = await db
           .insert(cmsPages)
-          .values({ slug: p.slug, title: p.title, content: p.content ?? null, metaTitle: p.metaTitle ?? null, metaDescription: p.metaDescription ?? null, isPublished: p.isPublished ?? true, updatedAt: now })
+          .values({
+            slug: p.slug,
+            title: p.title,
+            content: p.content ?? null,
+            metaTitle: p.metaTitle ?? null,
+            metaDescription: p.metaDescription ?? null,
+            isPublished: p.isPublished ?? true,
+            updatedAt: now,
+          })
           .returning();
         if (created) {
           await this.auditLogService.record({
@@ -389,7 +443,11 @@ export class CmsService {
             action: 'cms.page_created',
             entityType: 'cms_page',
             entityId: created.id,
-            metadata: { slug: p.slug, title: p.title, isPublished: p.isPublished },
+            metadata: {
+              slug: p.slug,
+              title: p.title,
+              isPublished: p.isPublished,
+            },
           });
           results.push(created);
         }
@@ -453,7 +511,15 @@ export class CmsService {
 
   async exportPages(): Promise<any[]> {
     const rows = await db.select().from(cmsPages);
-    return rows.map((r) => ({ slug: r.slug, title: r.title, content: r.content, metaTitle: r.metaTitle, metaDescription: r.metaDescription, isPublished: r.isPublished, updatedAt: r.updatedAt }));
+    return rows.map((r) => ({
+      slug: r.slug,
+      title: r.title,
+      content: r.content,
+      metaTitle: r.metaTitle,
+      metaDescription: r.metaDescription,
+      isPublished: r.isPublished,
+      updatedAt: r.updatedAt,
+    }));
   }
 
   private async ensureMediaDirectory(): Promise<void> {
@@ -473,19 +539,17 @@ export class CmsService {
     const oldPath = path.join(this.mediaDirectory, oldName);
     const newPath = path.join(this.mediaDirectory, newName);
 
-    // Validate old file exists
     try {
       await fs.access(oldPath);
     } catch {
       throw new NotFoundException(`File not found: ${oldName}`);
     }
 
-    // Validate destination does not exist
     try {
       await fs.access(newPath);
       throw new BadRequestException('Target file already exists.');
     } catch {
-      // If not exists, proceed
+      /* File doesn't exist yet, which is expected */
     }
 
     await fs.rename(oldPath, newPath);
@@ -500,5 +564,15 @@ export class CmsService {
     });
 
     return { oldName, newName, success: true };
+  }
+
+  private async invalidateCmsCache(slug?: string) {
+    await Promise.all([
+      this.redisService.del('cms:pages'),
+      this.redisService.del('cms:articles:published'),
+      this.redisService.del('cms:articles:all'),
+      slug ? this.redisService.del(`cms:page:${slug}`) : Promise.resolve(),
+      slug ? this.redisService.del(`cms:article:${slug}`) : Promise.resolve(),
+    ]);
   }
 }

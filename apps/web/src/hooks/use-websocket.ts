@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
-import { io, Socket } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
 import { useToastStore } from '@/lib/store/toast-store';
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const IS_DEV = process.env.NODE_ENV !== 'production';
 
 type NotificationPayload = {
   title: string;
@@ -22,37 +23,46 @@ export function useWebsocket(userId?: string): void {
   useEffect(() => {
     if (!userId) return;
 
-    // Connect to the notifications namespace
-    const socket = io(`${SOCKET_URL}/notifications`, {
-      query: { userId },
-      transports: ['websocket'],
-    });
+    let socket: Socket | null = null;
 
-    socketRef.current = socket;
+    import('socket.io-client').then(({ io }) => {
+      if (!socketRef.current) {
+        socket = io(`${SOCKET_URL}/notifications`, {
+          query: { userId },
+          transports: ['websocket'],
+        });
+        socketRef.current = socket;
 
-    socket.on('connect', () => {
-      console.log('Connected to notifications gateway');
-    });
+        socket.on('connect', () => {
+          if (IS_DEV) console.log('Connected to notifications gateway');
+        });
 
-    socket.on('notification', (data: NotificationPayload) => {
-      addToast({
-        title: data.title,
-        description: data.message,
-        type: data.type === 'error' ? 'error' : data.type === 'success' ? 'success' : 'info',
-      });
-    });
+        socket.on('notification', (data: NotificationPayload) => {
+          addToast({
+            title: data.title,
+            description: data.message,
+            type: data.type === 'error' ? 'error' : data.type === 'success' ? 'success' : 'info',
+          });
+        });
 
-    socket.on('order_updated', (order: OrderUpdatePayload) => {
-      console.log('Order updated via WS:', order);
-      // You could trigger a re-fetch of orders here if you have a store
-    });
+        socket.on('order_updated', (order: OrderUpdatePayload) => {
+          if (IS_DEV) console.log('Order updated via WS:', order);
+        });
 
-    socket.on('disconnect', () => {
-      console.log('Disconnected from notifications gateway');
+        socket.on('disconnect', () => {
+          if (IS_DEV) console.log('Disconnected from notifications gateway');
+        });
+      }
     });
 
     return () => {
-      socket.disconnect();
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+      if (socket) {
+        socket.disconnect();
+      }
     };
   }, [addToast, userId]);
 }

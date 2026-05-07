@@ -1,4 +1,5 @@
-import { getCmsContent } from '@/lib/cms';
+import { Metadata } from 'next';
+import { getCmsContent, getCmsPageRecord } from '@/lib/cms';
 import { ContactClient } from './contact-client';
 
 const FALLBACK = {
@@ -12,6 +13,19 @@ const FALLBACK = {
   street: 'ul. Logistyczna 12',
   city: '00-001 Warszawa',
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getCmsPageRecord('kontakt');
+  return {
+    title: page?.metaTitle || 'Kontakt – Skontaktuj się z PaletyBroker | Obsługa klienta B2B',
+    description: page?.metaDescription || 'Potrzebujesz wyceny transportu paletowego? Skontaktuj się z nami telefonicznie, mailowo lub przez formularz. Odpowiadamy w 2 godziny. Sprawdź dane kontaktowe.',
+    openGraph: {
+      title: page?.metaTitle || 'Kontakt z PaletyBroker – jesteśmy do Twojej dyspozycji',
+      description: page?.metaDescription || 'Skontaktuj się z nami: telefon, email, formularz kontaktowy. Odpowiadamy w 2 godziny.',
+      images: ['/og-image.png'],
+    },
+  };
+}
 
 export default async function ContactPage() {
   const cms = await getCmsContent<typeof FALLBACK>('kontakt');

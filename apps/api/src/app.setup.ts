@@ -1,6 +1,7 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import type { Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
+import compression from 'compression';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 const CSRF_PROTECTED_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
@@ -55,6 +56,7 @@ export function configureApp(app: INestApplication) {
   const trustedOrigins = getTrustedOrigins();
 
   app.use(helmet());
+  app.use(compression());
   app.enableCors({
     origin:
       process.env.CORS_ORIGIN?.split(',').map((origin) => origin.trim()) ??

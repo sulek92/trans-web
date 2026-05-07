@@ -57,9 +57,15 @@ export class CmsController {
   @Delete('pages/:slug')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async deletePage(@Param('slug') slug: string, @Req() req: AuthenticatedRequest) {
+  async deletePage(
+    @Param('slug') slug: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     // Delete a CMS page and log the action
-    return this.cmsService.deletePage(slug, { userId: req.user?.sub, email: req.user?.email });
+    return this.cmsService.deletePage(slug, {
+      userId: req.user?.sub,
+      email: req.user?.email,
+    });
   }
 
   @Put('pages/:slug')
@@ -106,7 +112,10 @@ export class CmsController {
   @Delete('articles/:slug')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async deleteArticle(@Param('slug') slug: string, @Req() req: AuthenticatedRequest) {
+  async deleteArticle(
+    @Param('slug') slug: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     return this.cmsService.deleteArticle(slug, {
       userId: req.user?.sub,
       email: req.user?.email,
@@ -168,8 +177,18 @@ export class CmsController {
     @Body() payload: { pages: CmsPageInput[] },
     @Req() req: AuthenticatedRequest,
   ) {
-    const pages = payload.pages.map((p) => ({ slug: p.slug, title: p.title, content: p.content, metaTitle: p.metaTitle, metaDescription: p.metaDescription, isPublished: p.isPublished }));
-    return this.cmsService.importPages(pages as any, { userId: req.user?.sub, email: req.user?.email });
+    const pages = payload.pages.map((p) => ({
+      slug: p.slug,
+      title: p.title,
+      content: p.content,
+      metaTitle: p.metaTitle,
+      metaDescription: p.metaDescription,
+      isPublished: p.isPublished,
+    }));
+    return this.cmsService.importPages(pages, {
+      userId: req.user?.sub,
+      email: req.user?.email,
+    });
   }
 
   @Get('pages/export')
@@ -182,9 +201,15 @@ export class CmsController {
   @Post('pages/bulk-delete')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async bulkDeletePages(@Body() payload: { slugs: string[] }, @Req() req: AuthenticatedRequest) {
+  async bulkDeletePages(
+    @Body() payload: { slugs: string[] },
+    @Req() req: AuthenticatedRequest,
+  ) {
     const slugs = payload.slugs ?? [];
-    return this.cmsService.bulkDeletePages(slugs, { userId: req.user?.sub, email: req.user?.email });
+    return this.cmsService.bulkDeletePages(slugs, {
+      userId: req.user?.sub,
+      email: req.user?.email,
+    });
   }
 
   @Post('media/rename')

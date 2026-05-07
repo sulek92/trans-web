@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function LoginPage() {
@@ -141,12 +142,9 @@ function LoginContent() {
         </div>
         
         <div className="mt-10 flex flex-wrap items-center justify-center gap-6 opacity-40 grayscale transition-all sm:mt-12 sm:gap-8">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/payment/paypal.svg" alt="PayPal" width={70} height={16} />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/payment/visa.svg" alt="Visa" width={56} height={16} />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/payment/mastercard.svg" alt="Mastercard" width={64} height={24} />
+          <Image src="/payment/paypal.svg" alt="PayPal" width={70} height={16} className="h-4 w-auto" />
+          <Image src="/payment/visa.svg" alt="Visa" width={56} height={16} className="h-4 w-auto" />
+          <Image src="/payment/mastercard.svg" alt="Mastercard" width={64} height={24} className="h-6 w-auto" />
         </div>
       </div>
     </main>

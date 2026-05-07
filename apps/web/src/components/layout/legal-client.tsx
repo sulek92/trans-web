@@ -1,8 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n/i18n-context';
 
 interface LegalSection {
   title: string;
@@ -16,15 +17,14 @@ interface LegalClientProps {
 }
 
 export function LegalClient({ title, lastUpdated, sections }: LegalClientProps) {
+  const { t } = useTranslation();
   const [activeSection, setActiveSection] = React.useState(0);
 
   return (
     <div key={title} className="max-w-[1280px] mx-auto px-8 py-40 min-h-screen relative overflow-hidden">
-      {/* Background Decor */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[var(--color-primary)] opacity-[0.02] rounded-full blur-3xl -mr-48 -mt-48 pointer-events-none"></div>
 
       <div className="flex flex-col lg:flex-row gap-24 relative z-10">
-        {/* Sidebar Navigation */}
         <div className="lg:w-1/4">
           <div className="sticky top-40 space-y-12">
             <div>
@@ -91,16 +91,15 @@ export function LegalClient({ title, lastUpdated, sections }: LegalClientProps) 
               transition={{ delay: 0.8 }}
               className="p-8 bg-slate-50 rounded-[32px] border border-slate-100"
             >
-               <h4 className="font-bold text-slate-900 mb-2">Masz pytania?</h4>
-               <p className="text-xs text-slate-500 leading-relaxed mb-6">Nasz zespół prawny i operacyjny chętnie wyjaśni wszelkie wątpliwości dotyczące regulaminu.</p>
+               <h4 className="font-bold text-slate-900 mb-2">{t.legal.questions}</h4>
+               <p className="text-xs text-slate-500 leading-relaxed mb-6">{t.legal.questionsDesc}</p>
                <Link href="/kontakt" className="text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-widest hover:translate-x-1 transition-transform inline-flex items-center gap-2">
-                 Skontaktuj się <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                 {t.legal.contactCta} <span className="material-symbols-outlined text-xs">arrow_forward</span>
                </Link>
             </motion.div>
           </div>
         </div>
 
-        {/* Content Area */}
         <div className="lg:w-3/4 max-w-4xl">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}

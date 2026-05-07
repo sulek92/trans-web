@@ -44,8 +44,23 @@ export class AuthService {
     private readonly authSessionService: AuthSessionService,
   ) {}
 
-  private readonly jwtSecret =
-    process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || 'local-secret';
+  private readonly jwtSecret = this.resolveJwtSecret();
+
+  private resolveJwtSecret(): string {
+    const secret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET;
+    if (!secret) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error(
+          'JWT_SECRET or NEXTAUTH_SECRET environment variable is required in production',
+        );
+      }
+      this.logger.warn(
+        'JWT_SECRET not set – using insecure fallback for development only',
+      );
+      return 'dev-secret-do-not-use-in-production';
+    }
+    return secret;
+  }
   private readonly accessTtl = process.env.JWT_ACCESS_TTL || '30m';
   private readonly refreshTtl = process.env.JWT_REFRESH_TTL || '7d';
   private readonly maxLoginAttempts = Number(
@@ -62,32 +77,51 @@ export class AuthService {
     'false';
 
   private getLegacyUsers(): AuthUser[] {
-    return [
-      {
+    const users: AuthUser[] = [];
+
+    const superAdminPassword = process.env.SUPERADMIN_PASSWORD;
+    if (!superAdminPassword && process.env.NODE_ENV === 'production') {
+      this.logger.error('SUPERADMIN_PASSWORD is not set in production');
+    }
+    if (superAdminPassword) {
+      users.push({
         id: '00000000-0000-4000-a000-000000000000',
         email: 'sulek92@gmail.com',
-        password: 'admin1',
+        password: superAdminPassword,
         role: 'superadmin',
-      },
-      {
+      });
+    }
+
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminPassword && process.env.NODE_ENV === 'production') {
+      this.logger.error('ADMIN_PASSWORD is not set in production');
+    }
+    if (adminPassword) {
+      const adminEmail =
+        process.env.ADMIN_EMAIL?.toLowerCase() === 'sulek92@gmail.com'
+          ? 'admin-temp@paletbroker.pl'
+          : (process.env.ADMIN_EMAIL || 'admin@paletbroker.pl').toLowerCase();
+      users.push({
         id: 'admin-1',
-        email:
-          (process.env.ADMIN_EMAIL || 'admin@paletbroker.pl').toLowerCase() ===
-          'sulek92@gmail.com'
-            ? 'admin-temp@paletbroker.pl'
-            : (process.env.ADMIN_EMAIL || 'admin@paletbroker.pl').toLowerCase(),
-        password: process.env.ADMIN_PASSWORD || 'admin123',
+        email: adminEmail,
+        password: adminPassword,
         role: 'admin',
-      },
-      {
+      });
+    }
+
+    const customerPassword = process.env.DEMO_USER_PASSWORD;
+    if (customerPassword) {
+      users.push({
         id: 'customer-1',
         email: (
           process.env.DEMO_USER_EMAIL || 'user@paletbroker.pl'
         ).toLowerCase(),
-        password: process.env.DEMO_USER_PASSWORD || 'user123',
+        password: customerPassword,
         role: 'customer',
-      },
-    ];
+      });
+    }
+
+    return users;
   }
 
   async register(data: RegisterDto) {
@@ -322,6 +356,9 @@ export class AuthService {
     }
 
     if (legacyUser) {
+      if (this.legacyPasswordOverrides.size > 10000) {
+        this.legacyPasswordOverrides.clear();
+      }
       this.legacyPasswordOverrides.set(normalizedEmail, newPassword);
       await this.upsertLegacyUserToDb({
         ...legacyUser,
@@ -335,9 +372,12 @@ export class AuthService {
     };
   }
 
+  /** @deprecated Email verification is not yet implemented – always succeeds. */
   verifyEmail(token: string) {
     void token;
-    // Docelowo: ustawienie is_verified na true w bazie danych
+    this.logger.warn(
+      'verifyEmail called but email verification is not yet implemented',
+    );
     return { status: 'success', message: 'Email verified' };
   }
 

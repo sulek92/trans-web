@@ -2,18 +2,27 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { db } from '../../db';
 import { orders, trackingEvents } from '../../db/schema';
 import { eq, or } from 'drizzle-orm';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class TrackingService {
+  constructor(private readonly redisService: RedisService) {}
+
   async getTrackingInfo(trackingNumber: string) {
-    // 1. Szukamy zamówienia po numerze lub ID
+    const cacheKey = `tracking:${trackingNumber}`;
+    const cached = await this.redisService.get(cacheKey);
+
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
     const [order] = await db
       .select()
       .from(orders)
       .where(
         or(
           eq(orders.orderNumber, trackingNumber),
-          eq(orders.id, trackingNumber as any), // uuid fallback
+          eq(orders.id, trackingNumber as any),
         ),
       );
 
@@ -21,14 +30,12 @@ export class TrackingService {
       throw new NotFoundException('Nie znaleziono przesyłki o podanym numerze');
     }
 
-    // 2. Pobieramy zdarzenia śledzenia
     const events = await db
       .select()
       .from(trackingEvents)
       .where(eq(trackingEvents.orderId, order.id))
       .orderBy(trackingEvents.occurredAt);
 
-    // 3. Mapowanie statusów jeśli brak zdarzeń (fallback dla MVP)
     const displayEvents =
       events.length > 0
         ? events.map((e) => ({
@@ -46,7 +53,7 @@ export class TrackingService {
             },
           ];
 
-    return {
+    const result = {
       trackingNumber: order.orderNumber,
       carrier: order.carrierCode,
       status: order.status,
@@ -54,6 +61,11 @@ export class TrackingService {
         order.status === 'DELIVERED' ? order.updatedAt : 'W trakcie ustalania',
       events: displayEvents,
     };
+
+    const ttl = order.status === 'DELIVERED' ? 86400 : 300;
+    await this.redisService.set(cacheKey, JSON.stringify(result), ttl);
+
+    return result;
   }
 
   private getStatusDescription(status: string): string {

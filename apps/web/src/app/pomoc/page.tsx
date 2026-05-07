@@ -1,4 +1,5 @@
-import { getCmsContent } from '@/lib/cms';
+import { Metadata } from 'next';
+import { getCmsContent, getCmsPageRecord } from '@/lib/cms';
 import { HelpClient } from './help-client';
 
 const FALLBACK = {
@@ -48,6 +49,19 @@ const FALLBACK = {
   ctaSubtitle:
     'Skontaktuj się z nami bezpośrednio. W zgłoszeniu podaj numer zamówienia i opis problemu, a szybciej przeprowadzimy weryfikację.',
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getCmsPageRecord('pomoc');
+  return {
+    title: page?.metaTitle || 'Centrum pomocy – Transport palet, płatności, konto | PaletyBroker',
+    description: page?.metaDescription || 'Wszystko o transporcie paletowym w jednym miejscu. Dowiedz się jak działa wycena, jakie są metody płatności i jak śledzić przesyłkę. Sprawdź FAQ.',
+    openGraph: {
+      title: page?.metaTitle || 'Centrum pomocy PaletyBroker – FAQ i porady',
+      description: page?.metaDescription || 'Kompleksowe centrum pomocy: wycena, płatności, transport i obsługa konta.',
+      images: ['/og-image.png'],
+    },
+  };
+}
 
 type HelpCategory = {
   title?: string;

@@ -126,7 +126,7 @@ export default function ThemeEditorPage() {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ content: theme, title: 'Konfiguracja Wyglądu' }),
+        body: JSON.stringify({ content: JSON.stringify(theme), title: 'Konfiguracja Wyglądu', isPublished: true }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setMessage({ type: 'success', text: 'Zapisano! Zmiany pojawią się na stronie w ciągu 60 sekund.' });

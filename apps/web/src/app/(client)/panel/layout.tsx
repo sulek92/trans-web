@@ -3,9 +3,14 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChatWidget } from '@/components/chat/chat-widget';
+import dynamic from 'next/dynamic';
 import { useWebsocket } from '@/hooks/use-websocket';
 import { jwtDecode } from 'jwt-decode';
+
+const ChatWidget = dynamic(
+  () => import('@/components/chat/chat-widget').then((mod) => ({ default: mod.ChatWidget })),
+  { ssr: false },
+);
 
 function getCookie(name: string) {
   if (typeof window === 'undefined') return undefined;

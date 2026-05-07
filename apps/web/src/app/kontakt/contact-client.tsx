@@ -68,20 +68,21 @@ export function ContactClient({ data: d }: { data: ContactData }) {
   };
 
   return (
-    <main className="pt-40 pb-32 bg-[var(--color-background)] min-h-screen relative overflow-hidden">
+    <main className="pb-32 bg-[var(--color-background)] min-h-screen relative overflow-hidden">
       {/* Background Orbs */}
       <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[var(--color-primary)] opacity-[0.03] rounded-full blur-3xl -mr-96 -mt-96 pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-500 opacity-[0.02] rounded-full blur-3xl -ml-72 -mb-72 pointer-events-none"></div>
 
       <div className="max-w-[1280px] mx-auto px-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-start">
+        {/* Top Section: Info + Form */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-start mb-24">
           
           {/* Left Column: Info */}
           <motion.div 
             variants={container}
             initial="hidden"
             animate="show"
-            className="space-y-12"
+            className="space-y-8"
           >
             <motion.div variants={item}>
               <span className="inline-flex items-center gap-2 px-3 py-1 bg-[var(--color-primary-highlight)] text-[var(--color-primary)] rounded-full text-[10px] font-bold uppercase tracking-[0.2em] mb-8 shadow-sm">
@@ -92,48 +93,7 @@ export function ContactClient({ data: d }: { data: ContactData }) {
                 {titleParts[0]}<br/>
                 <span className="text-[var(--color-primary)]">{titleParts[1] || ''}</span>
               </h1>
-              <p className="text-[var(--color-on-surface-variant)] text-xl leading-relaxed max-w-xl">{d.subtitle}</p>
-            </motion.div>
-
-            <motion.div variants={item} className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-              <div className="bg-white p-10 rounded-[32px] border border-[var(--color-divider)] shadow-[var(--shadow-premium)] hover:shadow-2xl transition-premium group relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-700"></div>
-                <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center mb-8 group-hover:bg-[var(--color-primary)] group-hover:text-white transition-premium">
-                  <span className="material-symbols-outlined text-3xl">call</span>
-                </div>
-                <div className="font-bold text-xl mb-2 text-slate-900">Zadzwoń do nas</div>
-                <div className="text-[var(--color-primary)] font-bold text-lg mb-2">{d.phone}</div>
-                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{d.phoneHours}</div>
-              </div>
-
-              <div className="bg-white p-10 rounded-[32px] border border-[var(--color-divider)] shadow-[var(--shadow-premium)] hover:shadow-2xl transition-premium group relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-700"></div>
-                <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center mb-8 group-hover:bg-[var(--color-primary)] group-hover:text-white transition-premium">
-                  <span className="material-symbols-outlined text-3xl">mail</span>
-                </div>
-                <div className="font-bold text-xl mb-2 text-slate-900">Napisz e-mail</div>
-                <div className="text-[var(--color-primary)] font-bold text-lg mb-2">{d.email}</div>
-                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{d.emailResponseTime}</div>
-              </div>
-            </motion.div>
-
-            <motion.div variants={item} className="p-10 bg-slate-900 rounded-[40px] shadow-2xl relative overflow-hidden text-white group">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-primary)] opacity-10 rounded-full blur-3xl -mr-32 -mt-32"></div>
-              <div className="flex gap-8 items-start relative z-10">
-                <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/10 shadow-inner shrink-0">
-                  <span className="material-symbols-outlined text-white text-3xl">location_on</span>
-                </div>
-                <div>
-                  <h3 className="font-bold text-2xl mb-4 tracking-tight">Siedziba Główna</h3>
-                  <p className="text-white/60 text-lg leading-relaxed font-medium">
-                    {d.companyName}<br/>
-                    {d.street}, {d.city}
-                  </p>
-                  <button className="mt-8 text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-[0.2em] flex items-center gap-2 hover:translate-x-2 transition-transform">
-                    Otwórz w mapach <span className="material-symbols-outlined text-xs">arrow_forward</span>
-                  </button>
-                </div>
-              </div>
+              <p className="text-[var(--color-on-surface-variant)] text-xl leading-relaxed max-w-2xl">{d.subtitle}</p>
             </motion.div>
           </motion.div>
 
@@ -217,6 +177,55 @@ export function ContactClient({ data: d }: { data: ContactData }) {
           </motion.div>
 
         </div>
+
+        {/* Bottom Section: Contact Tiles */}
+        <motion.div 
+          variants={container}
+          initial="hidden"
+          animate="show"
+          className="space-y-12"
+        >
+          <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-white p-10 rounded-[32px] border border-[var(--color-divider)] shadow-[var(--shadow-premium)] hover:shadow-2xl transition-premium group relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-700"></div>
+              <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center mb-8 group-hover:bg-[var(--color-primary)] group-hover:text-white transition-premium">
+                <span className="material-symbols-outlined text-3xl">call</span>
+              </div>
+              <div className="font-bold text-xl mb-2 text-slate-900">Zadzwoń do nas</div>
+              <div className="text-[var(--color-primary)] font-bold text-lg mb-2">{d.phone}</div>
+              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{d.phoneHours}</div>
+            </div>
+
+            <div className="bg-white p-10 rounded-[32px] border border-[var(--color-divider)] shadow-[var(--shadow-premium)] hover:shadow-2xl transition-premium group relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-700"></div>
+              <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center mb-8 group-hover:bg-[var(--color-primary)] group-hover:text-white transition-premium">
+                <span className="material-symbols-outlined text-3xl">mail</span>
+              </div>
+              <div className="font-bold text-xl mb-2 text-slate-900">Napisz e-mail</div>
+              <div className="text-[var(--color-primary)] font-bold text-lg mb-2">{d.email}</div>
+              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{d.emailResponseTime}</div>
+            </div>
+          </motion.div>
+
+          <motion.div variants={item} className="p-10 bg-slate-900 rounded-[40px] shadow-2xl relative overflow-hidden text-white group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-primary)] opacity-10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+            <div className="flex gap-8 items-start relative z-10">
+              <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/10 shadow-inner shrink-0">
+                <span className="material-symbols-outlined text-white text-3xl">location_on</span>
+              </div>
+              <div>
+                <h3 className="font-bold text-2xl mb-4 tracking-tight">Siedziba Główna</h3>
+                <p className="text-white/60 text-lg leading-relaxed font-medium">
+                  {d.companyName}<br/>
+                  {d.street}, {d.city}
+                </p>
+                <button className="mt-8 text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-[0.2em] flex items-center gap-2 hover:translate-x-2 transition-transform">
+                  Otwórz w mapach <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
       </div>
     </main>
   );

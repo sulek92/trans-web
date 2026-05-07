@@ -14,28 +14,40 @@ export function ChatWidget() {
     { id: 1, text: 'Witaj w PaletBroker! W czym mogę Ci dzisiaj pomóc?', sender: 'agent', time: '10:00' }
   ]);
   const [inputValue, setInputValue] = React.useState('');
+  const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   const handleSend = () => {
     if (!inputValue.trim()) return;
-    
+
     const newMsg = {
       id: Date.now(),
       text: inputValue,
       sender: 'user',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
-    
-    setMessages(prev => [...prev, newMsg]);
+
+    setMessages((prev) => {
+      const updated = [...prev, newMsg];
+      return updated.length > 200 ? updated.slice(-200) : updated;
+    });
     setInputValue('');
-    
-    // Simulate agent response
-    setTimeout(() => {
-      setMessages(prev => [...prev, {
-        id: Date.now() + 1,
-        text: 'Dziękujemy za wiadomość. Nasz konsultant odezwie się w ciągu kilku minut.',
-        sender: 'agent',
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }]);
+
+    timerRef.current = setTimeout(() => {
+      setMessages((prev) => {
+        const updated = [...prev, {
+          id: Date.now() + 1,
+          text: 'Dziękujemy za wiadomość. Nasz konsultant odezwie się w ciągu kilku minut.',
+          sender: 'agent',
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }];
+        return updated.length > 200 ? updated.slice(-200) : updated;
+      });
     }, 1500);
   };
 

@@ -21,6 +21,23 @@ export interface GlobalSettings {
   footerCompanyLinks?: Array<{ label?: string; href?: string }>;
   footerToolLinks?: Array<{ label?: string; href?: string }>;
   footerSupportLinks?: Array<{ label?: string; href?: string }>;
+  cookieEnabled?: boolean;
+  cookieBannerTitle?: string;
+  cookieBannerText?: string;
+  cookieAcceptAllButton?: string;
+  cookieRejectAllButton?: string;
+  cookieSettingsButton?: string;
+  cookiePrivacyPolicyLabel?: string;
+  cookieSettingsTitle?: string;
+  cookieSettingsSubtitle?: string;
+  cookieEssentialLabel?: string;
+  cookieEssentialDesc?: string;
+  cookieAnalyticsLabel?: string;
+  cookieAnalyticsDesc?: string;
+  cookieMarketingLabel?: string;
+  cookieMarketingDesc?: string;
+  cookieCancelButton?: string;
+  cookieSaveButton?: string;
 }
 
 const GlobalSettingsContext = React.createContext<GlobalSettings | null>(null);

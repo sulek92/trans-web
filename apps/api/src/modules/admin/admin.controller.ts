@@ -130,7 +130,9 @@ export class AdminController {
     const lim = Number.isFinite(numericLimit) ? numericLimit : 50;
     // Utilize audit-log service if available; otherwise return last logs using directly the service
     // Import at top accordingly if needed; assuming AuditLogService is injected in constructor
-    return this.auditLogService?.listRecent ? this.auditLogService.listRecent(lim) : [];
+    return this.auditLogService?.listRecent
+      ? this.auditLogService.listRecent(lim)
+      : [];
   }
 
   @Get('pricing-rules')

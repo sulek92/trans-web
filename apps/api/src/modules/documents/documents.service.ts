@@ -1,9 +1,16 @@
-import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import PDFDocument from 'pdfkit';
 import type { OrdersService } from '../orders/orders.service';
 
 const ordersServiceProvider = () => {
-  const { OrdersService: svc } = require('../orders/orders.service') as { OrdersService: typeof OrdersService };
+  const { OrdersService: svc } = require('../orders/orders.service') as {
+    OrdersService: typeof OrdersService;
+  };
   return svc;
 };
 
@@ -166,10 +173,10 @@ export class DocumentsService {
     const { sql } = await import('drizzle-orm');
     const { db } = await import('../../db/index.js');
 
-    const [invoice] = (await db
+    const [invoice] = await db
       .select()
       .from(invoices)
-      .where(sql`${invoices.id} = ${invoiceId}` as any));
+      .where(sql`${invoices.id} = ${invoiceId}` as any);
     if (!invoice) throw new NotFoundException('Invoice not found');
 
     let buyer: any = null;

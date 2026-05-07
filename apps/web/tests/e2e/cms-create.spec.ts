@@ -25,5 +25,5 @@ test('Admin CMS: create new CMS page', async ({ page }) => {
   }
 
   // After creation, we expect to be redirected back to CMS pages list or the route to edit the slug
-  await expect(page).toHaveURL(/\/admin\/cms\/pages/|/admin/cms/pages);
+  await expect(page).toHaveURL(/\/admin\/cms\/pages/);
 });

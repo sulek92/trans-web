@@ -8,8 +8,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Nieprawidłowy adres e-mail' }, { status: 400 });
     }
 
-    // Tu docelowo integracja z Mailchimp/MailerLite/Database
-    console.log(`Zapisano do newslettera: ${email}`);
+    // TODO: Integrate with Mailchimp/MailerLite/Database
 
     return NextResponse.json({ success: true, message: 'Dziękujemy za zapis do newslettera!' });
   } catch {

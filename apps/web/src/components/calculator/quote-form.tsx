@@ -7,11 +7,16 @@ import { useForm as useReactHookForm, useWatch } from 'react-hook-form';
 import { QuoteSchema, QuoteFormInput } from '@/lib/validators/quote';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PalletPreview } from './pallet-preview';
+import { useTranslation } from '@/lib/i18n/i18n-context';
 
 const palletTypes = ['euro', 'semi_euro', 'industrial', 'semi_industrial', 'custom'] as const;
 const countries = [
   { value: 'PL', label: 'Polska' },
   { value: 'DE', label: 'Niemcy' },
+  { value: 'FR', label: 'Francja' },
+  { value: 'IT', label: 'Włochy' },
+  { value: 'NL', label: 'Holandia' },
+  { value: 'ES', label: 'Hiszpania' },
 ] as const;
 
 const palletPresets: Record<Exclude<QuoteFormInput['palletType'], 'custom'>, { length: number; width: number }> = {
@@ -44,6 +49,7 @@ function getPresetDimensions(palletType: QuoteFormInput['palletType']) {
 }
 
 export function QuoteForm() {
+  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialPalletType = parsePalletType(searchParams.get('palletType'));
@@ -137,21 +143,21 @@ export function QuoteForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 w-full">
       {/* Pallet Type Selector */}
       <div>
-        <label className="text-xs font-bold uppercase tracking-widest text-slate-400 block mb-4">Wybierz typ palety</label>
+        <label className="text-xs font-bold uppercase tracking-widest text-slate-400 block mb-4">{t.quote.selector.label}</label>
         <Controller
           name="palletType"
           control={control}
           render={({ field }) => (
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
               {[
-                { id: 'euro', label: 'Euro', dim: '120x80', icon: 'pallet' },
-                { id: 'semi_euro', label: 'Półpaleta', dim: '80x60', icon: 'inventory' },
-                { id: 'industrial', label: 'Przemysł.', dim: '120x100', icon: 'pallet' },
-                { id: 'semi_industrial', label: 'Półprzem.', dim: '120x100', icon: 'inventory_2' },
-                { id: 'custom', label: 'Inna', dim: 'Niestand.', icon: 'square_foot' },
+                { id: 'euro', label: t.quote.selector.euro, dim: '120x80', icon: 'pallet' },
+                { id: 'semi_euro', label: t.quote.selector.semi_euro, dim: '80x60', icon: 'inventory' },
+                { id: 'industrial', label: t.quote.selector.industrial, dim: '120x100', icon: 'pallet' },
+                { id: 'semi_industrial', label: t.quote.selector.semi_industrial, dim: '120x100', icon: 'inventory_2' },
+                { id: 'custom', label: t.quote.selector.custom, dim: t.quote.selector.customDesc, icon: 'square_foot' },
               ].map((p) => (
                 <button
                   key={p.id}
@@ -181,11 +187,11 @@ export function QuoteForm() {
             <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
               <span className="material-symbols-outlined text-sm">location_on</span>
             </div>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Miejsce Nadania</div>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{t.quote.sender.title}</div>
           </div>
           <div className="grid grid-cols-[1fr_auto] gap-4">
             <div>
-              <label className="text-xs font-bold text-slate-600 block mb-2">Kod pocztowy</label>
+              <label className="text-xs font-bold text-slate-600 block mb-2">{t.quote.sender.postalCode}</label>
               <input
                 {...register('senderPostalCode')}
                 className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl font-data-mono text-base text-slate-900 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10 outline-none transition-all placeholder:text-slate-300"
@@ -195,7 +201,7 @@ export function QuoteForm() {
               {errors.senderPostalCode && <p className="text-[var(--color-error)] text-xs mt-2">{errors.senderPostalCode.message}</p>}
             </div>
             <div className="w-32">
-              <label className="text-xs font-bold text-slate-600 block mb-2">Kraj</label>
+              <label className="text-xs font-bold text-slate-600 block mb-2">{t.quote.sender.country}</label>
               <select
                 {...register('senderCountry')}
                 className="w-full py-3 px-4 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:border-[var(--color-primary)] outline-none cursor-pointer"
@@ -213,11 +219,11 @@ export function QuoteForm() {
             <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
               <span className="material-symbols-outlined text-sm">flag</span>
             </div>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Miejsce Dostawy</div>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{t.quote.recipient.title}</div>
           </div>
           <div className="grid grid-cols-[1fr_auto] gap-4">
             <div>
-              <label className="text-xs font-bold text-slate-600 block mb-2">Kod pocztowy</label>
+              <label className="text-xs font-bold text-slate-600 block mb-2">{t.quote.recipient.postalCode}</label>
               <input
                 {...register('recipientPostalCode')}
                 className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl font-data-mono text-base text-slate-900 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10 outline-none transition-all placeholder:text-slate-300"
@@ -227,7 +233,7 @@ export function QuoteForm() {
               {errors.recipientPostalCode && <p className="text-[var(--color-error)] text-xs mt-2">{errors.recipientPostalCode.message}</p>}
             </div>
             <div className="w-32">
-              <label className="text-xs font-bold text-slate-600 block mb-2">Kraj</label>
+              <label className="text-xs font-bold text-slate-600 block mb-2">{t.quote.recipient.country}</label>
               <select
                 {...register('recipientCountry')}
                 className="w-full py-3 px-4 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:border-[var(--color-primary)] outline-none cursor-pointer"
@@ -244,7 +250,7 @@ export function QuoteForm() {
       {/* Routing */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div>
-          <label className="text-xs font-bold text-slate-600 block mb-2">Liczba palet</label>
+          <label className="text-xs font-bold text-slate-600 block mb-2">{t.quote.palletCount}</label>
           <div className="relative">
             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-lg">inventory_2</span>
             <input
@@ -259,7 +265,7 @@ export function QuoteForm() {
           {errors.palletCount && <p className="text-[var(--color-error)] text-xs mt-2">{errors.palletCount.message}</p>}
         </div>
         <div>
-          <label className="text-xs font-bold text-slate-600 block mb-2">Waga (kg)</label>
+          <label className="text-xs font-bold text-slate-600 block mb-2">{t.quote.weight}</label>
           <div className="relative">
             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-lg">scale</span>
             <input
@@ -272,7 +278,7 @@ export function QuoteForm() {
           {errors.weight && <p className="text-[var(--color-error)] text-xs mt-2">{errors.weight.message}</p>}
         </div>
         <div>
-          <label className="text-xs font-bold text-slate-600 block mb-2">Wysokość (cm)</label>
+          <label className="text-xs font-bold text-slate-600 block mb-2">{t.quote.height}</label>
           <div className="relative">
             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-lg">height</span>
             <input
@@ -289,7 +295,7 @@ export function QuoteForm() {
       {/* Dimensions */}
       <div className="grid grid-cols-2 gap-6">
         <div>
-          <label className="text-xs font-bold text-slate-600 block mb-2">Długość (cm)</label>
+          <label className="text-xs font-bold text-slate-600 block mb-2">{t.quote.length}</label>
           <div className="relative">
             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-lg">straighten</span>
             <input
@@ -307,7 +313,7 @@ export function QuoteForm() {
           {errors.length && <p className="text-[var(--color-error)] text-xs mt-2">{errors.length.message}</p>}
         </div>
         <div>
-          <label className="text-xs font-bold text-slate-600 block mb-2">Szerokość (cm)</label>
+          <label className="text-xs font-bold text-slate-600 block mb-2">{t.quote.width}</label>
           <div className="relative">
             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-lg">straighten</span>
             <input
@@ -328,14 +334,14 @@ export function QuoteForm() {
 
       {/* Options */}
       <div className="rounded-[24px] border border-slate-100 p-6 bg-slate-50/30">
-        <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-5">Dodatkowe Warunki</div>
+        <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-5">{t.quote.conditions.title}</div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-4 gap-x-8">
           {[
-            { id: 'isStackable', label: 'Piętrowanie możliwe' },
-            { id: 'isFragile', label: 'Towar delikatny' },
-            { id: 'hasAdr', label: 'Materiał ADR' },
-            { id: 'senderIsPrivate', label: 'Nadawca prywatny' },
-            { id: 'recipientIsPrivate', label: 'Odbiorca prywatny' },
+            { id: 'isStackable', label: t.quote.conditions.stackable },
+            { id: 'isFragile', label: t.quote.conditions.fragile },
+            { id: 'hasAdr', label: t.quote.conditions.adr },
+            { id: 'senderIsPrivate', label: t.quote.conditions.privateSender },
+            { id: 'recipientIsPrivate', label: t.quote.conditions.privateRecipient },
           ].map((opt) => (
             <label key={opt.id} className="flex items-center gap-3 cursor-pointer group">
               <input 
@@ -352,7 +358,7 @@ export function QuoteForm() {
       {/* Visual Preview */}
       <div className="bg-slate-900 rounded-[32px] p-8 overflow-hidden relative group">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-transparent opacity-50" />
-        <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
+        <div className="relative z-10 flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
           <div className="flex-shrink-0">
             <PalletPreview 
               width={Number(watchedValues.width) || 80}
@@ -361,16 +367,16 @@ export function QuoteForm() {
               type={watchedValues.palletType || 'euro'}
             />
           </div>
-          <div className="flex-grow text-center md:text-left">
-            <div className="text-[10px] font-bold text-teal-400 uppercase tracking-widest mb-2">Szacowany Koszt</div>
-            <div className="text-4xl lg:text-5xl font-bold text-white mb-2 font-display-bold">
+          <div className="flex-1 text-center sm:text-left min-w-0">
+            <div className="text-[10px] font-bold text-teal-400 uppercase tracking-widest mb-2">{t.quote.estimatedCost}</div>
+            <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-3 font-display-bold whitespace-nowrap">
               {Math.max(
                 120,
                 (Number(watchedValues.weight) || 0) * (Number(watchedValues.palletCount) || 1) * 0.2 +
                   (Number(watchedValues.height) || 0) * 0.5
-              ).toFixed(2).replace('.', ',')} <span className="text-xl text-white/40">PLN netto</span>
+              ).toFixed(2).replace('.', ',')} <span className="text-lg sm:text-xl text-white/40">{t.quote.currency}</span>
             </div>
-            <p className="text-sm text-white/40 max-w-sm">Ostateczna cena zależy od wybranego przewoźnika i aktualnych dopłat paliwowych.</p>
+            <p className="text-xs sm:text-sm text-white/40 whitespace-normal break-words max-w-[280px] sm:max-w-none">{t.quote.estimatedCostNote}</p>
           </div>
         </div>
       </div>
@@ -380,7 +386,7 @@ export function QuoteForm() {
         disabled={isSubmitting}
         className="w-full bg-[var(--color-primary)] text-white font-bold text-lg py-5 rounded-2xl shadow-2xl shadow-[var(--color-primary)]/30 hover:scale-[1.01] transition-premium flex justify-center items-center gap-3 disabled:opacity-70 active:scale-95"
       >
-        <span>{isSubmitting ? 'Przeliczam oferty...' : 'Porównaj Oferty Kurierów'}</span>
+        <span>{isSubmitting ? t.quote.submitting : t.quote.submit}</span>
         {!isSubmitting && <span className="material-symbols-outlined">arrow_forward</span>}
       </button>
 

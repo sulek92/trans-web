@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-// @ts-expect-error: no type declarations for passport-azure-ad-oauth2
 import { Strategy } from 'passport-azure-ad-oauth2';
 import { jwtDecode } from 'jwt-decode';
 

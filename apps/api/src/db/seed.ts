@@ -1,6 +1,6 @@
 import { db } from './index';
 import { hash } from 'bcryptjs';
-import { carrierServices, users, cmsPages } from './schema';
+import { carrierServices, users, cmsPages, cmsArticles } from './schema';
 
 async function main() {
   console.log('Seeding carrier services...');
@@ -55,39 +55,64 @@ async function main() {
   const customerEmail = (
     process.env.DEMO_USER_EMAIL || 'user@paletbroker.pl'
   ).toLowerCase();
-  const adminPasswordHash = await hash(
-    process.env.ADMIN_PASSWORD || 'admin123',
-    10,
-  );
-  const customerPasswordHash = await hash(
-    process.env.DEMO_USER_PASSWORD || 'user123',
-    10,
-  );
 
-  const superAdminPasswordHash = await hash('admin1', 10);
+  const superAdminPassword = process.env.SUPERADMIN_PASSWORD;
+  if (!superAdminPassword) {
+    console.error(
+      'SUPERADMIN_PASSWORD env var is required for seeding superadmin user',
+    );
+    process.exit(1);
+  }
+
+  const superAdminPasswordHash = await hash(superAdminPassword, 10);
+
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminPassword) {
+    console.error('ADMIN_PASSWORD env var is required for seeding admin user');
+    process.exit(1);
+  }
+  const adminPasswordHash = await hash(adminPassword, 10);
+
+  const customerPassword = process.env.DEMO_USER_PASSWORD;
+  if (!customerPassword) {
+    console.warn('DEMO_USER_PASSWORD not set – skipping demo customer seed');
+  }
+  const customerPasswordHash = customerPassword
+    ? await hash(customerPassword, 10)
+    : null;
+
+  const userValues: Array<{
+    email: string;
+    passwordHash: string;
+    role: string;
+    isVerified: boolean;
+  }> = [
+    {
+      email: 'sulek92@gmail.com',
+      passwordHash: superAdminPasswordHash,
+      role: 'superadmin',
+      isVerified: true,
+    },
+    {
+      email: adminEmail,
+      passwordHash: adminPasswordHash,
+      role: 'admin',
+      isVerified: true,
+    },
+  ];
+
+  if (customerPasswordHash) {
+    userValues.push({
+      email: customerEmail,
+      passwordHash: customerPasswordHash,
+      role: 'customer',
+      isVerified: true,
+    });
+  }
 
   await db
     .insert(users)
-    .values([
-      {
-        email: 'sulek92@gmail.com',
-        passwordHash: superAdminPasswordHash,
-        role: 'superadmin',
-        isVerified: true,
-      },
-      {
-        email: adminEmail,
-        passwordHash: adminPasswordHash,
-        role: 'admin',
-        isVerified: true,
-      },
-      {
-        email: customerEmail,
-        passwordHash: customerPasswordHash,
-        role: 'customer',
-        isVerified: true,
-      },
-    ])
+    .values(userValues)
     .onConflictDoNothing({ target: users.email });
 
   // ── CMS Pages ──────────────────────────────────────────────────────
@@ -98,6 +123,9 @@ async function main() {
       slug: 'home',
       title: 'Strona Główna',
       isPublished: true,
+      metaTitle: 'PaletyBroker – Tani transport paletowy B2B | DHL, DPD, FedEx',
+      metaDescription:
+        'Porównaj ceny DHL, DPD, FedEx i zaoszczędź do 40% na transporcie palet. Kalkulator online, śledzenie 24/7, faktura zbiorcza. Dołącz do 1200+ firm.',
       content: JSON.stringify({
         heroTitle: 'Transport paletowy bez niespodzianek.',
         heroSubtitle:
@@ -182,6 +210,9 @@ async function main() {
       slug: 'o-nas',
       title: 'O nas',
       isPublished: true,
+      metaTitle: 'O nas – Lider logistyki paletowej B2B | Poznaj PaletyBroker',
+      metaDescription:
+        'Łączymy technologię z doświadczeniem TSL od 2020 roku. 1200+ firm, 500k+ wysłanych palet, 98% terminowości. Sprawdź naszą misję i wartości.',
       content: JSON.stringify({
         heroTitle: 'Budujemy mosty w logistyce paletowej.',
         heroDesc:
@@ -232,6 +263,10 @@ async function main() {
       slug: 'cennik',
       title: 'Cennik',
       isPublished: true,
+      metaTitle:
+        'Cennik transportu palet – DHL, DPD, FedEx od 120 zł | PaletyBroker',
+      metaDescription:
+        'Stawki krajowe od 120 zł, międzynarodowe od 75 zł. Porównaj ceny przewoźników, gwarancja najniższej ceny. Bezpłatne ubezpieczenie OCP w cenie.',
       content: JSON.stringify({
         title: 'Stawki skrojone pod biznes',
         subtitle:
@@ -294,7 +329,14 @@ async function main() {
       slug: 'faq',
       title: 'FAQ',
       isPublished: true,
+      metaTitle:
+        'FAQ – Transport palet, pakowanie, ubezpieczenie | PaletyBroker',
+      metaDescription:
+        'Jak zapakować paletę? Ile kosztuje wysyłka? Czy mogę ubezpieczyć przesyłkę? Sprawdź najczęściej zadawane pytania o transporcie paletowym.',
       content: JSON.stringify({
+        title: 'Często zadawane pytania',
+        subtitle:
+          'Znajdź odpowiedzi na najczęściej pojawiające się pytania dotyczące transportu paletowego, pakowania i ubezpieczeń.',
         items: [
           {
             q: 'Jak zapakować paletę?',
@@ -309,12 +351,20 @@ async function main() {
             a: 'Tak, oferujemy dodatkowe ubezpieczenie w kroku wyboru usług w koszyku.',
           },
         ],
+        contactTitle: 'Nie znalazłeś odpowiedzi?',
+        contactDesc:
+          'Skontaktuj się z naszym zespołem wsparcia – odpowiadamy w ciągu 2 godzin w dni robocze.',
+        contactCta: 'Napisz do nas',
       }),
     },
     {
       slug: 'pomoc',
       title: 'Centrum Pomocy',
       isPublished: true,
+      metaTitle:
+        'Centrum pomocy – Konto, wycena, płatności, transport | PaletyBroker',
+      metaDescription:
+        'Wszystko o transporcie paletowym w jednym miejscu. Jak działa wycena, metody płatności, śledzenie przesyłki, reset hasła. Sprawdź FAQ.',
       content: JSON.stringify({
         title: 'W czym możemy pomóc?',
         subtitle:
@@ -368,6 +418,10 @@ async function main() {
       slug: 'kontakt',
       title: 'Kontakt',
       isPublished: true,
+      metaTitle:
+        'Kontakt – Telefon, email, adres | Obsługa klienta PaletyBroker',
+      metaDescription:
+        'Masz pytania? Zadzwoń +48 22 123 45 67 (Pn-Pt 8-17) lub napisz kontakt@paletbroker.pl. Odpowiadamy w 2 godziny. Warszawa, ul. Logistyczna 12.',
       content: JSON.stringify({
         title: 'Jesteśmy tu,\nby Ci pomóc.',
         subtitle:
@@ -385,6 +439,9 @@ async function main() {
       slug: 'dla-firm',
       title: 'Oferta B2B',
       isPublished: true,
+      metaTitle: 'Oferta B2B – Transport palet dla firm | PaletyBroker',
+      metaDescription:
+        'Faktura zbiorcza, dedykowane API, opiekun konta, ceny negocjowane. Zintegruj swój e-commerce z naszą platformą. SAP, Allegro, WooCommerce i więcej.',
       content: JSON.stringify({
         heroBadge: 'Program Partnerski B2B',
         heroTitle: 'Zoptymalizuj logistykę w swojej firmie',
@@ -436,6 +493,9 @@ async function main() {
       slug: 'blog',
       title: 'Blog',
       isPublished: true,
+      metaTitle: 'Blog – Logistyka paletowa, porady TSL, trendy | PaletyBroker',
+      metaDescription:
+        'Eksperckie artykuły o transporcie paletowym, optymalizacji kosztów i trendach TSL. Zapisz się do newslettera i otrzymuj wartościowe treści raz w miesiącu.',
       content: JSON.stringify({
         newsletterTitle: 'Zostań ekspertem w logistyce',
         newsletterDesc:
@@ -446,11 +506,16 @@ async function main() {
       slug: 'kariera',
       title: 'Kariera',
       isPublished: true,
+      metaTitle: 'Kariera – Praca w logistyce i IT | Dołącz do PaletyBroker',
+      metaDescription:
+        'Szukamy spedytorów, developerów i account managerów. Nowoczesny stack, realny wpływ, elastyczne godziny. Sprawdź oferty pracy w PaletyBroker.',
       content: JSON.stringify({
-        heroTitle: 'Buduj z nami przyszłość logistyki',
-        heroDesc:
+        title: 'Buduj z nami przyszłość logistyki',
+        subtitle:
           'PaletBroker to nie tylko platforma, to zespół pasjonatów technologii i transportu. Szukamy osób, które chcą realnie zmieniać branżę TSL.',
-        reasons: [
+        applyNow: 'Aplikuj teraz',
+        whyJoin: 'Dlaczego PaletBroker?',
+        values: [
           {
             title: 'Nowoczesny Stack',
             icon: 'code',
@@ -467,7 +532,8 @@ async function main() {
             desc: 'Stawiamy na work-life balance. Oferujemy pracę zdalną i elastyczne godziny pracy.',
           },
         ],
-        jobOffers: [
+        openPositions: 'Aktualne oferty pracy',
+        offers: [
           {
             title: 'Spedytor Międzynarodowy',
             location: 'Warszawa / Hybrydowo',
@@ -484,12 +550,18 @@ async function main() {
             type: 'Pełny etat',
           },
         ],
+        noPositions:
+          'Aktualnie nie mamy otwartych rekrutacji. Wyślij nam swoje CV, a odezwiemy się gdy pojawi się odpowiednia oferta.',
       }),
     },
     {
       slug: 'typy-palet',
       title: 'Typy palet',
       isPublished: true,
+      metaTitle:
+        'Typy palet – Euro EPAL, przemysłowa, półpaleta | PaletyBroker',
+      metaDescription:
+        'Kompletny przewodnik: paleta Euro 1200x800 (1500 kg), przemysłowa 1200x1000 (2000 kg), półpaleta 600x800. Porady pomiarowe od ekspertów.',
       content: JSON.stringify({
         palletTypes: [
           {
@@ -529,6 +601,9 @@ async function main() {
       slug: 'regulamin',
       title: 'Regulamin',
       isPublished: true,
+      metaTitle: 'Regulamin świadczenia usług | PaletyBroker',
+      metaDescription:
+        'Regulamin platformy PaletyBroker. Zakres usług, wycena, limity automatyczne, składanie zamówień, płatności, obowiązki nadawcy i reklamacje.',
       content: JSON.stringify({
         lastUpdated: '06 maja 2026 r.',
         sections: [
@@ -559,6 +634,10 @@ async function main() {
       slug: 'polityka-prywatnosci',
       title: 'Polityka Prywatności',
       isPublished: true,
+      metaTitle:
+        'Polityka prywatności – RODO, cookies, dane osobowe | PaletyBroker',
+      metaDescription:
+        'Jak przetwarzamy Twoje dane? Administrator, zakres danych, cele przetwarzania, Twoje prawa RODO, cookies i bezpieczeństwo na platformie.',
       content: JSON.stringify({
         lastUpdated: '06 maja 2026 r.',
         sections: [
@@ -589,6 +668,9 @@ async function main() {
       slug: 'global-settings',
       title: 'Ustawienia Globalne',
       isPublished: true,
+      metaTitle: 'Ustawienia globalne platformy | PaletyBroker Admin',
+      metaDescription:
+        'Centrum konfiguracji platformy PaletyBroker. Zarządzanie brandingiem, nawigacją, stopką, danymi kontaktowymi i ustawieniami systemu.',
       content: JSON.stringify({
         brandName: 'PaletBroker',
         footerTagline: 'Logistyka napędzana technologią.',
@@ -632,12 +714,17 @@ async function main() {
         companyName: 'PaletBroker Sp. z o.o.',
         street: 'ul. Logistyczna 12',
         city: '00-001 Warszawa',
+        cookieEnabled: true,
       }),
     },
     {
       slug: 'theme',
       title: 'Konfiguracja Wyglądu',
       isPublished: true,
+      metaTitle:
+        'Konfiguracja wyglądu – Kolory i typografia | PaletyBroker Admin',
+      metaDescription:
+        'Zarządzanie paletą kolorów, typografią, trybem ciemnym i skalą zaokrągleń interfejsu platformy PaletyBroker.',
       content: JSON.stringify({
         presetName: 'PaletBroker Teal',
         colorPrimary: '#005258',
@@ -665,6 +752,74 @@ async function main() {
     .insert(cmsPages)
     .values(cmsSeedData)
     .onConflictDoNothing({ target: cmsPages.slug });
+
+  console.log('Seeding blog articles...');
+
+  const articlesData = [
+    {
+      slug: 'jak-przygotowac-palete-do-wysylki',
+      title: 'Jak przygotować paletę do wysyłki? Kompletny poradnik B2B',
+      excerpt:
+        'Prawidłowe przygotowanie palety to klucz do bezpiecznego transportu. Dowiedz się jak uniknąć uszkodzeń i dodatkowych kosztów.',
+      content:
+        '# Jak przygotować paletę do wysyłki?\n\nPrawidłowe przygotowanie palety to podstawa bezpiecznego transportu...',
+      category: 'Porady',
+      isPublished: true,
+      publishedAt: new Date('2026-04-15'),
+      metaTitle:
+        'Jak przygotować paletę do wysyłki? Poradnik B2B | PaletyBroker',
+      metaDescription:
+        'Kompletny poradnik przygotowania palety do transportu. Folia stretch, oznaczenia, wymiary – wszystko co musisz wiedzieć przed nadaniem.',
+    },
+    {
+      slug: 'obniz-koszty-transportu-paletowego-5-sposobow',
+      title: 'Obniż koszty transportu paletowego – 5 sprawdzonych sposobów',
+      excerpt:
+        'Transport palet to znaczący koszt w logistyce. Poznaj strategie, które pomogą Ci zredukować wydatki nawet o 30%.',
+      content:
+        '# Obniż koszty transportu paletowego\n\nKoszty transportu to często drugi największy wydatek firm produkcyjnych...',
+      category: 'Optymalizacja',
+      isPublished: true,
+      publishedAt: new Date('2026-04-22'),
+      metaTitle:
+        '5 sposobów na obniżenie kosztów transportu palet | PaletyBroker',
+      metaDescription:
+        'Sprawdzone strategie redukcji kosztów transportu paletowego: konsolidacja, optymalizacja tras, negocjacja stawek i wybór odpowiedniego przewoźnika.',
+    },
+    {
+      slug: 'e-commerce-logistyka-paletowa-wyzwania-2026',
+      title: 'Logistyka paletowa w e-commerce – wyzwania i trendy 2026',
+      excerpt:
+        'Rynek e-commerce rośnie w tempie 15% rocznie. Jak dostosować logistykę paletową do wymagań nowoczesnego handlu online?',
+      content:
+        '# Logistyka paletowa w e-commerce 2026\n\nBranża e-commerce przechodzi fundamentalną transformację...',
+      category: 'Trendy',
+      isPublished: true,
+      publishedAt: new Date('2026-05-01'),
+      metaTitle: 'Logistyka paletowa w e-commerce – trendy 2026 | PaletyBroker',
+      metaDescription:
+        'Jak e-commerce zmienia logistykę paletową? Automatyzacja, same-day delivery, zwroty i zrównoważony transport – trendy na 2026 rok.',
+    },
+    {
+      slug: 'ubezpieczenie-przesylek-paletowych-co-warto-wiedziec',
+      title: 'Ubezpieczenie przesyłek paletowych – co warto wiedzieć?',
+      excerpt:
+        'Standardowe OCP przewoźnika nie zawsze wystarcza. Sprawdź jakie opcje ubezpieczenia są dostępne i jak wybrać najlepszą ochronę.',
+      content:
+        '# Ubezpieczenie przesyłek paletowych\n\nKażda przesyłka paletowa niesie ze sobą ryzyko...',
+      category: 'Bezpieczeństwo',
+      isPublished: true,
+      publishedAt: new Date('2026-05-05'),
+      metaTitle: 'Ubezpieczenie przesyłek paletowych – poradnik | PaletyBroker',
+      metaDescription:
+        'OCP przewoźnika vs ubezpieczenie CARGO – czym się różnią? Jakie ryzyka pokrywa ubezpieczenie przesyłek paletowych? Praktyczny poradnik.',
+    },
+  ];
+
+  await db
+    .insert(cmsArticles)
+    .values(articlesData)
+    .onConflictDoNothing({ target: cmsArticles.slug });
 
   console.log('Seeding done.');
   process.exit(0);

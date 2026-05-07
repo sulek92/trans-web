@@ -4,14 +4,24 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useGlobalSettings } from '@/components/providers/global-data-provider';
 import { useTranslation } from '@/lib/i18n/i18n-context';
+import { useToastStore } from '@/lib/store/toast-store';
+import { getApiBaseUrl } from '@/lib/api-url';
+import { showCookieSettings } from '@/components/layout/cookie-consent';
 
-export function Footer() {
+export const Footer = React.memo(function Footer() {
   const { t } = useTranslation();
   const settings = useGlobalSettings();
+  const addToast = useToastStore((state) => state.addToast);
+  const [newsletterEmail, setNewsletterEmail] = React.useState('');
+  const [isSubscribing, setIsSubscribing] = React.useState(false);
   const brandName = settings?.brandName?.trim() || 'PaletBroker';
   const footerTagline = settings?.footerTagline?.trim() || t.footer.tagline;
   const supportStatusLabel = settings?.supportStatusLabel?.trim() || 'System Status: Online';
   const newsletterEnabled = settings?.newsletterEnabled !== false;
+  const phone = settings?.phone?.trim();
+  const email = settings?.email?.trim();
+  const street = settings?.street?.trim();
+  const city = settings?.city?.trim();
 
   const defaultCompanyLinks = [
     { label: t.footer.links.about, href: '/o-nas' },
@@ -55,6 +65,33 @@ export function Footer() {
   const toolLinks = normalizeLinks(settings?.footerToolLinks, defaultToolLinks);
   const supportLinks = normalizeLinks(settings?.footerSupportLinks, defaultSupportLinks);
 
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmedEmail = newsletterEmail.trim();
+    if (!trimmedEmail || !trimmedEmail.includes('@')) {
+      addToast({ title: 'Błąd', description: 'Podaj prawidłowy adres e-mail.', type: 'error' });
+      return;
+    }
+    setIsSubscribing(true);
+    try {
+      const res = await fetch(`${getApiBaseUrl()}/newsletter/subscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: trimmedEmail }),
+      });
+      if (res.ok) {
+        addToast({ title: 'Sukces!', description: 'Zostałeś zapisany do newslettera.', type: 'success' });
+        setNewsletterEmail('');
+      } else {
+        addToast({ title: 'Błąd', description: 'Nie udało się zapisać. Spróbuj ponownie.', type: 'error' });
+      }
+    } catch {
+      addToast({ title: 'Błąd', description: 'Nie udało się zapisać. Spróbuj ponownie.', type: 'error' });
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
+
   return (
     <footer className="w-full py-16 border-t border-slate-800 bg-[#0a0c10] text-slate-400 mt-auto relative z-10">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-12 max-w-[1280px] mx-auto px-8">
@@ -71,12 +108,35 @@ export function Footer() {
           {newsletterEnabled && (
             <div className="mt-2">
               <div className="text-[10px] font-bold text-white uppercase tracking-widest mb-3 opacity-40">{t.footer.newsletterTitle}</div>
-              <form className="flex gap-2">
-                <input type="email" placeholder={t.footer.newsletterPlaceholder} className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs flex-grow outline-none focus:border-[var(--color-primary)] transition-colors" />
-                <button type="submit" className="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-colors">
-                  <span className="material-symbols-outlined text-sm">send</span>
+              <form className="flex gap-2" onSubmit={handleNewsletterSubmit}>
+                <input
+                  type="email"
+                  placeholder={t.footer.newsletterPlaceholder}
+                  value={newsletterEmail}
+                  onChange={(e) => setNewsletterEmail(e.target.value)}
+                  className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs flex-grow outline-none focus:border-[var(--color-primary)] transition-colors"
+                  required
+                />
+                <button type="submit" disabled={isSubscribing} className="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-colors disabled:opacity-50">
+                  <span className="material-symbols-outlined text-sm">{isSubscribing ? 'hourglass_top' : 'send'}</span>
                 </button>
               </form>
+            </div>
+          )}
+          {(phone || email || street || city) && (
+            <div className="mt-4 space-y-2">
+              {phone && <div className="flex items-center gap-2 text-sm text-slate-400">
+                <span className="material-symbols-outlined text-base">call</span>
+                <a href={`tel:${phone.replace(/\s/g, '')}`} className="hover:text-white transition-colors">{phone}</a>
+              </div>}
+              {email && <div className="flex items-center gap-2 text-sm text-slate-400">
+                <span className="material-symbols-outlined text-base">mail</span>
+                <a href={`mailto:${email}`} className="hover:text-white transition-colors">{email}</a>
+              </div>}
+              {street && <div className="flex items-center gap-2 text-sm text-slate-400">
+                <span className="material-symbols-outlined text-base">location_on</span>
+                <span>{street}{city ? `, ${city}` : ''}</span>
+              </div>}
             </div>
           )}
         </div>
@@ -110,6 +170,14 @@ export function Footer() {
               {link.label}
             </Link>
           ))}
+          {settings?.cookieEnabled !== false && (
+            <button
+              onClick={showCookieSettings}
+              className="text-sm hover:text-teal-400 transition-colors text-left"
+            >
+              {settings?.cookieSettingsButton || t.cookies.settings}
+            </button>
+          )}
           <div className="mt-4 flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">{supportStatusLabel}</span>
@@ -122,4 +190,4 @@ export function Footer() {
       </div>
     </footer>
   );
-}
+});

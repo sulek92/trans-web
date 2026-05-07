@@ -12,6 +12,10 @@ import { CareersEditor } from '../careers-editor';
 import { PalletsEditor } from '../pallets-editor';
 import { LegalEditor } from '../legal-editor';
 import { GlobalSettingsEditor } from '../global-settings-editor';
+import { CennikEditor } from '../cennik-editor';
+import { PomocEditor } from '../pomoc-editor';
+import { BlogEditor } from '../blog-editor';
+import { ThemeEditor } from '../theme-editor';
 import ReactMarkdown from 'react-markdown';
 import { TextField, SectionHeader, ToggleSwitch } from '../../../components';
 
@@ -174,8 +178,20 @@ export default function CmsPageEditor() {
         {slug === 'global-settings' && (
           <GlobalSettingsEditor initialContent={content} onSave={(json) => onSave(json)} saving={saving} />
         )}
+        {slug === 'cennik' && (
+          <CennikEditor initialContent={content} onSave={(json) => onSave(json)} saving={saving} />
+        )}
+        {slug === 'pomoc' && (
+          <PomocEditor initialContent={content} onSave={(json) => onSave(json)} saving={saving} />
+        )}
+        {slug === 'blog' && (
+          <BlogEditor initialContent={content} onSave={(json) => onSave(json)} saving={saving} />
+        )}
+        {slug === 'theme' && (
+          <ThemeEditor initialContent={content} onSave={(json) => onSave(json)} saving={saving} />
+        )}
 
-        {!['home', 'faq', 'kontakt', 'o-nas', 'dla-firm', 'kariera', 'typy-palet', 'regulamin', 'polityka-prywatnosci', 'global-settings'].includes(slug) && (
+        {!['home', 'faq', 'kontakt', 'o-nas', 'dla-firm', 'kariera', 'typy-palet', 'regulamin', 'polityka-prywatnosci', 'global-settings', 'cennik', 'pomoc', 'blog', 'theme'].includes(slug) && (
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
             <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
               <SectionHeader title="Edytor treści" icon="edit_note" />

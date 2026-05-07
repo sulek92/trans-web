@@ -1,29 +1,42 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { decodeJwt } from 'jose'
 
-// Simple RBAC gate: protect /admin routes by a user role stored in cookies
+function getRoleFromToken(token: string): string {
+  try {
+    const claims = decodeJwt(token)
+    return ((claims as Record<string, unknown>).role as string) || ''
+  } catch {
+    return ''
+  }
+}
+
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
   const isAdminPath = pathname.startsWith('/admin')
 
-  // Require a login token for admin access
   const pbToken = req.cookies.get('pb_auth_token')?.value
-  // Try to read a role from cookies. Fallback to empty string.
-  const role = req.cookies.get('pb_user_role')?.value || ''
 
-  // If admin path and no token or not an authorized role, redirect
-  if (isAdminPath && (!pbToken || (role !== 'admin' && role !== 'superadmin'))) {
-    // Redirect unauthenticated/unauthorized users away from admin area
+  if (isAdminPath && !pbToken) {
     const url = req.nextUrl.clone()
-    url.pathname = '/logowanie' // redirect to login
+    url.pathname = '/logowanie'
     url.searchParams.set('forbidden', '1')
     return NextResponse.redirect(url)
+  }
+
+  if (isAdminPath && pbToken) {
+    const role = getRoleFromToken(pbToken)
+    if (role !== 'admin' && role !== 'superadmin') {
+      const url = req.nextUrl.clone()
+      url.pathname = '/logowanie'
+      url.searchParams.set('forbidden', '1')
+      return NextResponse.redirect(url)
+    }
   }
 
   return NextResponse.next()
 }
 
 export const config = {
-  // Apply this middleware to admin-related paths
   matcher: ['/admin/:path*'],
 }

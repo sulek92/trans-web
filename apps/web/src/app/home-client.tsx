@@ -4,6 +4,7 @@ import * as React from 'react';
 import { QuoteForm } from '@/components/calculator/quote-form';
 import { Counter } from '@/components/ui/counter';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useTranslation } from '@/lib/i18n/i18n-context';
 import { createLead } from '@/lib/leads';
 import { useToastStore } from '@/lib/store/toast-store';
@@ -16,40 +17,37 @@ type CmsManagedImageProps = {
   alt: string;
   className?: string;
   imgClassName?: string;
+  priority?: boolean;
 };
 
-function CmsManagedImage({
+const CmsManagedImage = React.memo(function CmsManagedImage({
   src,
   fallbackSrc,
   alt,
   className = '',
   imgClassName = '',
+  priority = false,
 }: CmsManagedImageProps) {
-  const normalizedSrc = React.useMemo(() => {
-    const trimmed = (src || '').trim();
-    return trimmed.length > 0 ? trimmed : fallbackSrc;
-  }, [src, fallbackSrc]);
+  const [hasError, setHasError] = React.useState(false);
+  const resolvedSrc = React.useMemo(() => {
+    if (hasError) return fallbackSrc;
+    return (src || '').trim() || fallbackSrc;
+  }, [src, fallbackSrc, hasError]);
 
   return (
-    <div className={className}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={normalizedSrc}
+    <div className={cn("relative overflow-hidden", className)}>
+      <Image
+        src={resolvedSrc}
         alt={alt}
-        loading="lazy"
-        data-fallback-applied="false"
-        className={imgClassName}
-        onError={(event) => {
-          const image = event.currentTarget;
-          if (image.dataset.fallbackApplied === 'true') return;
-          image.dataset.fallbackApplied = 'true';
-          image.src = fallbackSrc;
-        }}
+        fill
+        priority={priority}
+        className={cn("object-cover", imgClassName)}
+        onError={() => setHasError(true)}
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
       />
     </div>
   );
-}
-
+});
 export function HomePageClient({
   initialCmsData,
 }: {
@@ -63,12 +61,11 @@ export function HomePageClient({
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const c = (initialCmsData ?? {}) as Record<string, any>;
-
-  const heroTitle = (c.heroTitle as string) || t.hero.title;
-  const heroSubtitle = (c.heroSubtitle as string) || t.hero.subtitle;
-  const heroBadge = (c.heroBadge as string) || t.home.hero.badge;
-  const heroVisualImage = (c.heroVisualImage as string) || '/images/home-hero-logistics.jpg';
-  const heroVisualCaption = (c.heroVisualCaption as string) || t.home.hero.visualCaption;
+  const heroTitle = (c?.heroTitle as string) || t?.hero?.title || '';
+  const heroSubtitle = (c?.heroSubtitle as string) || t?.hero?.subtitle || '';
+  const heroBadge = (c?.heroBadge as string) || t?.home?.hero?.badge || '';
+  const heroVisualImage = (c?.heroVisualImage as string) || '/images/home-hero-logistics.webp';
+  const heroVisualCaption = (c?.heroVisualCaption as string) || t?.home?.hero?.visualCaption || '';
   const partners = (c.partners as string[]) || ['DHL Freight', 'FedEx Express', 'Raben', 'DSV', 'DB Schenker'];
   const activityTicker = (c.activityTicker as {city:string;status:string;time:string}[]) || [
     { city: 'Warszawa', status: t.home.ticker.received, time: `2 ${t.home.ticker.ago}` },
@@ -96,34 +93,43 @@ export function HomePageClient({
       role: t.home.testimonials.items[0].role,
       text: t.home.testimonials.items[0].text,
       avatar: 'person',
-      avatarImage: '/images/avatars/client-1.jpg',
+      avatarImage: '/images/avatars/client-1.webp',
     },
     {
       name: t.home.testimonials.items[1].name,
       role: t.home.testimonials.items[1].role,
       text: t.home.testimonials.items[1].text,
       avatar: 'person_3',
-      avatarImage: '/images/avatars/client-2.jpg',
+      avatarImage: '/images/avatars/client-2.webp',
     },
     {
       name: t.home.testimonials.items[2].name,
       role: t.home.testimonials.items[2].role,
       text: t.home.testimonials.items[2].text,
       avatar: 'person_4',
-      avatarImage: '/images/avatars/client-3.jpg',
+      avatarImage: '/images/avatars/client-3.webp',
     },
   ];
   const supportTitle = (c.supportTitle as string) || t.home.support.title;
   const supportSubtitle = (c.supportSubtitle as string) || t.home.support.subtitle;
-  const supportVisualImage = (c.supportVisualImage as string) || '/images/home-support-team.jpg';
+  const supportVisualImage = (c.supportVisualImage as string) || '/images/home-support-team.webp';
   const ctaTitle = (c.ctaTitle as string) || t.home.cta.title;
   const ctaSubtitle = (c.ctaSubtitle as string) || t.home.cta.subtitle;
-  const ctaVisualImage = (c.ctaVisualImage as string) || '/images/home-cta-warehouse.jpg';
+  const ctaVisualImage = (c.ctaVisualImage as string) || '/images/home-cta-warehouse.webp';
   const totalTestimonials = testimonials.length;
 
   React.useEffect(() => {
-    const handleScroll = () => setShowQuickBar(window.scrollY > 800);
-    window.addEventListener('scroll', handleScroll);
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          setShowQuickBar(window.scrollY > 800);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -169,10 +175,10 @@ export function HomePageClient({
   };
 
   return (
-    <main key={locale} className="pt-20 sm:pt-24 pb-12 sm:pb-16 bg-[var(--color-background)]">
+    <main key={locale} className="pb-12 sm:pb-16 bg-[var(--color-background)]">
       {/* Quick Quote Bar - Redesigned as a floating premium pill */}
       <div className={cn(
-        "fixed top-8 left-1/2 -translate-x-1/2 z-[100] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]",
+        "fixed top-32 left-1/2 -translate-x-1/2 z-[100] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]",
         showQuickBar ? "translate-y-0 opacity-100 scale-100" : "-translate-y-20 opacity-0 scale-90 pointer-events-none"
       )}>
         <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-white/20 dark:border-white/10 rounded-full px-2 py-2 flex items-center gap-6 shadow-[0_20px_50px_rgba(0,0,0,0.2)]">
@@ -180,10 +186,10 @@ export function HomePageClient({
             <div className="w-10 h-10 rounded-full bg-[var(--color-primary)] flex items-center justify-center text-white shadow-lg shadow-[var(--color-primary)]/20">
               <span className="material-symbols-outlined text-lg">pallet</span>
             </div>
-            <div className="hidden sm:block">
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">PaletBroker</div>
-              <div className="text-sm font-bold text-slate-900 dark:text-white leading-none">Wyceń przesyłkę</div>
-            </div>
+              <div className="hidden sm:block">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">PaletBroker</div>
+                  <div className="text-sm font-bold text-slate-900 dark:text-white leading-none">{t.home.quickQuoteLabel}</div>
+                </div>
           </div>
           <div className="flex items-center gap-2 pr-2">
             <div className="text-xs font-bold text-[var(--color-on-surface-variant)] line-through opacity-40">219 PLN</div>
@@ -193,7 +199,7 @@ export function HomePageClient({
             onClick={() => document.getElementById('calculator')?.scrollIntoView({ behavior: 'smooth' })}
             className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-8 py-3.5 rounded-full font-bold text-sm hover:bg-[var(--color-primary)] hover:text-white transition-premium shadow-xl active:scale-95"
           >
-            Szybka Wycena
+            {t.home.quickQuoteButton}
           </button>
         </div>
       </div>
@@ -249,7 +255,7 @@ export function HomePageClient({
                   <span className="material-symbols-outlined">calculate</span>
                 </button>
                 <Link href="/dla-firm" className="bg-white dark:bg-slate-900 border border-[var(--color-divider)] text-[var(--color-on-background)] px-12 py-6 rounded-[24px] font-bold hover:border-[var(--color-primary)] transition-premium flex items-center justify-center gap-3 text-xl shadow-lg">
-                  Oferta B2B
+                   {t.home.b2bOffer}
                   <span className="material-symbols-outlined text-sm opacity-40">arrow_forward</span>
                 </Link>
               </motion.div>
@@ -266,10 +272,11 @@ export function HomePageClient({
             <div className="relative overflow-hidden rounded-[48px] border border-[var(--color-divider)] shadow-[0_40px_80px_-15px_rgba(0,0,0,0.1)] bg-slate-900 group">
               <CmsManagedImage
                 src={heroVisualImage}
-                fallbackSrc="/images/home-hero-logistics.jpg"
+                fallbackSrc="/images/home-hero-logistics.webp"
                 alt="Centrum operacyjne logistyki paletowej"
                 className="aspect-[16/11] w-full"
                 imgClassName="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                priority
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent opacity-60" />
               <div className="absolute bottom-0 left-0 right-0 p-10">
@@ -285,7 +292,7 @@ export function HomePageClient({
                   <div key={i} className="w-8 h-8 rounded-full bg-slate-200 border-2 border-white dark:border-slate-900 flex items-center justify-center text-[10px] font-bold">U{i}</div>
                 ))}
               </div>
-              <span>Porównujemy oferty <span className="text-[var(--color-primary)] font-bold">12+ przewoźników</span> w czasie rzeczywistym.</span>
+              <span>{t.home.partnerComparison} <span className="text-[var(--color-primary)] font-bold">12{t.home.carriersSuffix} {t.home.carriers}</span> {t.home.realtimeComparison}</span>
             </div>
           </motion.div>
         </div>
@@ -326,9 +333,13 @@ export function HomePageClient({
                 onSubmit={(e) => {
                   e.preventDefault();
                   const input = e.currentTarget.elements.namedItem('trackingNumber') as HTMLInputElement | null;
-                  const val = input?.value;
-                  if (!val) return alert(t.home.tracking.error);
-                  simulateSend('tracking', `Szukanie zlecenia: ${val}... (Funkcja w przygotowaniu)`);
+                  const val = input?.value?.trim();
+                  if (!val) return;
+                  if (val.startsWith('OR-') || val.startsWith('ORD-')) {
+                    window.location.href = `/sledzenie?orderNumber=${encodeURIComponent(val)}`;
+                  } else {
+                    alert(t.home.tracking.error);
+                  }
                 }}
                 className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-6"
               >
@@ -384,6 +395,48 @@ export function HomePageClient({
         </div>
       </section>
 
+      {/* How It Works */}
+      <section className="py-24 bg-white dark:bg-slate-900 border-y border-[var(--color-divider)]">
+        <div className="max-w-[1280px] mx-auto px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-20"
+          >
+            <span className="text-[var(--color-primary)] font-bold tracking-[0.3em] uppercase text-[11px] mb-6 block">Jak to działa</span>
+            <h2 className="text-4xl lg:text-5xl font-bold text-[var(--color-on-background)] mb-4 tracking-tight">Transport palet w 3 prostych krokach</h2>
+            <p className="text-[var(--color-on-surface-variant)] text-lg opacity-70">Szybko, przejrzyście i bez zbędnych formalności.</p>
+          </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            {howItWorks.map((step, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.15 }}
+                viewport={{ once: true }}
+                className="relative group"
+              >
+                <div className="bg-slate-50 dark:bg-slate-950 rounded-[40px] p-10 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-2xl transition-premium h-full">
+                  <div className="text-[80px] font-display-bold font-bold text-slate-100 dark:text-slate-800 group-hover:text-[var(--color-primary)]/10 transition-colors mb-6 leading-none">{step.step}</div>
+                  <div className="w-14 h-14 rounded-2xl bg-[var(--color-primary-highlight)] text-[var(--color-primary)] flex items-center justify-center mb-6 shadow-inner">
+                    <span className="material-symbols-outlined text-2xl">{step.icon}</span>
+                  </div>
+                  <h3 className="text-xl font-bold mb-3 tracking-tight">{step.title}</h3>
+                  <p className="text-[var(--color-on-surface-variant)] leading-relaxed">{step.desc}</p>
+                </div>
+                {i < howItWorks.length - 1 && (
+                  <div className="hidden md:block absolute top-1/2 -right-5 w-10 h-0.5 bg-slate-200 dark:bg-slate-800 z-10">
+                    <span className="material-symbols-outlined absolute -top-2 -right-2 text-[var(--color-primary)]">arrow_forward</span>
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Live Activity Ticker */}
       <div className="bg-white dark:bg-slate-900 py-8 overflow-hidden border-b border-[var(--color-divider)] relative z-20">
         <div className="flex gap-24 whitespace-nowrap animate-shimmer-slow px-8">
@@ -400,14 +453,47 @@ export function HomePageClient({
         </div>
       </div>
 
+      {/* Stats Counter */}
+      <section className="py-24 bg-slate-50 dark:bg-slate-950 border-y border-[var(--color-divider)]">
+        <div className="max-w-[1280px] mx-auto px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <span className="text-[var(--color-primary)] font-bold tracking-[0.3em] uppercase text-[11px] mb-6 block">Liczby mówią same za siebie</span>
+            <h2 className="text-4xl lg:text-5xl font-bold text-[var(--color-on-background)] tracking-tight">PaletyBroker w statystykach</h2>
+          </motion.div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {stats.map((stat, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                viewport={{ once: true }}
+                className="bg-white dark:bg-slate-900 rounded-[32px] p-8 text-center border border-[var(--color-divider)] shadow-sm hover:shadow-xl transition-premium"
+              >
+                <div className="text-4xl lg:text-5xl font-display-bold font-bold text-[var(--color-primary)] mb-3 flex items-baseline justify-center gap-1">
+                  <Counter end={stat.end} duration={2000} suffix="" />
+                  <span>{stat.suffix}</span>
+                </div>
+                <div className="text-sm font-bold text-slate-400 uppercase tracking-widest">{stat.label}</div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Testimonials - Premium Card System */}
       <section className="py-32 bg-white dark:bg-slate-900 overflow-hidden">
         <div className="max-w-[1280px] mx-auto px-8">
           <div className="flex flex-col md:flex-row justify-between items-end mb-24 gap-12">
             <div className="max-w-2xl">
-              <span className="text-[var(--color-primary)] font-bold tracking-[0.3em] uppercase text-[11px] mb-6 block">Głos naszych klientów</span>
-              <h2 className="text-5xl lg:text-6xl font-bold text-[var(--color-on-background)] mb-8 tracking-tight">Zaufali nam liderzy branż</h2>
-              <p className="text-[var(--color-on-surface-variant)] text-xl leading-relaxed opacity-80">Zobacz, jak technologia PaletBroker optymalizuje łańcuchy dostaw największych firm w regionie.</p>
+              <span className="text-[var(--color-primary)] font-bold tracking-[0.3em] uppercase text-[11px] mb-6 block">{t.home.testimonialsLabel}</span>
+              <h2 className="text-5xl lg:text-6xl font-bold text-[var(--color-on-background)] mb-8 tracking-tight">{t.home.testimonialsTitle}</h2>
+              <p className="text-[var(--color-on-surface-variant)] text-xl leading-relaxed opacity-80">{t.home.testimonialsDesc}</p>
             </div>
             <div className="flex gap-6">
               <button aria-label="Poprzednia opinia" onClick={prevTestimonial} className="w-16 h-16 rounded-[24px] border border-[var(--color-divider)] flex items-center justify-center hover:bg-[var(--color-primary)] hover:text-white hover:border-transparent transition-premium active:scale-90 shadow-sm">
@@ -447,7 +533,7 @@ export function HomePageClient({
                           {t.avatarImage ? (
                             <CmsManagedImage
                               src={t.avatarImage}
-                              fallbackSrc="/images/avatars/client-1.jpg"
+                              fallbackSrc="/images/avatars/client-1.webp"
                               alt={t.name}
                               className="w-20 h-20 rounded-[28px] overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl"
                               imgClassName="h-full w-full object-cover"
@@ -525,7 +611,7 @@ export function HomePageClient({
         <div className="max-w-5xl mx-auto rounded-[60px] p-12 lg:p-24 text-center text-white relative overflow-hidden shadow-2xl group">
           <CmsManagedImage
             src={ctaVisualImage}
-            fallbackSrc="/images/home-cta-warehouse.jpg"
+            fallbackSrc="/images/home-cta-warehouse.webp"
             alt={t.home.cta.imageAlt}
             className="absolute inset-0"
             imgClassName="h-full w-full object-cover group-hover:scale-105 transition-transform duration-1000"

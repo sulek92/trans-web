@@ -12,9 +12,14 @@ import { Logger, UseGuards } from '@nestjs/common';
 
 @WebSocketGateway({
   cors: {
-    origin: '*', // In production, restrict this to your frontend URL
+    origin: process.env.CORS_ORIGIN?.split(',') || '*',
+    credentials: true,
   },
   namespace: 'notifications',
+  pingTimeout: 60000,
+  pingInterval: 25000,
+  maxHttpBufferSize: 1e6,
+  transports: ['websocket', 'polling'],
 })
 export class NotificationsGateway
   implements OnGatewayConnection, OnGatewayDisconnect
@@ -22,12 +27,21 @@ export class NotificationsGateway
   @WebSocketServer()
   server: Server;
 
-  private readonly logger = new Logger(NotificationsGateway.length.toString());
+  private readonly logger = new Logger(NotificationsGateway.name);
+  private connectedClients = new Map<string, Socket>();
 
   handleConnection(client: Socket) {
     const userId = client.handshake.query.userId as string;
+
+    if (this.connectedClients.size >= 1000) {
+      this.logger.warn('Max connections reached, rejecting client');
+      client.disconnect();
+      return;
+    }
+
     if (userId) {
       client.join(`user_${userId}`);
+      this.connectedClients.set(client.id, client);
       this.logger.log(`Client connected: ${client.id}, User: ${userId}`);
     } else {
       this.logger.log(`Client connected: ${client.id} (anonymous)`);
@@ -35,6 +49,7 @@ export class NotificationsGateway
   }
 
   handleDisconnect(client: Socket) {
+    this.connectedClients.delete(client.id);
     this.logger.log(`Client disconnected: ${client.id}`);
   }
 

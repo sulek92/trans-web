@@ -1,11 +1,24 @@
-import { getCmsContent } from '@/lib/cms';
+import { Metadata } from 'next';
+import { getCmsContent, getCmsPageRecord } from '@/lib/cms';
 import { getApiBaseUrl } from '@/lib/api-url';
 import { BlogClient } from './blog-client';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getCmsPageRecord('blog');
+  return {
+    title: page?.metaTitle || 'Blog – Ekspert logistyki paletowej | PaletyBroker',
+    description: page?.metaDescription || 'Praktyczne artykuły o logistyce paletowej, trendach TSL i optymalizacji kosztów wysyłki. Zapisz się do newslettera i otrzymuj ekskluzywne treści raz w miesiącu.',
+    openGraph: {
+      title: page?.metaTitle || 'Blog logistyka paletowa – porady i trendy TSL',
+      description: page?.metaDescription || 'Artykuły o logistyce paletowej, transporcie B2B i optymalizacji kosztów wysyłki.',
+      images: ['/og-image.png'],
+    },
+  };
+}
 
 export default async function BlogPage() {
   const cms = await getCmsContent<{ newsletterTitle: string; newsletterDesc: string }>('blog');
   
-  // Fetch real articles
   let articles: any[] = [];
   try {
     const res = await fetch(`${getApiBaseUrl()}/cms/articles?public=true`, { 

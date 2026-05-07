@@ -55,7 +55,7 @@ export default function DashboardOverviewPage() {
 
   if (isLoading) {
     return (
-      <div className="pt-24 pb-24 max-w-[1280px] mx-auto px-8 space-y-12">
+      <div className="pb-24 max-w-[1280px] mx-auto px-8 space-y-12">
         <Skeleton className="h-20 w-1/3 rounded-2xl" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[1,2,3].map(i => <Skeleton key={i} className="h-48 w-full rounded-[32px]" />)}
@@ -83,7 +83,7 @@ export default function DashboardOverviewPage() {
   };
 
   return (
-    <main className="pt-24 pb-24 bg-[var(--color-background)] min-h-screen">
+    <main className="pb-24 bg-[var(--color-background)] min-h-screen">
       <div className="max-w-[1280px] mx-auto px-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12 animate-fade-in">

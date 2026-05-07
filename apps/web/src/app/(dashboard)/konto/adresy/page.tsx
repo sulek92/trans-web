@@ -118,7 +118,7 @@ export default function AddressesPage() {
   };
 
   return (
-    <main className="pt-24 pb-24 bg-[var(--color-background)] min-h-screen">
+    <main className="pb-24 bg-[var(--color-background)] min-h-screen">
       <div className="max-w-[1280px] mx-auto px-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12 animate-fade-in">
           <div>

@@ -2,10 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { db } from '../../db';
 import { orders, users } from '../../db/schema';
 import { eq, gte, and, sql } from 'drizzle-orm';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class AnalyticsService {
+  constructor(private readonly redisService: RedisService) {}
+
   async getUserStats(userId: string) {
+    const cacheKey = `analytics:user:${userId}`;
+    const cached = await this.redisService.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -39,15 +46,22 @@ export class AnalyticsService {
       .where(eq(orders.userId, userId))
       .groupBy(orders.status);
 
-    return {
+    const result = {
       totalOrders: totalOrders?.count || 0,
       recentSpend: recentSpend?.total || 0,
       carrierDistribution: carrierStats,
       statusDistribution: statusStats,
     };
+
+    await this.redisService.set(cacheKey, JSON.stringify(result), 600);
+    return result;
   }
 
   async getAdminStats() {
+    const cacheKey = 'analytics:admin';
+    const cached = await this.redisService.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -82,10 +96,13 @@ export class AnalyticsService {
       .orderBy(sql`sum(${orders.priceBrutto}) desc`)
       .limit(5);
 
-    return {
+    const result = {
       revenueByCurrency,
       ordersOverTime,
       topCustomers,
     };
+
+    await this.redisService.set(cacheKey, JSON.stringify(result), 300);
+    return result;
   }
 }

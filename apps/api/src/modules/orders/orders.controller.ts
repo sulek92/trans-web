@@ -62,6 +62,11 @@ export class OrdersController {
     return this.ordersService.getAllOrders();
   }
 
+  @Get('track/:orderNumber')
+  async trackOrder(@Param('orderNumber') orderNumber: string) {
+    return this.ordersService.trackByOrderNumber(orderNumber);
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
@@ -131,7 +136,10 @@ export class OrdersController {
 
     const pdf = await this.ordersService.getOrderInvoicePdf(id, userId);
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=faktura-${id}.pdf`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=faktura-${id}.pdf`,
+    );
     return res.send(pdf);
   }
 

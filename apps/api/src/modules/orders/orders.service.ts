@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { db } from '../../db';
-import { orders, quotes } from '../../db/schema';
+import { orders, quotes, trackingEvents } from '../../db/schema';
 import { eq, and } from 'drizzle-orm';
 import { randomInt } from 'node:crypto';
 import { PaymentsService } from '../payments/payments.service';
@@ -117,12 +117,42 @@ export class OrdersService {
     return order;
   }
 
+  async trackByOrderNumber(orderNumber: string) {
+    const [order] = await db
+      .select()
+      .from(orders)
+      .where(eq(orders.orderNumber, orderNumber));
+
+    if (!order) {
+      throw new NotFoundException(
+        `Nie znaleziono zamówienia o numerze ${orderNumber}`,
+      );
+    }
+
+    const events = await db
+      .select({
+        internalStatus: trackingEvents.internalStatus,
+        carrierStatus: trackingEvents.carrierStatus,
+        carrierDescription: trackingEvents.carrierStatusDescription,
+        location: trackingEvents.location,
+        occurredAt: trackingEvents.occurredAt,
+      })
+      .from(trackingEvents)
+      .where(eq(trackingEvents.orderId, order.id))
+      .orderBy(trackingEvents.occurredAt);
+
+    return { orderNumber: order.orderNumber, status: order.status, events };
+  }
+
   async getMyOrder(id: string, userId: string) {
     const [order] = await db
       .select()
       .from(orders)
       .where(and(eq(orders.id, id), eq(orders.userId, userId)));
-    if (!order) throw new NotFoundException(`Order with ID ${id} not found or access denied`);
+    if (!order)
+      throw new NotFoundException(
+        `Order with ID ${id} not found or access denied`,
+      );
     return order;
   }
 
@@ -167,6 +197,13 @@ export class OrdersService {
   }
 
   async bulkUpdateStatus(ids: string[], status: string) {
+    const MAX_BULK_SIZE = 100;
+    if (ids.length > MAX_BULK_SIZE) {
+      throw new BadRequestException(
+        `Maksymalny rozmiar operacji wsadowej to ${MAX_BULK_SIZE} elementów`,
+      );
+    }
+
     const { sql } = await import('drizzle-orm');
     const updated = await db
       .update(orders)
@@ -174,8 +211,7 @@ export class OrdersService {
       .where(sql`${orders.id} = ANY(${ids})` as any)
       .returning();
 
-    // Notify users
-    for (const order of updated) {
+    const notifyBatch = updated.map((order) => {
       const email = (order.senderAddress as any)?.email;
       if (email) {
         void this.notificationsService.sendStatusUpdate(
@@ -193,9 +229,54 @@ export class OrdersService {
           type: 'info',
         });
       }
-    }
+    });
+
+    void notifyBatch;
 
     return updated;
+  }
+
+  async bulkGenerateLabels(ids: string[]) {
+    const MAX_BULK_SIZE = 50;
+    if (ids.length > MAX_BULK_SIZE) {
+      throw new BadRequestException(
+        `Maksymalny rozmiar operacji wsadowej to ${MAX_BULK_SIZE} elementów`,
+      );
+    }
+
+    const results = [];
+    const errors = [];
+    const CONCURRENCY_LIMIT = 5;
+
+    for (let i = 0; i < ids.length; i += CONCURRENCY_LIMIT) {
+      const batch = ids.slice(i, i + CONCURRENCY_LIMIT);
+      const batchResults = await Promise.allSettled(
+        batch.map(async (id) => {
+          const res = await this.generateLabel(id);
+          return { id, result: res };
+        }),
+      );
+
+      for (const result of batchResults) {
+        if (result.status === 'fulfilled') {
+          results.push(result.value.result);
+        } else {
+          errors.push({
+            id: result.reason?.id ?? 'unknown',
+            error:
+              result.reason instanceof Error
+                ? result.reason.message
+                : 'Unknown error',
+          });
+        }
+      }
+    }
+
+    return {
+      success: results.length,
+      failed: errors.length,
+      errors: errors.length > 0 ? errors : undefined,
+    };
   }
 
   async generateLabel(orderId: string) {
@@ -235,31 +316,10 @@ export class OrdersService {
 
       return updated;
     } else {
-      throw new BadRequestException(`Carrier API Error: ${response.error}`);
+      throw new BadRequestException(
+        `Carrier API Error: ${(response as any).error}`,
+      );
     }
-  }
-
-  async bulkGenerateLabels(ids: string[]) {
-    const results = [];
-    const errors = [];
-
-    for (const id of ids) {
-      try {
-        const res = await this.generateLabel(id);
-        results.push(res);
-      } catch (err) {
-        errors.push({
-          id,
-          error: err instanceof Error ? err.message : 'Unknown error',
-        });
-      }
-    }
-
-    return {
-      success: results.length,
-      failed: errors.length,
-      errors: errors.length > 0 ? errors : undefined,
-    };
   }
 
   async getOrdersByUser(userId: string) {
@@ -273,7 +333,8 @@ export class OrdersService {
       .where(and(eq(orders.id, orderId), eq(orders.userId, userId)));
 
     if (!order) throw new NotFoundException('Order not found');
-    if (!order.invoiceId) throw new BadRequestException('Order has no invoice yet');
+    if (!order.invoiceId)
+      throw new BadRequestException('Order has no invoice yet');
 
     return this.documentsService.generateInvoicePdf(order.invoiceId);
   }

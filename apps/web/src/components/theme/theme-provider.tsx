@@ -20,9 +20,10 @@ interface ThemeConfig {
   radiusScale: string;
 }
 
-// Utility: lighten a hex color for highlight/container variants
 function hexToRgb(hex: string): [number, number, number] {
+  if (!hex || typeof hex !== 'string') return [0, 0, 0];
   const h = hex.replace('#', '');
+  if (h.length < 6) return [0, 0, 0];
   return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
 }
 
@@ -44,12 +45,44 @@ function darken(hex: string, amount: number): string {
   return rgbToHex(r * (1 - amount), g * (1 - amount), b * (1 - amount));
 }
 
+function getRadiusVars(scale: string): string[] {
+  switch (scale) {
+    case 'sharp':
+      return [
+        '--radius-DEFAULT: 0.0625rem;',
+        '--radius-lg: 0.125rem;',
+        '--radius-xl: 0.25rem;',
+        '--radius-full: 0.5rem;',
+      ];
+    case 'rounded':
+      return [
+        '--radius-DEFAULT: 0.5rem;',
+        '--radius-lg: 0.75rem;',
+        '--radius-xl: 1rem;',
+        '--radius-full: 1.25rem;',
+      ];
+    case 'full':
+      return [
+        '--radius-DEFAULT: 0.75rem;',
+        '--radius-lg: 1rem;',
+        '--radius-xl: 1.5rem;',
+        '--radius-full: 9999px;',
+      ];
+    default:
+      return [
+        '--radius-DEFAULT: 0.125rem;',
+        '--radius-lg: 0.25rem;',
+        '--radius-xl: 0.5rem;',
+        '--radius-full: 0.75rem;',
+      ];
+  }
+}
+
 function generateOverrides(theme: ThemeConfig): string {
   const p = theme.colorPrimary;
   const s = theme.colorSecondary;
   const t = theme.colorTertiary;
 
-  // Generate derived colors from primary
   const primaryContainer = darken(p, 0.1);
   const onPrimaryContainer = lighten(p, 0.7);
   const inversePrimary = lighten(p, 0.5);
@@ -60,19 +93,17 @@ function generateOverrides(theme: ThemeConfig): string {
   const onPrimaryFixed = darken(p, 0.6);
   const onPrimaryFixedVariant = darken(p, 0.1);
 
-  // Secondary
   const secondaryContainer = lighten(s, 0.6);
   const onSecondaryContainer = darken(s, 0.05);
   const secondaryFixed = lighten(s, 0.62);
   const secondaryFixedDim = lighten(s, 0.45);
 
-  // Tertiary
   const tertiaryContainer = darken(t, 0.1);
   const onTertiaryContainer = lighten(t, 0.7);
   const tertiaryFixed = lighten(t, 0.7);
   const tertiaryFixedDim = lighten(t, 0.5);
 
-  const lines = [
+  const lightLines = [
     `--color-primary: ${p};`,
     `--color-primary-container: ${primaryContainer};`,
     `--color-on-primary-container: ${onPrimaryContainer};`,
@@ -96,13 +127,65 @@ function generateOverrides(theme: ThemeConfig): string {
     `--color-background: ${theme.colorBackground};`,
     `--color-surface: ${theme.colorBackground};`,
     `--color-surface-primary: ${theme.colorSurface};`,
+    `--color-surface-container-lowest: #ffffff;`,
+    `--color-surface-container-low: ${lighten(theme.colorBackground, 0.02)};`,
+    `--color-surface-container: ${lighten(theme.colorBackground, 0.04)};`,
+    `--color-surface-container-high: ${lighten(theme.colorBackground, 0.06)};`,
+    `--color-surface-container-highest: ${darken(theme.colorBackground, 0.05)};`,
     `--color-divider: ${theme.colorDivider};`,
-    `--color-dark-bg: ${theme.colorDarkBg};`,
-    `--color-dark-surface: ${theme.colorDarkSurface};`,
-    `--color-dark-primary: ${theme.colorDarkPrimary};`,
+    `--color-cta-bg: ${theme.colorCtaBg || p};`,
+    `--gradient-from: ${theme.gradientFrom || p};`,
+    `--gradient-to: ${theme.gradientTo || lighten(p, 0.5)};`,
+    ...getRadiusVars(theme.radiusScale),
   ];
 
-  return `:root { ${lines.join(' ')} }`;
+  const fontLines: string[] = [];
+  if (theme.fontDisplay) {
+    fontLines.push(
+      `--font-display-bold: '${theme.fontDisplay}', var(--font-plus-jakarta), sans-serif;`,
+      `--font-h1-medium: '${theme.fontDisplay}', var(--font-plus-jakarta), sans-serif;`,
+      `--font-h2-medium: '${theme.fontDisplay}', var(--font-plus-jakarta), sans-serif;`,
+      `--font-sans: '${theme.fontDisplay}', var(--font-plus-jakarta), sans-serif;`,
+    );
+  }
+  if (theme.fontBody) {
+    fontLines.push(
+      `--font-body-base: '${theme.fontBody}', var(--font-outfit), sans-serif;`,
+      `--font-body-medium: '${theme.fontBody}', var(--font-outfit), sans-serif;`,
+      `--font-label-sm: '${theme.fontBody}', var(--font-outfit), sans-serif;`,
+      `--font-data-mono: '${theme.fontBody}', sans-serif;`,
+    );
+  }
+
+  const allLight = lightLines.concat(fontLines);
+
+  let css = `:root { ${allLight.join(' ')} }`;
+
+  if (theme.darkModeEnabled) {
+    const darkLines = [
+      `--color-primary: ${theme.colorDarkPrimary};`,
+      `--color-primary-container: ${darken(theme.colorDarkPrimary, 0.2)};`,
+      `--color-primary-highlight: ${lighten(theme.colorDarkPrimary, 0.15)};`,
+      `--color-surface-tint: ${lighten(theme.colorDarkPrimary, 0.1)};`,
+      `--color-background: ${theme.colorDarkBg};`,
+      `--color-surface: ${theme.colorDarkBg};`,
+      `--color-surface-primary: ${theme.colorDarkSurface};`,
+      `--color-on-background: #eef1f1;`,
+      `--color-on-surface: #eef1f1;`,
+      `--color-on-surface-variant: #bec8c9;`,
+      `--color-divider: rgba(255,255,255,0.08);`,
+      `--color-border-default: rgba(255,255,255,0.1);`,
+      `--color-bg-main: ${theme.colorDarkBg};`,
+      `--color-surface-container-lowest: ${theme.colorDarkSurface};`,
+      `--color-surface-container-low: ${lighten(theme.colorDarkSurface, 0.05)};`,
+      `--color-surface-container: ${lighten(theme.colorDarkSurface, 0.1)};`,
+      `--color-surface-container-high: ${lighten(theme.colorDarkSurface, 0.15)};`,
+      `--color-surface-container-highest: ${lighten(theme.colorDarkSurface, 0.2)};`,
+    ];
+    css += ` html.dark { ${darkLines.join(' ')} }`;
+  }
+
+  return css;
 }
 
 export async function ThemeProvider({ children }: { children: React.ReactNode }) {

@@ -8,19 +8,50 @@ import { useTranslation } from '@/lib/i18n/i18n-context';
 import { useGlobalSettings } from '@/components/providers/global-data-provider';
 import { cn } from '@/lib/utils';
 
-export function Navbar() {
+type Locale = 'pl' | 'en' | 'de' | 'fr' | 'it' | 'nl' | 'es';
+
+const LANGUAGES: { code: Locale; label: string; flag: string }[] = [
+  { code: 'pl', label: 'Polski', flag: 'PL' },
+  { code: 'en', label: 'English', flag: 'EN' },
+  { code: 'de', label: 'Deutsch', flag: 'DE' },
+  { code: 'fr', label: 'Français', flag: 'FR' },
+  { code: 'it', label: 'Italiano', flag: 'IT' },
+  { code: 'nl', label: 'Nederlands', flag: 'NL' },
+  { code: 'es', label: 'Español', flag: 'ES' },
+];
+
+export const Navbar = React.memo(function Navbar() {
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const [langOpen, setLangOpen] = React.useState(false);
+  const langRef = React.useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const { t, locale, setLocale } = useTranslation();
   const settings = useGlobalSettings();
 
   React.useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          setIsScrolled(window.scrollY > 20);
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  React.useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) {
+        setLangOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
   const defaultNavLinks = React.useMemo(
@@ -43,7 +74,6 @@ export function Navbar() {
         if (!rawHref || !rawLabel) return null;
         const href = rawHref.startsWith('/') ? rawHref : `/${rawHref}`;
         
-        // Match icons for dynamic links
         const icon = 
           href === '/wycena' ? 'calculate' : 
           href === '/cennik' ? 'payments' :
@@ -59,9 +89,11 @@ export function Navbar() {
 
   const brandName = settings?.brandName?.trim() || 'PaletBroker';
 
+  const currentLang = LANGUAGES.find((l) => l.code === locale) || LANGUAGES[0];
+
   return (
     <header className={cn(
-      "fixed top-0 w-full z-50 transition-all duration-500 py-4 px-6",
+      "w-full transition-all duration-500 py-4 px-6",
       isScrolled ? "pt-2" : "pt-4"
     )}>
       <nav className={cn(
@@ -112,25 +144,41 @@ export function Navbar() {
               </Link>
             </div>
             
-            <div className="flex items-center bg-[var(--color-surface-container-low)] p-1 rounded-xl border border-[var(--color-divider)]">
+            {/* Language Dropdown */}
+            <div className="relative" ref={langRef}>
               <button 
-                onClick={() => setLocale('pl')}
+                onClick={() => setLangOpen(!langOpen)}
                 className={cn(
-                  "text-[10px] font-bold px-2 py-1 rounded-lg transition-premium",
-                  locale === 'pl' ? "bg-[var(--color-primary)] text-white shadow-md" : "text-slate-500 hover:text-[var(--color-primary)]"
+                  "flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-premium border",
+                  langOpen
+                    ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)] shadow-md"
+                    : "bg-[var(--color-surface-container-low)] text-slate-600 border-[var(--color-divider)] hover:border-slate-300 dark:hover:border-slate-600"
                 )}
               >
-                PL
+                <span className="text-xs">{currentLang.flag}</span>
+                <span>{currentLang.code.toUpperCase()}</span>
+                <span className={cn("material-symbols-outlined text-xs transition-transform", langOpen && "rotate-180")}>expand_more</span>
               </button>
-              <button 
-                onClick={() => setLocale('en')}
-                className={cn(
-                  "text-[10px] font-bold px-2 py-1 rounded-lg transition-premium",
-                  locale === 'en' ? "bg-[var(--color-primary)] text-white shadow-md" : "text-slate-500 hover:text-[var(--color-primary)]"
-                )}
-              >
-                EN
-              </button>
+
+              {langOpen && (
+                <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-[var(--color-divider)] py-1 overflow-hidden animate-in slide-in-from-top-2 duration-200 z-50">
+                  {LANGUAGES.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => { setLocale(lang.code); setLangOpen(false); }}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors",
+                        locale === lang.code
+                          ? "bg-[var(--color-primary)]/10 text-[var(--color-primary)] font-bold"
+                          : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                      )}
+                    >
+                      <span className="text-base w-7 text-center">{lang.flag}</span>
+                      <span>{lang.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             
             <ThemeToggle />
@@ -190,6 +238,25 @@ export function Navbar() {
               <span className="material-symbols-outlined opacity-0 group-hover:opacity-100 transition-all translate-x-[-10px] group-hover:translate-x-0">chevron_right</span>
             </Link>
           ))}
+
+          {/* Mobile Language Switcher */}
+          <div className="mt-6 grid grid-cols-2 gap-2">
+            {LANGUAGES.map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => { setLocale(lang.code); setIsMobileMenuOpen(false); }}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-premium",
+                  locale === lang.code
+                    ? "bg-[var(--color-primary)] text-white shadow-md"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700"
+                )}
+              >
+                <span className="text-base">{lang.flag}</span>
+                <span>{lang.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="p-8 border-t border-[var(--color-divider)] flex flex-col gap-4">
@@ -203,5 +270,4 @@ export function Navbar() {
       </div>
     </header>
   );
-}
-
+});

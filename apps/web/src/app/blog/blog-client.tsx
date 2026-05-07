@@ -61,7 +61,7 @@ export function BlogClient({
   };
 
   return (
-    <main className="pt-24 pb-24 bg-[var(--color-background)] min-h-screen">
+    <main className="pb-24 bg-[var(--color-background)] min-h-screen">
       <div className="max-w-[1280px] mx-auto px-8">
         <div className="mb-16">
           <h1 className="font-display-bold text-5xl font-bold text-[var(--color-on-background)] mb-4">Centrum Wiedzy</h1>

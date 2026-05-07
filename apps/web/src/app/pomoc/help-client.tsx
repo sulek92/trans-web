@@ -46,7 +46,7 @@ export function HelpClient({ data: d }: { data: HelpData }) {
   }, [d.faqItems, normalizedQuery]);
 
   return (
-    <main className="pt-24 pb-24 bg-[var(--color-background)] min-h-screen">
+    <main className="pb-24 bg-[var(--color-background)] min-h-screen">
       <div className="max-w-[1280px] mx-auto px-8">
         <div className="text-center mb-24 animate-fade-in">
           <h1 className="font-display-bold text-5xl font-bold text-[var(--color-on-background)] mb-6">{d.title}</h1>

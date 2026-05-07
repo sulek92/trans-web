@@ -60,7 +60,7 @@ export function PricingClient({ data: d }: { data: PricingData }) {
   };
 
   return (
-    <main className="pt-32 pb-24 bg-[var(--color-background)] min-h-screen">
+    <main className="pb-24 bg-[var(--color-background)] min-h-screen">
       <div className="max-w-[1280px] mx-auto px-8">
         <div className="mb-20 text-center animate-fade-in relative">
           <div className="flex flex-col sm:flex-row justify-center items-center gap-6 mb-12">
@@ -167,7 +167,7 @@ export function PricingClient({ data: d }: { data: PricingData }) {
                 <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 opacity-[0.03] rounded-full -mr-32 -mt-32 blur-3xl"></div>
                 <div className="flex flex-col sm:flex-row items-center justify-between mb-12 gap-6 relative z-10">
                   <h2 className="text-3xl font-bold">{t.pricing.labels.europeanRoutes}</h2>
-                  <div className="text-[10px] font-bold text-blue-500 bg-blue-50 dark:bg-blue-500/10 px-4 py-2 rounded-xl uppercase tracking-[0.2em]">Realizacja 24/7</div>
+                  <div className="text-[10px] font-bold text-blue-500 bg-blue-50 dark:bg-blue-500/10 px-4 py-2 rounded-xl uppercase tracking-[0.2em]">{t.pricing.labels.service247}</div>
                 </div>
                 <div className="space-y-3 relative z-10">
                   {d.internationalRates.map((rate, i) => (

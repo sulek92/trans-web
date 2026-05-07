@@ -1,4 +1,5 @@
-import { getCmsContent } from '@/lib/cms';
+import { Metadata } from 'next';
+import { getCmsContent, getCmsPageRecord } from '@/lib/cms';
 import { AboutClient } from './about-client';
 
 const FALLBACK = {
@@ -24,6 +25,19 @@ const FALLBACK = {
   ],
   ctaTitle: 'Gotowy na nową jakość\nw transporcie Twojej firmy?',
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getCmsPageRecord('o-nas');
+  return {
+    title: page?.metaTitle || 'O nas – Poznaj zespół PaletBroker | PaletyBroker',
+    description: page?.metaDescription || 'Jesteśmy liderem w logistyce paletowej B2B. Łączymy technologię z doświadczeniem TSL, by dostarczać przewidywalne i tanie przesyłki paletowe w całej Europie. Sprawdź naszą misję.',
+    openGraph: {
+      title: page?.metaTitle || 'O nas – Poznaj zespół PaletBroker',
+      description: page?.metaDescription || 'Jesteśmy liderem w logistyce paletowej B2B. Łączymy technologię z doświadczeniem TSL.',
+      images: ['/og-image.png'],
+    },
+  };
+}
 
 export default async function AboutPage() {
   const cms = await getCmsContent<typeof FALLBACK>('o-nas');

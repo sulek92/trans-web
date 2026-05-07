@@ -1,4 +1,5 @@
-import { getCmsContent } from '@/lib/cms';
+import { Metadata } from 'next';
+import { getCmsContent, getCmsPageRecord } from '@/lib/cms';
 import { PricingClient } from './pricing-client';
 
 const FALLBACK = {
@@ -32,6 +33,19 @@ const FALLBACK = {
     { q: 'Czy ceny się zmieniają?', a: 'Stawki mogą ulegać zmianie w zależności od sezonowości i cen paliw, ale po opłaceniu zlecenia cena jest gwarantowana.' },
   ],
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getCmsPageRecord('cennik');
+  return {
+    title: page?.metaTitle || 'Cennik transportu palet – DHL, DPD, FedEx od 120 zł | PaletyBroker',
+    description: page?.metaDescription || 'Sprawdź aktualny cennik transportu paletowego. Stawki krajowe od 120 zł, międzynarodowe od 75 zł. Porównaj oferty DHL, DPD, FedEx. Gwarancja najniższej ceny.',
+    openGraph: {
+      title: page?.metaTitle || 'Cennik transportu palet – najlepsze stawki B2B',
+      description: page?.metaDescription || 'Cennik transportu paletowego: stawki krajowe i międzynarodowe. Gwarancja najniższej ceny.',
+      images: ['/og-image.png'],
+    },
+  };
+}
 
 export default async function PricingPage() {
   const cms = await getCmsContent<typeof FALLBACK>('cennik');
