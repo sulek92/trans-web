@@ -12,7 +12,7 @@ test('complete checkout flow from home to confirmation', async ({ page }) => {
   await page.getByPlaceholder('Np. 150').fill('140');
   
   // Submit calculator
-  await page.getByRole('button', { name: /Sprawdź dostępne opcje/i }).click();
+  await page.getByRole('button', { name: /Porównaj Oferty Kurierów/i }).click();
 
   // 2. Offers Page
   await page.waitForURL(/\/wycena/);
@@ -61,7 +61,7 @@ test('complete checkout flow from home to confirmation', async ({ page }) => {
   await expect(page.getByText('Dane gotowe do wysyłki!')).toBeVisible();
   
   // Submit final order
-  await page.getByRole('button', { name: /Zapłać i zamów/i }).click();
+  await page.getByRole('button', { name: /Finalizuj i zamów/i }).click();
 
   // 9. Redirect to Payment (Mock) or Success
   await page.waitForURL(/stripe\.com|confirmation/);

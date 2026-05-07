@@ -105,6 +105,7 @@ function generateOverrides(theme: ThemeConfig): string {
 
   const lightLines = [
     `--color-primary: ${p};`,
+    `--color-primary-hover: ${darken(p, 0.1)};`,
     `--color-primary-container: ${primaryContainer};`,
     `--color-on-primary-container: ${onPrimaryContainer};`,
     `--color-inverse-primary: ${inversePrimary};`,
@@ -124,15 +125,16 @@ function generateOverrides(theme: ThemeConfig): string {
     `--color-on-tertiary-container: ${onTertiaryContainer};`,
     `--color-tertiary-fixed: ${tertiaryFixed};`,
     `--color-tertiary-fixed-dim: ${tertiaryFixedDim};`,
-    `--color-background: ${theme.colorBackground};`,
-    `--color-surface: ${theme.colorBackground};`,
-    `--color-surface-primary: ${theme.colorSurface};`,
+    `--color-background: ${theme.colorBackground || '#ffffff'};`,
+    `--color-on-background: #0f172a;`,
+    `--color-surface: ${theme.colorBackground || '#ffffff'};`,
+    `--color-surface-primary: ${theme.colorSurface || '#ffffff'};`,
     `--color-surface-container-lowest: #ffffff;`,
-    `--color-surface-container-low: ${lighten(theme.colorBackground, 0.02)};`,
-    `--color-surface-container: ${lighten(theme.colorBackground, 0.04)};`,
-    `--color-surface-container-high: ${lighten(theme.colorBackground, 0.06)};`,
-    `--color-surface-container-highest: ${darken(theme.colorBackground, 0.05)};`,
-    `--color-divider: ${theme.colorDivider};`,
+    `--color-surface-container-low: ${lighten(theme.colorBackground || '#ffffff', 0.02)};`,
+    `--color-surface-container: ${lighten(theme.colorBackground || '#ffffff', 0.04)};`,
+    `--color-surface-container-high: ${lighten(theme.colorBackground || '#ffffff', 0.06)};`,
+    `--color-surface-container-highest: ${darken(theme.colorBackground || '#ffffff', 0.05)};`,
+    `--color-divider: ${theme.colorDivider || '#e2e8f0'};`,
     `--color-cta-bg: ${theme.colorCtaBg || p};`,
     `--gradient-from: ${theme.gradientFrom || p};`,
     `--gradient-to: ${theme.gradientTo || lighten(p, 0.5)};`,
@@ -142,6 +144,7 @@ function generateOverrides(theme: ThemeConfig): string {
   const fontLines: string[] = [];
   if (theme.fontDisplay) {
     fontLines.push(
+      `--font-display: '${theme.fontDisplay}', var(--font-plus-jakarta), sans-serif;`,
       `--font-display-bold: '${theme.fontDisplay}', var(--font-plus-jakarta), sans-serif;`,
       `--font-h1-medium: '${theme.fontDisplay}', var(--font-plus-jakarta), sans-serif;`,
       `--font-h2-medium: '${theme.fontDisplay}', var(--font-plus-jakarta), sans-serif;`,
@@ -150,10 +153,11 @@ function generateOverrides(theme: ThemeConfig): string {
   }
   if (theme.fontBody) {
     fontLines.push(
+      `--font-body: '${theme.fontBody}', var(--font-outfit), sans-serif;`,
       `--font-body-base: '${theme.fontBody}', var(--font-outfit), sans-serif;`,
       `--font-body-medium: '${theme.fontBody}', var(--font-outfit), sans-serif;`,
       `--font-label-sm: '${theme.fontBody}', var(--font-outfit), sans-serif;`,
-      `--font-data-mono: '${theme.fontBody}', sans-serif;`,
+      `--font-mono: '${theme.fontBody}', monospace;`,
     );
   }
 
@@ -162,25 +166,37 @@ function generateOverrides(theme: ThemeConfig): string {
   let css = `:root { ${allLight.join(' ')} }`;
 
   if (theme.darkModeEnabled) {
+    const darkP = theme.colorDarkPrimary || lighten(p, 0.2);
+    const darkBg = theme.colorDarkBg || '#020617';
+    const darkSurface = theme.colorDarkSurface || '#0f172a';
+
     const darkLines = [
-      `--color-primary: ${theme.colorDarkPrimary};`,
-      `--color-primary-container: ${darken(theme.colorDarkPrimary, 0.2)};`,
-      `--color-primary-highlight: ${lighten(theme.colorDarkPrimary, 0.15)};`,
-      `--color-surface-tint: ${lighten(theme.colorDarkPrimary, 0.1)};`,
-      `--color-background: ${theme.colorDarkBg};`,
-      `--color-surface: ${theme.colorDarkBg};`,
-      `--color-surface-primary: ${theme.colorDarkSurface};`,
-      `--color-on-background: #eef1f1;`,
-      `--color-on-surface: #eef1f1;`,
-      `--color-on-surface-variant: #bec8c9;`,
-      `--color-divider: rgba(255,255,255,0.08);`,
+      `--color-primary: ${darkP};`,
+      `--color-primary-hover: ${lighten(darkP, 0.1)};`,
+      `--color-primary-container: ${darken(darkP, 0.3)};`,
+      `--color-primary-highlight: ${darken(darkP, 0.45)};`,
+      `--color-surface-tint: ${lighten(darkP, 0.1)};`,
+      `--color-background: ${darkBg};`,
+      `--color-on-background: #f8fafc;`,
+      `--color-surface: ${darkBg};`,
+      `--color-surface-primary: ${darkSurface};`,
+      `--color-on-surface: #f8fafc;`,
+      `--color-on-surface-variant: #94a3b8;`,
+      `--color-text-main: #f8fafc;`,
+      `--color-text-muted: #94a3b8;`,
+      `--color-text-faint: #64748b;`,
+      `--color-divider: rgba(255,255,255,0.06);`,
       `--color-border-default: rgba(255,255,255,0.1);`,
-      `--color-bg-main: ${theme.colorDarkBg};`,
-      `--color-surface-container-lowest: ${theme.colorDarkSurface};`,
-      `--color-surface-container-low: ${lighten(theme.colorDarkSurface, 0.05)};`,
-      `--color-surface-container: ${lighten(theme.colorDarkSurface, 0.1)};`,
-      `--color-surface-container-high: ${lighten(theme.colorDarkSurface, 0.15)};`,
-      `--color-surface-container-highest: ${lighten(theme.colorDarkSurface, 0.2)};`,
+      `--color-bg-main: ${darkBg};`,
+      `--color-surface-container-lowest: ${darkSurface};`,
+      `--color-surface-container-low: ${lighten(darkSurface, 0.03)};`,
+      `--color-surface-container: ${lighten(darkSurface, 0.06)};`,
+      `--color-surface-container-high: ${lighten(darkSurface, 0.1)};`,
+      `--color-surface-container-highest: ${lighten(darkSurface, 0.15)};`,
+      `--glass-bg: rgba(15, 23, 42, 0.8);`,
+      `--glass-border: rgba(255, 255, 255, 0.1);`,
+      `--glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);`,
+      `--shadow-premium: 0 10px 40px -10px rgba(0, 0, 0, 0.6);`,
     ];
     css += ` html.dark { ${darkLines.join(' ')} }`;
   }

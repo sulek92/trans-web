@@ -11,7 +11,10 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "start": "turbo run start",
-    "lint": "turbo run lint"
+    "lint": "turbo run lint",
+    "db:push": "npm run db:push --workspace=api",
+    "db:seed": "npm run db:seed --workspace=api",
+    "test:e2e": "turbo run test:e2e"
   },
   "devDependencies": {
     "turbo": "latest",

@@ -1,7 +1,7 @@
 # Mapowanie Systemu (Admin-First)
 
 ## Stos technologiczny
-- Frontend: Next.js 16, React 19, TypeScript, Tailwind 4, Zustand, React Hook Form, Zod.
+- Frontend: Next.js 16, React 18, TypeScript, Tailwind 4, Zustand, React Hook Form, Zod.
 - Backend: NestJS 11, TypeScript, class-validator, Drizzle ORM.
 - Baza: PostgreSQL 15.
 - Cache/queue-ready: Redis 7 (docker compose).
@@ -21,6 +21,16 @@
 - `documents`
 - `invoices`
 - `health`
+- `newsletter`
+- `address-book`
+- `currencies`
+- `payments`
+- `notifications`
+- `websockets`
+- `api-key`
+- `integrations`
+- `erp-adapters`
+- `redis`
 
 ## Widoki panelu admin
 - `/admin`

@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
 import type { Socket } from 'socket.io-client';
 import { useToastStore } from '@/lib/store/toast-store';
+import { getApiBaseUrl } from '@/lib/api-url';
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const SOCKET_URL = typeof window === 'undefined' ? 'http://localhost:4000' : getApiBaseUrl();
 const IS_DEV = process.env.NODE_ENV !== 'production';
 
 type NotificationPayload = {

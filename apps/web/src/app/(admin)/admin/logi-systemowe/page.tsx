@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { getCookie } from '@/lib/utils';
+import { getApiBaseUrl } from '@/lib/api-url';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface AuditLog {
@@ -19,7 +20,7 @@ export default function AuditLogsPage() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [selectedLog, setSelectedLog] = React.useState<AuditLog | null>(null);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const API_URL = getApiBaseUrl();
 
   React.useEffect(() => {
     const fetchLogs = async () => {

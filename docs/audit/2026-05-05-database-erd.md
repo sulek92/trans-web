@@ -12,11 +12,18 @@ erDiagram
   users ||--o{ invoices : "user_id"
   users ||--o{ leads : "assigned_to"
   users ||--o{ audit_logs : "actor_user_id"
+  users ||--o{ newsletter_subscribers : "email"
+  users ||--o{ cms_pages : "creator_id (implied)"
+  users ||--o{ cms_articles : "creator_id (implied)"
 
   quotes ||--o{ orders : "quote_id"
   invoices ||--o{ orders : "invoice_id"
+  invoices ||--o{ invoices : "correction_for"
   orders ||--o{ tracking_events : "order_id"
   companies ||--o{ invoices : "company_id"
+  
+  cms_testimonials ||--o{ cms_pages : "content (implied)"
+  pricing_rules ||--o{ quotes : "calculation (logic)"
 ```
 
 ## Tabele i rola biznesowa

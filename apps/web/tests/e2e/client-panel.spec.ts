@@ -8,7 +8,7 @@ const jwtSecret = new TextEncoder().encode(
 async function createCustomerToken() {
   const now = Math.floor(Date.now() / 1000);
   return new SignJWT({
-    sub: 'user-1',
+    sub: 'customer-1',
     email: 'user@paletbroker.pl',
     role: 'customer',
     type: 'access',
@@ -22,7 +22,7 @@ async function createCustomerToken() {
 
 test.describe('Client Panel Operations', () => {
   test.beforeEach(async ({ context, baseURL }) => {
-    const resolvedBaseURL = baseURL || 'http://127.0.0.1:3101';
+    const resolvedBaseURL = baseURL || 'http://localhost:3101';
     const host = new URL(resolvedBaseURL).hostname;
 
     await context.addCookies([
@@ -37,7 +37,7 @@ test.describe('Client Panel Operations', () => {
   });
 
   test('should view dashboard stats', async ({ page, baseURL }) => {
-    const resolvedBaseURL = baseURL || 'http://127.0.0.1:3101';
+    const resolvedBaseURL = baseURL || 'http://localhost:3101';
     await page.goto(`${resolvedBaseURL}/panel`);
     
     // Check if dashboard loaded
@@ -46,7 +46,7 @@ test.describe('Client Panel Operations', () => {
   });
 
   test('should view order history', async ({ page, baseURL }) => {
-    const resolvedBaseURL = baseURL || 'http://127.0.0.1:3101';
+    const resolvedBaseURL = baseURL || 'http://localhost:3101';
     await page.goto(`${resolvedBaseURL}/panel/orders`);
     
     await expect(page.locator('h1')).toContainText('Moje zamówienia');
@@ -55,7 +55,7 @@ test.describe('Client Panel Operations', () => {
   });
 
   test('should manage address book', async ({ page, baseURL }) => {
-    const resolvedBaseURL = baseURL || 'http://127.0.0.1:3101';
+    const resolvedBaseURL = baseURL || 'http://localhost:3101';
     await page.goto(`${resolvedBaseURL}/panel/addresses`);
     
     await expect(page.locator('h1')).toContainText('Książka adresowa');
@@ -82,7 +82,7 @@ test.describe('Client Panel Operations', () => {
   });
 
   test('should load settings page', async ({ page, baseURL }) => {
-    const resolvedBaseURL = baseURL || 'http://127.0.0.1:3101';
+    const resolvedBaseURL = baseURL || 'http://localhost:3101';
     await page.goto(`${resolvedBaseURL}/panel/settings`);
     
     await expect(page.locator('h1')).toContainText('Ustawienia profilu');

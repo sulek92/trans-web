@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { getCookie } from '@/lib/utils';
+import { getApiBaseUrl } from '@/lib/api-url';
 import { useToastStore } from '@/lib/store/toast-store';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -36,7 +37,7 @@ export default function AdminOrdersPage() {
   const [isCorrecting, setIsCorrecting] = React.useState(false);
   const { addToast } = useToastStore();
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const API_URL = getApiBaseUrl();
 
   const fetchOrders = React.useCallback(async () => {
     const token = getCookie('pb_auth_token');

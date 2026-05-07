@@ -28,6 +28,8 @@ export class JwtAuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
+    
+    // Try to get token from Authorization header first
     const authHeaderRaw = request.headers.authorization;
     const authHeader =
       typeof authHeaderRaw === 'string'
@@ -35,12 +37,18 @@ export class JwtAuthGuard implements CanActivate {
         : Array.isArray(authHeaderRaw)
           ? authHeaderRaw[0]
           : undefined;
-    const token = authHeader?.startsWith('Bearer ')
+    
+    let token = authHeader?.startsWith('Bearer ')
       ? authHeader.slice(7)
       : null;
 
+    // Fallback to pb_auth_token cookie
+    if (!token && request.cookies) {
+      token = request.cookies['pb_auth_token'] || null;
+    }
+
     if (!token) {
-      throw new UnauthorizedException('Missing bearer token');
+      throw new UnauthorizedException('Missing authentication token');
     }
 
     try {

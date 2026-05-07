@@ -57,12 +57,16 @@ services:
       - APP_URL=http://localhost:3000
       - NEXTAUTH_URL=http://localhost:3000
       - CORS_ORIGIN=http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001
-      - LEGACY_AUTH_FALLBACK_ENABLED=false
+      - LEGACY_AUTH_FALLBACK_ENABLED=true
+      - SUPERADMIN_PASSWORD=admin1
+      - ADMIN_PASSWORD=admin123
       - DB_POOL_MAX=5
       - DB_POOL_IDLE_TIMEOUT_MS=15000
       - DB_POOL_CONNECTION_TIMEOUT_MS=5000
       - DB_STATEMENT_TIMEOUT_MS=30000
       - NODE_OPTIONS=--max-old-space-size=512 --max-semi-space-size=32
+      - JWT_SECRET=local-secret
+      - NEXTAUTH_SECRET=local-secret
     depends_on:
       - postgres
       - redis

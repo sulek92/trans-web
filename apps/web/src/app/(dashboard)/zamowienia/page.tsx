@@ -6,6 +6,7 @@ import { getCookie } from '@/lib/utils';
 import { useToastStore } from '@/lib/store/toast-store';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getApiBaseUrl } from '@/lib/api-url';
+import { AuthGuard } from '@/components/auth/auth-guard';
 
 interface Order {
   id: string;
@@ -27,10 +28,9 @@ export default function OrdersPage() {
   const { addToast } = useToastStore();
 
   const fetchOrders = React.useCallback(async () => {
-    const token = getCookie('pb_auth_token');
     try {
       const res = await fetch(`${getApiBaseUrl()}/orders/my`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       });
       if (res.ok) {
         const data = await res.json();
@@ -75,10 +75,9 @@ export default function OrdersPage() {
   };
 
   const downloadInvoice = async (orderId: string) => {
-    const token = getCookie('pb_auth_token');
     try {
       const res = await fetch(`${getApiBaseUrl()}/orders/my/${orderId}/invoice`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       });
       if (!res.ok) throw new Error();
       const blob = await res.blob();
@@ -95,6 +94,7 @@ export default function OrdersPage() {
   };
 
   return (
+    <AuthGuard>
     <main className="pb-24 min-h-screen bg-[var(--color-background)]">
       <div className="max-w-[1280px] mx-auto px-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12 animate-fade-in">
@@ -193,5 +193,6 @@ export default function OrdersPage() {
         )}
       </div>
     </main>
+    </AuthGuard>
   );
 }

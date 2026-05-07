@@ -30,11 +30,10 @@ export default function DashboardOverviewPage() {
   const { addToast } = useToastStore();
 
   const fetchDashboardData = React.useCallback(async () => {
-    const token = getCookie('pb_auth_token');
     try {
       const [userRes, ordersRes] = await Promise.all([
-        fetch(`${getApiBaseUrl()}/users/me`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`${getApiBaseUrl()}/orders/my`, { headers: { 'Authorization': `Bearer ${token}` } })
+        fetch(`${getApiBaseUrl()}/users/me`, { credentials: 'include' }),
+        fetch(`${getApiBaseUrl()}/orders/my`, { credentials: 'include' })
       ]);
 
       if (userRes.ok) setUser(await userRes.json());

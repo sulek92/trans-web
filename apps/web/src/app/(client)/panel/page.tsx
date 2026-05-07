@@ -4,6 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { getCookie } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getApiBaseUrl } from '@/lib/api-url';
 
 interface Order {
   id: string;
@@ -23,14 +24,13 @@ export default function PanelPage() {
     balance: '0.00'
   });
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const API_URL = getApiBaseUrl();
 
   React.useEffect(() => {
     const fetchData = async () => {
-      const token = getCookie('pb_auth_token');
       try {
         const response = await fetch(`${API_URL}/orders/my`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          credentials: 'include'
         });
         if (response.ok) {
           const data = await response.json();
@@ -76,21 +76,21 @@ export default function PanelPage() {
         {isLoading ? (
           [1,2,3].map(i => <Skeleton key={i} className="h-40 rounded-3xl" />)
         ) : statCards.map((stat, i) => (
-          <div key={i} className="bg-white p-8 rounded-3xl border border-[var(--color-divider)] shadow-sm hover:shadow-md transition-premium group">
+          <div key={i} className="bg-[var(--color-surface-primary)] p-8 rounded-3xl border border-[var(--color-divider)] shadow-sm hover:shadow-md transition-premium group">
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-[var(--color-primary)] group-hover:scale-110 transition-transform">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--color-surface-container)] flex items-center justify-center text-[var(--color-primary)] group-hover:scale-110 transition-transform shadow-inner">
                 <span className="material-symbols-outlined">{stat.icon}</span>
               </div>
-              <span className="text-sm font-medium text-slate-400 uppercase tracking-widest">{stat.label}</span>
+              <span className="text-sm font-medium text-[var(--color-text-faint)] uppercase tracking-widest">{stat.label}</span>
             </div>
-            <div className="text-3xl font-bold text-[var(--color-on-background)]">{stat.value}</div>
+            <div className="text-3xl font-bold text-[var(--color-on-background)] tracking-tight">{stat.value}</div>
           </div>
         ))}
       </div>
 
-      <div className="bg-white rounded-[40px] border border-[var(--color-divider)] shadow-sm overflow-hidden">
-        <div className="p-8 border-b border-[var(--color-divider)] flex justify-between items-center">
-          <h2 className="text-xl font-bold">Ostatnie zlecenia</h2>
+      <div className="bg-[var(--color-surface-primary)] rounded-[40px] border border-[var(--color-divider)] shadow-sm overflow-hidden">
+        <div className="p-8 border-b border-[var(--color-divider)] flex justify-between items-center bg-[var(--color-surface-container)]/30">
+          <h2 className="text-xl font-bold tracking-tight">Ostatnie zlecenia</h2>
           <Link href="/panel/orders" className="text-[var(--color-primary)] font-bold text-sm hover:underline">Zobacz wszystkie</Link>
         </div>
         
@@ -102,7 +102,7 @@ export default function PanelPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="text-[10px] uppercase font-bold text-slate-400 bg-slate-50">
+                <tr className="text-[10px] uppercase font-bold text-[var(--color-text-faint)] bg-[var(--color-surface-container)]">
                   <th className="px-8 py-4">Numer</th>
                   <th className="px-8 py-4">Data</th>
                   <th className="px-8 py-4">Przewoźnik</th>
@@ -110,27 +110,29 @@ export default function PanelPage() {
                   <th className="px-8 py-4">Cena</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-[var(--color-divider)]">
                 {orders.map(order => (
-                  <tr key={order.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-8 py-4 font-bold">{order.orderNumber}</td>
-                    <td className="px-8 py-4 text-sm text-slate-500">{new Date(order.createdAt).toLocaleDateString()}</td>
-                    <td className="px-8 py-4 text-sm uppercase font-bold text-slate-400">{order.carrierCode}</td>
+                  <tr key={order.id} className="hover:bg-[var(--color-surface-container)]/50 transition-colors">
+                    <td className="px-8 py-4 font-bold text-[var(--color-on-background)]">{order.orderNumber}</td>
+                    <td className="px-8 py-4 text-sm text-[var(--color-text-muted)]">{new Date(order.createdAt).toLocaleDateString()}</td>
+                    <td className="px-8 py-4 text-sm uppercase font-bold text-[var(--color-text-faint)]">{order.carrierCode}</td>
                     <td className="px-8 py-4 text-sm">
-                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
-                        order.status === 'DORĘCZONE' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase border ${
+                        order.status === 'DORĘCZONE' 
+                          ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' 
+                          : 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] border-[var(--color-primary)]/20'
                       }`}>
                         {order.status}
                       </span>
                     </td>
-                    <td className="px-8 py-4 font-bold">{order.priceBrutto} PLN</td>
+                    <td className="px-8 py-4 font-bold text-[var(--color-on-background)]">{order.priceBrutto} PLN</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         ) : (
-          <div className="p-20 text-center text-slate-300 font-bold">
+          <div className="p-20 text-center text-[var(--color-text-faint)] font-bold">
             <span className="material-symbols-outlined text-6xl mb-4 block opacity-20">inventory_2</span>
             Brak aktywnych zleceń w historii.
           </div>

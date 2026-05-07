@@ -39,7 +39,7 @@ type PricingRulePayload = {
 };
 
 type AuthenticatedRequest = Request & {
-  user?: { sub?: string; email?: string };
+  user?: { sub?: string; email?: string; role?: string };
 };
 
 @Controller('admin')
@@ -66,14 +66,34 @@ export class AdminController {
   }
 
   @Post('users/:id/api-key')
-  async generateUserApiKey(@Param('id') id: string) {
+  async generateUserApiKey(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     const key = await this.apiKeyService.generateKey(id);
+    await this.auditLogService.record({
+      actorUserId: req.user?.sub,
+      actorEmail: req.user?.email,
+      action: 'user.api_key_generated',
+      entityType: 'user',
+      entityId: id,
+    });
     return { apiKey: key };
   }
 
   @Post('users/:id/api-key/revoke')
-  async revokeUserApiKey(@Param('id') id: string) {
+  async revokeUserApiKey(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     await this.apiKeyService.revokeKey(id);
+    await this.auditLogService.record({
+      actorUserId: req.user?.sub,
+      actorEmail: req.user?.email,
+      action: 'user.api_key_revoked',
+      entityType: 'user',
+      entityId: id,
+    });
     return { status: 'revoked' };
   }
 
@@ -259,7 +279,7 @@ export class AdminController {
     const recentActivity = await this.auditLogService.listRecent(10);
 
     return {
-      chartData: adminStats.ordersOverTime.map((d) => ({
+      chartData: adminStats.ordersOverTime.map((d: { date: string; count: number }) => ({
         date: d.date,
         value: d.count,
       })),
@@ -269,13 +289,13 @@ export class AdminController {
       topCustomers: adminStats.topCustomers,
       summary: {
         totalRevenue: adminStats.revenueByCurrency.reduce(
-          (sum, c) => sum + Number(c.total),
+          (sum: number, c: { currency: string; total: string }) => sum + Number(c.total),
           0,
         ),
         avgOrderValue:
           recentOrders.length > 0
             ? adminStats.revenueByCurrency.reduce(
-                (sum, c) => sum + Number(c.total),
+                (sum: number, c: { currency: string; total: string }) => sum + Number(c.total),
                 0,
               ) / recentOrders.length
             : 0,

@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { getCookie } from '@/lib/utils';
+import { getApiBaseUrl } from '@/lib/api-url';
 import { useToastStore } from '@/lib/store/toast-store';
 
 interface Lead {
@@ -29,7 +30,7 @@ export default function AdminLeadsPage() {
   const [savingNotesId, setSavingNotesId] = React.useState<string | null>(null);
   const { addToast } = useToastStore();
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const API_URL = getApiBaseUrl();
 
   const fetchLeads = React.useCallback(async () => {
     const token = getCookie('pb_auth_token');

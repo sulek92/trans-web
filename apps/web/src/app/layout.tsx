@@ -35,19 +35,19 @@ export const metadata: Metadata = {
     siteName: 'PaletBroker',
     title: 'PaletyBroker - Logistyka B2B',
     description: 'Najtańszy transport paletowy w Polsce i Europie.',
-    images: [{ url: '/og-image.jpg', width: 1200, height: 630 }]
+    images: [{ url: '/og-image.png', width: 1200, height: 630 }]
   },
   manifest: '/manifest.json',
   twitter: {
     card: 'summary_large_image',
     title: 'PaletyBroker - Tanie palety',
     description: 'Porównaj ceny kurierów w jednym miejscu.',
-    images: ['/og-image.jpg'],
+    images: ['/og-image.png'],
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#123456',
+  themeColor: '#005258', // PaletBroker Primary
 };
 
 export default async function RootLayout({
@@ -70,8 +70,8 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className={`${outfit.variable} ${plusJakarta.variable} antialiased min-h-screen flex flex-col`}>
-        <React.Suspense fallback={<div className="min-h-screen bg-[#f7fafa]"></div>}>
+      <body className={`${outfit.variable} ${plusJakarta.variable} antialiased min-h-screen flex flex-col bg-[var(--color-background)] transition-colors duration-300`}>
+        <React.Suspense fallback={<div className="min-h-screen bg-[var(--color-background)]"></div>}>
           <ThemeProvider>
             <LanguageProvider resolvedLocale={resolvedLocale}>
               <AppShell>{children}</AppShell>

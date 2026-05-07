@@ -4,6 +4,8 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { getCookie } from '@/lib/utils';
+import { getApiBaseUrl } from '@/lib/api-url';
+import { AuthGuard } from '@/components/auth/auth-guard';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -18,7 +20,7 @@ interface Order { id: string; orderNumber: string; status: string; }
 interface Lead { id: string; name: string; email: string; company?: string; }
 interface User { id: string; email: string; role: string; }
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const API_URL = getApiBaseUrl();
 
   const menuItems = [
     { label: 'Dashboard', icon: 'dashboard', href: '/admin' },
@@ -26,6 +28,7 @@ interface User { id: string; email: string; role: string; }
     { label: 'Klienci B2B', icon: 'corporate_fare', href: '/admin/uzytkownicy' },
     { label: 'Zapytania (Leady)', icon: 'contact_support', href: '/admin/leady' },
     { label: 'Zarządzanie treścią', icon: 'edit_note', href: '/admin/cms' },
+    { label: 'Opinie klientów', icon: 'reviews', href: '/admin/cms/testimonials' },
     { label: 'Wygląd', icon: 'palette', href: '/admin/wyglad' },
     { label: 'Cennik', icon: 'payments', href: '/admin/cennik' },
     { label: 'Finanse', icon: 'receipt_long', href: '/admin/finanse' },
@@ -72,6 +75,7 @@ interface User { id: string; email: string; role: string; }
   }, [searchQuery, performSearch]);
 
   return (
+    <AuthGuard requireAdmin>
     <div className="flex min-h-screen flex-col overflow-hidden bg-[var(--color-background)] lg:h-screen lg:flex-row">
       {/* Sidebar */}
       <aside className="z-20 flex w-full shrink-0 flex-col bg-[var(--color-primary)] text-white shadow-2xl lg:w-72">
@@ -220,5 +224,6 @@ interface User { id: string; email: string; role: string; }
         <div className="fixed inset-0 z-20" onClick={() => setShowResults(false)}></div>
       )}
     </div>
+    </AuthGuard>
   );
 }

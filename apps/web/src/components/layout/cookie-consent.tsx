@@ -139,7 +139,7 @@ export const CookieConsent = React.memo(function CookieConsent() {
   };
 
   const buttonClass = 'px-5 sm:px-8 py-3 sm:py-4 rounded-2xl text-sm font-bold transition-all duration-300 active:scale-95 text-center whitespace-nowrap';
-  const buttonPrimary = `${buttonClass} bg-[var(--color-primary)] text-white hover:brightness-110 shadow-[0_10px_20px_rgba(0,82,88,0.2)]`;
+  const buttonPrimary = `${buttonClass} bg-[var(--color-primary)] text-white hover:brightness-110 shadow-[var(--shadow-premium)]`;
   const buttonOutline = `${buttonClass} border border-[var(--color-divider)] text-[var(--color-on-background)] hover:bg-[var(--color-surface-container)]`;
 
   return (
@@ -154,16 +154,16 @@ export const CookieConsent = React.memo(function CookieConsent() {
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="fixed bottom-0 left-0 w-full z-[100] p-4 sm:p-6"
           >
-            <div className="max-w-[1200px] mx-auto glass dark:glass-dark p-6 sm:p-8 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/20 dark:border-white/10 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="max-w-[1200px] mx-auto glass p-6 sm:p-8 rounded-[32px] shadow-[var(--shadow-premium-hover)] border border-[var(--color-divider)] flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex items-start gap-5">
                 <div className="w-14 h-14 bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded-2xl flex items-center justify-center shrink-0">
                   <span className="material-symbols-outlined text-3xl animate-pulse">cookie</span>
                 </div>
-                <div className="space-y-2">
-                  <h3 className="font-display-bold text-xl text-[var(--color-on-background)]">
+                <div className="space-y-2 text-left">
+                  <h3 className="font-display font-bold text-xl text-[var(--color-on-background)]">
                     {txt.bannerTitle}
                   </h3>
-                  <p className="text-sm sm:text-base text-[var(--color-on-surface-variant)] leading-relaxed max-w-2xl">
+                  <p className="text-sm sm:text-base text-[var(--color-text-muted)] leading-relaxed max-w-2xl">
                     {txt.bannerText}{' '}
                     <a
                       href="/polityka-prywatnosci"
@@ -210,21 +210,21 @@ export const CookieConsent = React.memo(function CookieConsent() {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               transition={{ duration: 0.25, ease: 'easeOut' }}
-              className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto glass dark:glass-dark rounded-[40px] shadow-[0_40px_100px_rgba(0,0,0,0.5)] border border-white/20 dark:border-white/10"
+              className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-[var(--color-surface-primary)] rounded-[40px] shadow-[var(--shadow-premium-hover)] border border-[var(--color-divider)]"
             >
               <div className="p-8 sm:p-10">
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex justify-between items-center mb-8 text-left">
                   <div>
-                    <h2 className="font-display-bold text-3xl text-[var(--color-on-background)] mb-2">
+                    <h2 className="font-display font-bold text-3xl text-[var(--color-on-background)] mb-2">
                       {txt.settingsTitle}
                     </h2>
-                    <p className="text-[var(--color-on-surface-variant)]">
+                    <p className="text-[var(--color-text-muted)]">
                       {txt.settingsSubtitle}
                     </p>
                   </div>
                   <button
                     onClick={() => setShowSettings(false)}
-                    className="w-12 h-12 rounded-full flex items-center justify-center bg-[var(--color-surface-container)] hover:bg-[var(--color-surface-container-high)] transition-colors"
+                    className="w-12 h-12 rounded-full flex items-center justify-center bg-[var(--color-surface-container)] hover:bg-[var(--color-surface-container)]/80 text-[var(--color-on-background)] transition-colors"
                   >
                     <span className="material-symbols-outlined">close</span>
                   </button>
@@ -232,14 +232,14 @@ export const CookieConsent = React.memo(function CookieConsent() {
 
                 <div className="space-y-4">
                   {/* Essential */}
-                  <div className="flex items-center justify-between p-5 rounded-[24px] bg-[var(--color-surface-container-low)] border border-white/5">
+                  <div className="flex items-center justify-between p-5 rounded-[24px] bg-[var(--color-surface-container)]/30 border border-[var(--color-divider)] text-left">
                     <div className="flex gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-700 flex items-center justify-center shrink-0">
-                        <span className="material-symbols-outlined text-slate-600 dark:text-slate-300">security</span>
+                      <div className="w-10 h-10 rounded-xl bg-[var(--color-surface-container)] flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-[var(--color-primary)]">security</span>
                       </div>
                       <div>
                         <p className="font-bold text-[var(--color-on-background)]">{txt.essential}</p>
-                        <p className="text-xs text-[var(--color-on-surface-variant)] mt-0.5">{txt.essentialDesc}</p>
+                        <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{txt.essentialDesc}</p>
                       </div>
                     </div>
                     <div className="text-xs font-bold text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-3 py-1 rounded-full whitespace-nowrap ml-2">
@@ -250,7 +250,7 @@ export const CookieConsent = React.memo(function CookieConsent() {
                   {/* Analytics */}
                   <div
                     onClick={() => setPreferences((p) => ({ ...p, analytics: !p.analytics }))}
-                    className="flex items-center justify-between p-5 rounded-[24px] bg-[var(--color-surface-container-low)] border border-white/5 cursor-pointer hover:border-[var(--color-primary)]/30 transition-all"
+                    className="flex items-center justify-between p-5 rounded-[24px] bg-[var(--color-surface-container)]/30 border border-[var(--color-divider)] cursor-pointer hover:border-[var(--color-primary)]/30 transition-all text-left"
                     role="switch"
                     aria-checked={preferences.analytics}
                     tabIndex={0}
@@ -262,18 +262,18 @@ export const CookieConsent = React.memo(function CookieConsent() {
                     }}
                   >
                     <div className="flex gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
-                        <span className="material-symbols-outlined text-blue-600 dark:text-blue-400">analytics</span>
+                      <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-blue-500">analytics</span>
                       </div>
                       <div>
                         <p className="font-bold text-[var(--color-on-background)]">{txt.analytics}</p>
-                        <p className="text-xs text-[var(--color-on-surface-variant)] mt-0.5">{txt.analyticsDesc}</p>
+                        <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{txt.analyticsDesc}</p>
                       </div>
                     </div>
                     <div
                       className={cn(
                         'w-12 h-6 rounded-full transition-colors flex items-center px-1 shrink-0 ml-2',
-                        preferences.analytics ? 'bg-[var(--color-primary)]' : 'bg-slate-300 dark:bg-slate-600',
+                        preferences.analytics ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-divider)]',
                       )}
                     >
                       <motion.div
@@ -286,7 +286,7 @@ export const CookieConsent = React.memo(function CookieConsent() {
                   {/* Marketing */}
                   <div
                     onClick={() => setPreferences((p) => ({ ...p, marketing: !p.marketing }))}
-                    className="flex items-center justify-between p-5 rounded-[24px] bg-[var(--color-surface-container-low)] border border-white/5 cursor-pointer hover:border-[var(--color-primary)]/30 transition-all"
+                    className="flex items-center justify-between p-5 rounded-[24px] bg-[var(--color-surface-container)]/30 border border-[var(--color-divider)] cursor-pointer hover:border-[var(--color-primary)]/30 transition-all text-left"
                     role="switch"
                     aria-checked={preferences.marketing}
                     tabIndex={0}
@@ -298,18 +298,18 @@ export const CookieConsent = React.memo(function CookieConsent() {
                     }}
                   >
                     <div className="flex gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
-                        <span className="material-symbols-outlined text-purple-600 dark:text-purple-400">campaign</span>
+                      <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-purple-500">campaign</span>
                       </div>
                       <div>
                         <p className="font-bold text-[var(--color-on-background)]">{txt.marketing}</p>
-                        <p className="text-xs text-[var(--color-on-surface-variant)] mt-0.5">{txt.marketingDesc}</p>
+                        <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{txt.marketingDesc}</p>
                       </div>
                     </div>
                     <div
                       className={cn(
                         'w-12 h-6 rounded-full transition-colors flex items-center px-1 shrink-0 ml-2',
-                        preferences.marketing ? 'bg-[var(--color-primary)]' : 'bg-slate-300 dark:bg-slate-600',
+                        preferences.marketing ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-divider)]',
                       )}
                     >
                       <motion.div

@@ -21,6 +21,11 @@ export class AuditLogService {
     [];
   private readonly fallbackLimit = 500;
 
+  private isValidUuid(id: string | null | undefined): boolean {
+    if (!id) return false;
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+  }
+
   async record(entry: AuditEntry): Promise<void> {
     const normalized: AuditEntry & { createdAt: Date } = {
       ...entry,
@@ -31,7 +36,7 @@ export class AuditLogService {
 
     try {
       await db.insert(auditLogs).values({
-        actorUserId: entry.actorUserId ?? null,
+        actorUserId: this.isValidUuid(entry.actorUserId) ? entry.actorUserId : null,
         actorEmail: entry.actorEmail ?? null,
         action: entry.action,
         entityType: entry.entityType,
@@ -40,7 +45,7 @@ export class AuditLogService {
       });
     } catch (error) {
       this.logger.warn(
-        `Audit log DB insert failed, using fallback memory store: ${
+        `Audit log DB insert failed (likely invalid foreign key), using fallback memory store: ${
           error instanceof Error ? error.message : 'unknown'
         }`,
       );

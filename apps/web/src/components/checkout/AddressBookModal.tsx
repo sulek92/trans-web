@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { getCookie } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getApiBaseUrl } from '@/lib/api-url';
 
 interface SavedAddress {
   id: string;
@@ -25,7 +26,7 @@ export function AddressBookModal({ isOpen, onClose, onSelect }: AddressBookModal
   const [addresses, setAddresses] = React.useState<SavedAddress[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const API_URL = getApiBaseUrl();
 
   React.useEffect(() => {
     if (!isOpen) return;

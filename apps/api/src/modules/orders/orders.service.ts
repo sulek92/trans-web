@@ -14,6 +14,7 @@ import { PaymentsService } from '../payments/payments.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CarriersService } from '../carriers/carriers.service';
 import { NotificationsGateway } from '../websockets/notifications.gateway';
+import { AuditLogService } from '../audit-log/audit-log.service';
 
 import { DocumentsService } from '../documents/documents.service';
 
@@ -27,6 +28,7 @@ export class OrdersService {
     private readonly wsGateway: NotificationsGateway,
     @Inject(forwardRef(() => DocumentsService))
     private readonly documentsService: DocumentsService,
+    private readonly auditLogService: AuditLogService,
   ) {}
 
   async createOrder(data: CreateOrderDto, userId?: string) {
@@ -164,12 +166,32 @@ export class OrdersService {
     return db.select().from(orders).where(eq(orders.userId, userId));
   }
 
-  async updateStatus(id: string, status: string) {
+  async updateStatus(id: string, status: string, actor?: any) {
+    const order = await this.getOrder(id);
+    const oldStatus = order.status;
+    if (!this.validateStatusTransition(order.status, status)) {
+      throw new BadRequestException(
+        `Invalid status transition from ${order.status} to ${status}`,
+      );
+    }
+
     const [updated] = await db
       .update(orders)
       .set({ status, updatedAt: new Date() })
       .where(eq(orders.id, id))
       .returning();
+
+    await this.auditLogService.record({
+      actorUserId: actor?.sub,
+      actorEmail: actor?.email,
+      action: 'order.status_updated',
+      entityType: 'order',
+      entityId: id,
+      metadata: {
+        from: oldStatus,
+        to: status,
+      },
+    });
 
     if (!updated) throw new NotFoundException(`Order with ID ${id} not found`);
 
@@ -196,7 +218,7 @@ export class OrdersService {
     return updated;
   }
 
-  async bulkUpdateStatus(ids: string[], status: string) {
+  async bulkUpdateStatus(ids: string[], status: string, actor?: any) {
     const MAX_BULK_SIZE = 100;
     if (ids.length > MAX_BULK_SIZE) {
       throw new BadRequestException(
@@ -205,11 +227,33 @@ export class OrdersService {
     }
 
     const { sql } = await import('drizzle-orm');
+    
+    // Fetch current statuses for validation
+    const currentOrders = await db.select({ id: orders.id, status: orders.status }).from(orders).where(sql`${orders.id} = ANY(${ids})` as any);
+    for (const o of currentOrders) {
+      if (!this.validateStatusTransition(o.status, status)) {
+        throw new BadRequestException(`Invalid status transition for order ${o.id}: from ${o.status} to ${status}`);
+      }
+    }
+
     const updated = await db
       .update(orders)
       .set({ status, updatedAt: new Date() })
       .where(sql`${orders.id} = ANY(${ids})` as any)
       .returning();
+
+    await this.auditLogService.record({
+      actorUserId: actor?.sub,
+      actorEmail: actor?.email,
+      action: 'order.bulk_status_updated',
+      entityType: 'order',
+      entityId: 'multiple',
+      metadata: {
+        ids,
+        status,
+        count: updated.length,
+      },
+    });
 
     const notifyBatch = updated.map((order) => {
       const email = (order.senderAddress as any)?.email;
@@ -337,5 +381,19 @@ export class OrdersService {
       throw new BadRequestException('Order has no invoice yet');
 
     return this.documentsService.generateInvoicePdf(order.invoiceId);
+  }
+
+  private validateStatusTransition(current: string, next: string): boolean {
+    const transitions: Record<string, string[]> = {
+      PENDING: ['PAID', 'CANCELLED'],
+      PAID: ['IN_TRANSIT', 'CANCELLED'],
+      IN_TRANSIT: ['DELIVERED', 'RETURNED'],
+      DELIVERED: [], // Terminal state
+      CANCELLED: [], // Terminal state
+      RETURNED: ['DELIVERED'],
+    };
+
+    const allowed = transitions[current] || [];
+    return allowed.includes(next);
   }
 }

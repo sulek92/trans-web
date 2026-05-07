@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { getCookie } from '@/lib/utils';
+import { getApiBaseUrl } from '@/lib/api-url';
 
 interface ThemeConfig {
   presetName: string;
@@ -84,7 +85,7 @@ export default function ThemeEditorPage() {
   const [message, setMessage] = React.useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   React.useEffect(() => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    const apiUrl = getApiBaseUrl();
     fetch(`${apiUrl}/cms/pages/theme`)
       .then(r => r.ok ? r.json() : null)
       .then(data => {
@@ -118,7 +119,7 @@ export default function ThemeEditorPage() {
     setSaving(true);
     setMessage(null);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const apiUrl = getApiBaseUrl();
       const token = getCookie('pb_auth_token');
       const res = await fetch(`${apiUrl}/cms/pages/theme`, {
         method: 'PUT',

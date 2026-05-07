@@ -113,8 +113,12 @@ export class OrdersController {
   @Put(':id/status')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async updateStatus(@Param('id') id: string, @Body('status') status: string) {
-    return this.ordersService.updateStatus(id, status);
+  async updateStatus(
+    @Param('id') id: string,
+    @Body('status') status: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.ordersService.updateStatus(id, status, req.user);
   }
 
   @Post(':id/generate-label')
@@ -146,7 +150,10 @@ export class OrdersController {
   @Post('bulk-status')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async bulkUpdateStatus(@Body() data: { ids: string[]; status: string }) {
-    return this.ordersService.bulkUpdateStatus(data.ids, data.status);
+  async bulkUpdateStatus(
+    @Body() data: { ids: string[]; status: string },
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.ordersService.bulkUpdateStatus(data.ids, data.status, req.user);
   }
 }

@@ -11,20 +11,24 @@ function getRoleFromToken(token: string): string {
   }
 }
 
+const PROTECTED_PREFIXES = ['/admin', '/konto', '/zamowienia', '/panel']
+
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
-  const isAdminPath = pathname.startsWith('/admin')
+  const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))
+
+  if (!isProtected) return NextResponse.next()
 
   const pbToken = req.cookies.get('pb_auth_token')?.value
 
-  if (isAdminPath && !pbToken) {
+  if (!pbToken) {
     const url = req.nextUrl.clone()
     url.pathname = '/logowanie'
-    url.searchParams.set('forbidden', '1')
+    url.searchParams.set('next', pathname)
     return NextResponse.redirect(url)
   }
 
-  if (isAdminPath && pbToken) {
+  if (pathname.startsWith('/admin')) {
     const role = getRoleFromToken(pbToken)
     if (role !== 'admin' && role !== 'superadmin') {
       const url = req.nextUrl.clone()
@@ -38,5 +42,10 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: [
+    '/admin/:path*',
+    '/konto/:path*',
+    '/zamowienia/:path*',
+    '/panel/:path*',
+  ],
 }

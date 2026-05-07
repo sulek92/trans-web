@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { getCookie } from '@/lib/utils';
+import { getApiBaseUrl } from '@/lib/api-url';
 import Link from 'next/link';
 
 interface AuditEntry {
@@ -17,7 +18,7 @@ export default function AdminSettingsPage() {
   const [logs, setLogs] = React.useState<AuditEntry[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const API_URL = getApiBaseUrl();
 
   React.useEffect(() => {
     const fetchLogs = async () => {

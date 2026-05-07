@@ -93,31 +93,31 @@ export const Footer = React.memo(function Footer() {
   };
 
   return (
-    <footer className="w-full py-16 border-t border-slate-800 bg-[#0a0c10] text-slate-400 mt-auto relative z-10">
+    <footer className="w-full py-16 border-t border-[var(--color-divider)] bg-[var(--color-surface-container-low)] dark:bg-[#020617] text-[var(--color-text-muted)] mt-auto relative z-10">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-12 max-w-[1280px] mx-auto px-8">
         <div className="flex flex-col gap-6">
-          <div className="text-2xl font-bold text-white flex items-center gap-3">
-            <div className="w-10 h-10 bg-[var(--color-primary)] rounded-xl flex items-center justify-center shadow-lg shadow-[var(--color-primary-highlight)]/20">
+          <div className="text-2xl font-bold text-[var(--color-on-background)] flex items-center gap-3">
+            <div className="w-10 h-10 bg-[var(--color-primary)] rounded-xl flex items-center justify-center shadow-lg shadow-[var(--color-primary)]/20">
               <span className="material-symbols-outlined text-white text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>pallet</span>
             </div>
             {brandName}
           </div>
-          <p className="text-sm leading-relaxed opacity-60">
+          <p className="text-sm leading-relaxed opacity-70">
             {settings?.footerDesc || t.footer.desc}
           </p>
           {newsletterEnabled && (
             <div className="mt-2">
-              <div className="text-[10px] font-bold text-white uppercase tracking-widest mb-3 opacity-40">{t.footer.newsletterTitle}</div>
+              <div className="text-[10px] font-bold text-[var(--color-on-background)] uppercase tracking-widest mb-3 opacity-40">{t.footer.newsletterTitle}</div>
               <form className="flex gap-2" onSubmit={handleNewsletterSubmit}>
                 <input
                   type="email"
                   placeholder={t.footer.newsletterPlaceholder}
                   value={newsletterEmail}
                   onChange={(e) => setNewsletterEmail(e.target.value)}
-                  className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs flex-grow outline-none focus:border-[var(--color-primary)] transition-colors"
+                  className="bg-[var(--color-surface-primary)] border border-[var(--color-divider)] rounded-lg px-3 py-2 text-xs flex-grow outline-none focus:border-[var(--color-primary)] transition-colors text-[var(--color-on-background)]"
                   required
                 />
-                <button type="submit" disabled={isSubscribing} className="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-colors disabled:opacity-50">
+                <button type="submit" disabled={isSubscribing} className="bg-[var(--color-primary)] text-white p-2 rounded-lg transition-colors disabled:opacity-50 shadow-sm">
                   <span className="material-symbols-outlined text-sm">{isSubscribing ? 'hourglass_top' : 'send'}</span>
                 </button>
               </form>
@@ -125,15 +125,15 @@ export const Footer = React.memo(function Footer() {
           )}
           {(phone || email || street || city) && (
             <div className="mt-4 space-y-2">
-              {phone && <div className="flex items-center gap-2 text-sm text-slate-400">
+              {phone && <div className="flex items-center gap-2 text-sm text-[var(--color-text-muted)]">
                 <span className="material-symbols-outlined text-base">call</span>
-                <a href={`tel:${phone.replace(/\s/g, '')}`} className="hover:text-white transition-colors">{phone}</a>
+                <a href={`tel:${phone.replace(/\s/g, '')}`} className="hover:text-[var(--color-primary)] transition-colors">{phone}</a>
               </div>}
-              {email && <div className="flex items-center gap-2 text-sm text-slate-400">
+              {email && <div className="flex items-center gap-2 text-sm text-[var(--color-text-muted)]">
                 <span className="material-symbols-outlined text-base">mail</span>
-                <a href={`mailto:${email}`} className="hover:text-white transition-colors">{email}</a>
+                <a href={`mailto:${email}`} className="hover:text-[var(--color-primary)] transition-colors">{email}</a>
               </div>}
-              {street && <div className="flex items-center gap-2 text-sm text-slate-400">
+              {street && <div className="flex items-center gap-2 text-sm text-[var(--color-text-muted)]">
                 <span className="material-symbols-outlined text-base">location_on</span>
                 <span>{street}{city ? `, ${city}` : ''}</span>
               </div>}
@@ -142,29 +142,29 @@ export const Footer = React.memo(function Footer() {
         </div>
         
         <div className="flex flex-col gap-4">
-          <h3 className="text-white font-bold text-sm uppercase tracking-widest mb-2">{t.footer.sections.company}</h3>
+          <h3 className="text-[var(--color-on-background)] font-bold text-sm uppercase tracking-widest mb-2">{t.footer.sections.company}</h3>
           {companyLinks.map((link) => (
-            <Link key={`${link.href}:${link.label}`} className="text-sm hover:text-teal-400 transition-colors" href={link.href}>
+            <Link key={`${link.href}:${link.label}`} className="text-sm hover:text-[var(--color-primary)] transition-colors" href={link.href}>
               {link.label}
             </Link>
           ))}
         </div>
 
         <div className="flex flex-col gap-4">
-          <h3 className="text-white font-bold text-sm uppercase tracking-widest mb-2">{t.footer.sections.tools}</h3>
+          <h3 className="text-[var(--color-on-background)] font-bold text-sm uppercase tracking-widest mb-2">{t.footer.sections.tools}</h3>
           {toolLinks.map((link) => (
-            <Link key={`${link.href}:${link.label}`} className="text-sm hover:text-teal-400 transition-colors" href={link.href}>
+            <Link key={`${link.href}:${link.label}`} className="text-sm hover:text-[var(--color-primary)] transition-colors" href={link.href}>
               {link.label}
             </Link>
           ))}
         </div>
 
         <div className="flex flex-col gap-4">
-          <h3 className="text-white font-bold text-sm uppercase tracking-widest mb-2">{t.footer.sections.support}</h3>
+          <h3 className="text-[var(--color-on-background)] font-bold text-sm uppercase tracking-widest mb-2">{t.footer.sections.support}</h3>
           {supportLinks.map((link) => (
             <Link
               key={`${link.href}:${link.label}`}
-              className={`text-sm hover:text-teal-400 transition-colors ${link.href === '/admin' ? 'font-bold text-white/20' : ''}`}
+              className={`text-sm hover:text-[var(--color-primary)] transition-colors ${link.href === '/admin' ? 'font-bold opacity-30' : ''}`}
               href={link.href}
             >
               {link.label}
@@ -173,18 +173,18 @@ export const Footer = React.memo(function Footer() {
           {settings?.cookieEnabled !== false && (
             <button
               onClick={showCookieSettings}
-              className="text-sm hover:text-teal-400 transition-colors text-left"
+              className="text-sm hover:text-[var(--color-primary)] transition-colors text-left"
             >
               {settings?.cookieSettingsButton || t.cookies.settings}
             </button>
           )}
-          <div className="mt-4 flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10">
+          <div className="mt-4 flex items-center gap-3 p-3 bg-[var(--color-surface-primary)] rounded-xl border border-[var(--color-divider)]">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">{supportStatusLabel}</span>
+            <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">{supportStatusLabel}</span>
           </div>
         </div>
       </div>
-      <div className="max-w-[1280px] mx-auto px-8 mt-16 pt-8 border-t border-slate-900 flex justify-between items-center text-xs opacity-50">
+      <div className="max-w-[1280px] mx-auto px-8 mt-16 pt-8 border-t border-[var(--color-divider)] flex justify-between items-center text-xs opacity-50 text-[var(--color-text-muted)]">
         <p>© {new Date().getFullYear()} {settings?.companyName || 'PaletBroker Sp. z o.o.'} {t.footer.allRightsReserved}</p>
         <p>{footerTagline}</p>
       </div>

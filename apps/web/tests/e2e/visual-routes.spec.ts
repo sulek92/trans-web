@@ -31,7 +31,14 @@ const accountRoutes = ['/konto', '/konto/adresy', '/konto/zamowienia'];
 
 async function createToken(role: 'admin' | 'customer') {
   const now = Math.floor(Date.now() / 1000);
-  return new SignJWT({ sub: role === 'admin' ? 'admin-1' : 'customer-1', email: `${role}@paletbroker.pl`, role, type: 'access', jti: `${role}-${now}` })
+  const email = role === 'admin' ? 'admin@paletbroker.pl' : 'user@paletbroker.pl';
+  return new SignJWT({ 
+    sub: role === 'admin' ? 'admin-1' : 'customer-1', 
+    email, 
+    role,
+    type: 'access',
+    jti: `test-vis-${role}-${now}`
+  })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt(now)
     .setExpirationTime(now + 60 * 60)
@@ -94,7 +101,7 @@ async function assertPageVisualHealth(page: Page, route: string) {
 test.describe.configure({ timeout: 180_000 });
 
 test('public routes: visuals and assets are healthy on all target viewports', async ({ browser, baseURL }, testInfo) => {
-  const resolvedBaseURL = baseURL || 'http://127.0.0.1:3101';
+  const resolvedBaseURL = baseURL || 'http://localhost:3101';
   const context = await newContextWithRole(browser, resolvedBaseURL);
 
   for (const viewport of viewports) {
@@ -114,7 +121,7 @@ test('public routes: visuals and assets are healthy on all target viewports', as
 });
 
 test('admin routes: visuals and assets are healthy on all target viewports', async ({ browser, baseURL }, testInfo) => {
-  const resolvedBaseURL = baseURL || 'http://127.0.0.1:3101';
+  const resolvedBaseURL = baseURL || 'http://localhost:3101';
   const context = await newContextWithRole(browser, resolvedBaseURL, 'admin');
 
   for (const viewport of viewports) {
@@ -134,7 +141,7 @@ test('admin routes: visuals and assets are healthy on all target viewports', asy
 });
 
 test('customer routes: visuals and assets are healthy on all target viewports', async ({ browser, baseURL }, testInfo) => {
-  const resolvedBaseURL = baseURL || 'http://127.0.0.1:3101';
+  const resolvedBaseURL = baseURL || 'http://localhost:3101';
   const context = await newContextWithRole(browser, resolvedBaseURL, 'customer');
 
   for (const viewport of viewports) {

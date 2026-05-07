@@ -141,6 +141,138 @@ export function StringListEditor({ label, items, onChange, addLabel = 'Dodaj' }:
   );
 }
 
+// ── Partner List Editor (name + logo upload) ──
+import { getApiBaseUrl } from '@/lib/api-url';
+import { getCookie } from '@/lib/utils';
+import { useToastStore } from '@/lib/store/toast-store';
+import Image from 'next/image';
+
+export type PartnerItem = { name: string; logo: string };
+
+export function PartnerListEditor({ label, items, onChange, addLabel = 'Dodaj partnera' }: {
+  label: string; items: PartnerItem[]; onChange: (items: PartnerItem[]) => void; addLabel?: string;
+}) {
+  const [uploadingIdx, setUploadingIdx] = React.useState<number | null>(null);
+  const apiUrl = getApiBaseUrl();
+  const addToast = useToastStore((state) => state.addToast);
+
+  const addItem = () => {
+    onChange([...items, { name: '', logo: '' }]);
+  };
+
+  const removeItem = (index: number) => {
+    onChange(items.filter((_, i) => i !== index));
+  };
+
+  const updateName = (index: number, name: string) => {
+    onChange(items.map((item, i) => i === index ? { ...item, name } : item));
+  };
+
+  const updateLogo = (index: number, logo: string) => {
+    onChange(items.map((item, i) => i === index ? { ...item, logo } : item));
+  };
+
+  const handleUpload = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingIdx(index);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = getCookie('pb_auth_token');
+    try {
+      const res = await fetch(`${apiUrl}/cms/media/upload`, {
+        method: 'POST',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: formData,
+        credentials: 'include',
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        updateLogo(index, data.url);
+        addToast({ title: 'Logo przesłane', type: 'success' });
+      } else {
+        const err = await res.json();
+        addToast({ title: 'Błąd przesyłania', description: err.message, type: 'error' });
+      }
+    } catch {
+      addToast({ title: 'Błąd sieci', type: 'error' });
+    } finally {
+      setUploadingIdx(null);
+      e.target.value = '';
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</label>
+        <button type="button" onClick={addItem} className="text-xs font-bold text-[var(--color-primary)] hover:underline flex items-center gap-1">
+          <span className="material-symbols-outlined text-sm">add</span> {addLabel}
+        </button>
+      </div>
+      {items.map((item, i) => (
+        <div key={i} className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-3 relative group">
+          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button type="button" onClick={() => removeItem(i)} className="p-1 hover:bg-red-50 rounded text-red-400">
+              <span className="material-symbols-outlined text-sm">delete</span>
+            </button>
+          </div>
+          <div className="text-[10px] font-bold text-slate-300 uppercase">#{i + 1}</div>
+          <div>
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nazwa partnera</label>
+            <input
+              className="w-full p-3 rounded-lg bg-white border border-slate-200 text-sm outline-none focus:border-[var(--color-primary)] mt-1"
+              value={item.name}
+              onChange={(e) => updateName(i, e.target.value)}
+              placeholder="np. DHL Freight"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Logo</label>
+            <div className="flex items-center gap-3 mt-1">
+              {item.logo ? (
+                <div className="relative w-16 h-16 rounded-lg border border-slate-200 bg-white overflow-hidden flex-shrink-0">
+                  <Image src={item.logo} alt={item.name || 'Logo'} fill className="object-contain p-2" sizes="64px" />
+                </div>
+              ) : (
+                <div className="w-16 h-16 rounded-lg border border-dashed border-slate-300 bg-white flex items-center justify-center flex-shrink-0">
+                  <span className="material-symbols-outlined text-slate-300 text-2xl">image</span>
+                </div>
+              )}
+              <div className="flex flex-col gap-1">
+                <label className="cursor-pointer inline-flex items-center gap-1 px-4 py-2 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-600 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors">
+                  <span className="material-symbols-outlined text-sm">{uploadingIdx === i ? 'progress_activity' : 'upload'}</span>
+                  {uploadingIdx === i ? 'Przesyłanie...' : item.logo ? 'Zmień logo' : 'Prześlij logo'}
+                  <input type="file" className="hidden" accept="image/*" onChange={(e) => handleUpload(i, e)} disabled={uploadingIdx === i} />
+                </label>
+                {item.logo && (
+                  <button
+                    type="button"
+                    onClick={() => updateLogo(i, '')}
+                    className="text-xs text-red-400 hover:underline text-left px-1"
+                  >
+                    Usuń logo
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+      {items.length === 0 && (
+        <div className="p-8 text-center text-slate-300 text-sm border-2 border-dashed border-slate-100 rounded-xl">
+          Brak partnerów. Kliknij &ldquo;{addLabel}&rdquo; aby dodać.
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Section Header in editor ──
 export function SectionHeader({ title, icon }: { title: string; icon?: string }) {
   return (

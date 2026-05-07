@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
+import { getApiBaseUrl } from '@/lib/api-url';
 
 function SuccessContent() {
   const searchParams = useSearchParams();
@@ -11,7 +12,7 @@ function SuccessContent() {
   const [order, setOrder] = React.useState<any>(null);
   const [isLoading, setIsLoading] = React.useState(true);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const API_URL = getApiBaseUrl();
 
   React.useEffect(() => {
     if (!orderId) {

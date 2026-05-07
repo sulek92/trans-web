@@ -55,11 +55,10 @@ export default function AdminDashboard() {
 
   React.useEffect(() => {
     const fetchDashboard = async () => {
-      const token = getCookie('pb_auth_token');
       try {
         const [statsRes, analyticsRes] = await Promise.all([
-          fetch(`${API_URL}/admin/stats`, { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch(`${API_URL}/admin/analytics`, { headers: { 'Authorization': `Bearer ${token}` } })
+          fetch(`${API_URL}/admin/stats`, { credentials: 'include' }),
+          fetch(`${API_URL}/admin/analytics`, { credentials: 'include' })
         ]);
 
         if (statsRes.ok) setData(await statsRes.json());
@@ -267,11 +266,9 @@ function TunnelUrlWidget({ apiUrl }: { apiUrl: string }) {
   const [isLoading, setIsLoading] = React.useState(true);
 
   const fetchTunnel = React.useCallback(async () => {
-    const token = getCookie('pb_auth_token');
-    if (!token) return;
     try {
       const res = await fetch(`${apiUrl}/admin/tunnel`, {
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
       });
       if (res.ok) {
         const data = await res.json();

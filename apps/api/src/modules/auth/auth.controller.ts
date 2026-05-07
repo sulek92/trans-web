@@ -5,9 +5,11 @@ import {
   Get,
   Query,
   Req,
+  Res,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+import type { Request, Response, CookieOptions } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
@@ -33,19 +35,73 @@ export class AuthController {
 
   @Post('login')
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
-  login(@Body() body: LoginDto, @Req() req: Request) {
-    return this.authService.login(body, { ip: req.ip });
+  async login(
+    @Body() body: LoginDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.login(body, { ip: req.ip });
+
+    const isProduction = process.env.NODE_ENV === 'production';
+    const cookieOptions: CookieOptions = {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'lax',
+      path: '/',
+    };
+
+    // Set HttpOnly session cookies
+    res.cookie('pb_auth_token', result.accessToken, {
+      ...cookieOptions,
+      maxAge: result.expiresIn * 1000,
+    });
+
+    res.cookie('pb_refresh_token', result.refreshToken, {
+      ...cookieOptions,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    // Set non-HttpOnly metadata cookie for frontend UI state
+    res.cookie(
+      'pb_user_meta',
+      JSON.stringify({
+        id: result.user.id,
+        email: result.user.email,
+        role: result.user.role,
+      }),
+      {
+        ...cookieOptions,
+        httpOnly: false,
+        maxAge: result.expiresIn * 1000,
+      },
+    );
+
+    return result;
   }
 
   @Post('refresh')
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
-  async refresh(@Body() body: RefreshTokenDto) {
-    return this.authService.refresh(body.refreshToken);
+  async refresh(
+    @Body() body: RefreshTokenDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.refresh(body.refreshToken);
+
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.cookie('pb_auth_token', result.accessToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: result.expiresIn * 1000,
+    });
+
+    return result;
   }
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
-  logout(@Req() req: Request) {
+  logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const rawAuth = req.headers?.authorization;
     const authHeader =
       typeof rawAuth === 'string'
@@ -56,6 +112,11 @@ export class AuthController {
     const accessToken = authHeader?.startsWith('Bearer ')
       ? authHeader.slice(7)
       : '';
+
+    res.clearCookie('pb_auth_token', { path: '/' });
+    res.clearCookie('pb_refresh_token', { path: '/' });
+    res.clearCookie('pb_user_meta', { path: '/' });
+
     return this.authService.logout(accessToken);
   }
 

@@ -6,7 +6,7 @@ import {
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { db } from '../../db';
-import { cmsPages, cmsArticles } from '../../db/schema';
+import { cmsPages, cmsArticles, cmsTestimonials } from '../../db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { UpdateCmsPageDto } from './dto/update-cms-page.dto';
 type CmsPageInput = {
@@ -564,6 +564,153 @@ export class CmsService {
     });
 
     return { oldName, newName, success: true };
+  }
+
+  async getTestimonials() {
+    const cacheKey = 'cms:testimonials';
+    const cached = await this.redisService.get(cacheKey);
+    if (cached) {
+      try { return JSON.parse(cached); } catch { /* ignore, refetch */ }
+    }
+
+    const rows = await db
+      .select()
+      .from(cmsTestimonials)
+      .where(eq(cmsTestimonials.isActive, true))
+      .orderBy(cmsTestimonials.sortOrder);
+
+    const result = rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      role: r.role,
+      text: r.text,
+      avatar: r.avatar,
+      avatarImage: r.avatarImage,
+      isActive: r.isActive,
+      sortOrder: r.sortOrder,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    }));
+
+    await this.redisService.set(cacheKey, JSON.stringify(result), 1800);
+    return result;
+  }
+
+  async getAllTestimonials() {
+    const rows = await db
+      .select()
+      .from(cmsTestimonials)
+      .orderBy(cmsTestimonials.sortOrder);
+
+    return rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      role: r.role,
+      text: r.text,
+      avatar: r.avatar,
+      avatarImage: r.avatarImage,
+      isActive: r.isActive,
+      sortOrder: r.sortOrder,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    }));
+  }
+
+  async createTestimonial(
+    payload: { name: string; role: string; text: string; avatar?: string; avatarImage?: string; sortOrder?: number },
+    actor?: ActorContext,
+  ) {
+    const [created] = await db
+      .insert(cmsTestimonials)
+      .values({
+        name: payload.name,
+        role: payload.role,
+        text: payload.text,
+        avatar: payload.avatar || 'person',
+        avatarImage: payload.avatarImage || '',
+        sortOrder: payload.sortOrder ?? 0,
+      })
+      .returning();
+
+    await this.redisService.del('cms:testimonials');
+
+    await this.auditLogService.record({
+      actorUserId: actor?.userId,
+      actorEmail: actor?.email,
+      action: 'cms.testimonial_created',
+      entityType: 'cms_testimonial',
+      entityId: created.id,
+      metadata: { name: created.name },
+    });
+
+    return created;
+  }
+
+  async updateTestimonial(
+    id: string,
+    payload: { name?: string; role?: string; text?: string; avatar?: string; avatarImage?: string; isActive?: boolean; sortOrder?: number },
+    actor?: ActorContext,
+  ) {
+    const existing = await db
+      .select()
+      .from(cmsTestimonials)
+      .where(eq(cmsTestimonials.id, id));
+
+    if (existing.length === 0) {
+      throw new NotFoundException('Opinia nie znaleziona.');
+    }
+
+    const [updated] = await db
+      .update(cmsTestimonials)
+      .set({
+        ...(payload.name !== undefined && { name: payload.name }),
+        ...(payload.role !== undefined && { role: payload.role }),
+        ...(payload.text !== undefined && { text: payload.text }),
+        ...(payload.avatar !== undefined && { avatar: payload.avatar }),
+        ...(payload.avatarImage !== undefined && { avatarImage: payload.avatarImage }),
+        ...(payload.isActive !== undefined && { isActive: payload.isActive }),
+        ...(payload.sortOrder !== undefined && { sortOrder: payload.sortOrder }),
+        updatedAt: new Date(),
+      })
+      .where(eq(cmsTestimonials.id, id))
+      .returning();
+
+    await this.redisService.del('cms:testimonials');
+
+    await this.auditLogService.record({
+      actorUserId: actor?.userId,
+      actorEmail: actor?.email,
+      action: 'cms.testimonial_updated',
+      entityType: 'cms_testimonial',
+      entityId: id,
+      metadata: { changes: payload },
+    });
+
+    return updated;
+  }
+
+  async deleteTestimonial(id: string, actor?: ActorContext) {
+    const existing = await db
+      .select()
+      .from(cmsTestimonials)
+      .where(eq(cmsTestimonials.id, id));
+
+    if (existing.length === 0) {
+      throw new NotFoundException('Opinia nie znaleziona.');
+    }
+
+    await db.delete(cmsTestimonials).where(eq(cmsTestimonials.id, id));
+    await this.redisService.del('cms:testimonials');
+
+    await this.auditLogService.record({
+      actorUserId: actor?.userId,
+      actorEmail: actor?.email,
+      action: 'cms.testimonial_deleted',
+      entityType: 'cms_testimonial',
+      entityId: id,
+    });
+
+    return { success: true, deleted: id };
   }
 
   private async invalidateCmsCache(slug?: string) {

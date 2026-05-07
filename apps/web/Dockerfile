@@ -10,6 +10,7 @@ RUN npm ci
 COPY apps/web/src ./apps/web/src/
 COPY apps/web/public ./apps/web/public/
 ENV NEXT_TELEMETRY_DISABLED=1
+RUN rm -rf /app/.turbo /app/apps/web/.next
 RUN npx turbo run build --filter=web
 
 FROM node:20-alpine AS runner
@@ -18,6 +19,7 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/web/node_modules ./apps/web/node_modules
 COPY --from=builder /app/apps/web/.next ./apps/web/.next
+RUN mkdir -p /app/apps/web/.next/cache/fetch-cache && chown -R appuser:appgroup /app/apps/web/.next/cache
 COPY --from=builder /app/apps/web/package.json ./apps/web/package.json
 COPY --from=builder /app/apps/web/next.config.ts ./apps/web/
 COPY --from=builder /app/apps/web/public ./apps/web/public/

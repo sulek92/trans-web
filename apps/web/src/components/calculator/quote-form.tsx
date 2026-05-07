@@ -146,7 +146,7 @@ export function QuoteForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 w-full">
       {/* Pallet Type Selector */}
       <div>
-        <label className="text-xs font-bold uppercase tracking-widest text-slate-400 block mb-4">{t.quote.selector.label}</label>
+        <label className="text-xs font-bold uppercase tracking-widest text-[var(--color-text-faint)] block mb-4">{t.quote.selector.label}</label>
         <Controller
           name="palletType"
           control={control}
@@ -166,12 +166,12 @@ export function QuoteForm() {
                   className={`flex flex-col items-center justify-center p-4 border-2 rounded-[20px] transition-all duration-300 group ${
                     field.value === p.id 
                       ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5 shadow-inner' 
-                      : 'border-slate-100 bg-slate-50 hover:border-slate-200 hover:bg-white'
+                      : 'border-[var(--color-divider)] bg-[var(--color-surface-container)] hover:border-[var(--color-primary)]/20 hover:bg-[var(--color-surface-primary)]'
                   }`}
                 >
-                  <span className={`material-symbols-outlined mb-2 transition-transform duration-300 group-hover:scale-110 ${field.value === p.id ? 'text-[var(--color-primary)]' : 'text-slate-400'}`} style={{ fontSize: '24px' }}>{p.icon}</span>
-                  <span className={`text-[13px] font-bold text-center ${field.value === p.id ? 'text-[var(--color-primary)]' : 'text-slate-600'}`}>{p.label}</span>
-                  <span className={`text-[10px] font-medium uppercase tracking-tight ${field.value === p.id ? 'text-[var(--color-primary)]/60' : 'text-slate-400'}`}>{p.dim}</span>
+                  <span className={`material-symbols-outlined mb-2 transition-transform duration-300 group-hover:scale-110 ${field.value === p.id ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-faint)]'}`} style={{ fontSize: '24px' }}>{p.icon}</span>
+                  <span className={`text-[13px] font-bold text-center ${field.value === p.id ? 'text-[var(--color-primary)]' : 'text-[var(--color-on-background)]'}`}>{p.label}</span>
+                  <span className={`text-[10px] font-medium uppercase tracking-tight ${field.value === p.id ? 'text-[var(--color-primary)]/60' : 'text-[var(--color-text-faint)]'}`}>{p.dim}</span>
                 </button>
               ))}
             </div>
@@ -182,29 +182,29 @@ export function QuoteForm() {
 
       {/* Route and country */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-[24px] border border-slate-100 p-6 bg-slate-50/50">
+        <div className="rounded-[24px] border border-[var(--color-divider)] p-6 bg-[var(--color-surface-container)]/50">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
+            <div className="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
               <span className="material-symbols-outlined text-sm">location_on</span>
             </div>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{t.quote.sender.title}</div>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-faint)]">{t.quote.sender.title}</div>
           </div>
           <div className="grid grid-cols-[1fr_auto] gap-4">
             <div>
-              <label className="text-xs font-bold text-slate-600 block mb-2">{t.quote.sender.postalCode}</label>
+              <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.sender.postalCode}</label>
               <input
                 {...register('senderPostalCode')}
-                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl font-data-mono text-base text-slate-900 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10 outline-none transition-all placeholder:text-slate-300"
+                className="w-full px-4 py-3 bg-[var(--color-surface-primary)] border border-[var(--color-divider)] rounded-xl font-mono text-base text-[var(--color-on-background)] focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10 outline-none transition-all placeholder:text-[var(--color-text-faint)]"
                 placeholder="00-000"
                 type="text"
               />
               {errors.senderPostalCode && <p className="text-[var(--color-error)] text-xs mt-2">{errors.senderPostalCode.message}</p>}
             </div>
             <div className="w-32">
-              <label className="text-xs font-bold text-slate-600 block mb-2">{t.quote.sender.country}</label>
+              <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.sender.country}</label>
               <select
                 {...register('senderCountry')}
-                className="w-full py-3 px-4 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:border-[var(--color-primary)] outline-none cursor-pointer"
+                className="w-full py-3 px-4 bg-[var(--color-surface-primary)] border border-[var(--color-divider)] rounded-xl text-sm font-bold text-[var(--color-on-background)] focus:border-[var(--color-primary)] outline-none cursor-pointer"
               >
                 {countries.map((country) => (
                   <option key={country.value} value={country.value}>{country.label}</option>
@@ -214,29 +214,29 @@ export function QuoteForm() {
           </div>
         </div>
 
-        <div className="rounded-[24px] border border-slate-100 p-6 bg-slate-50/50">
+        <div className="rounded-[24px] border border-[var(--color-divider)] p-6 bg-[var(--color-surface-container)]/50">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+            <div className="w-6 h-6 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center">
               <span className="material-symbols-outlined text-sm">flag</span>
             </div>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{t.quote.recipient.title}</div>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-faint)]">{t.quote.recipient.title}</div>
           </div>
           <div className="grid grid-cols-[1fr_auto] gap-4">
             <div>
-              <label className="text-xs font-bold text-slate-600 block mb-2">{t.quote.recipient.postalCode}</label>
+              <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.recipient.postalCode}</label>
               <input
                 {...register('recipientPostalCode')}
-                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl font-data-mono text-base text-slate-900 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10 outline-none transition-all placeholder:text-slate-300"
+                className="w-full px-4 py-3 bg-[var(--color-surface-primary)] border border-[var(--color-divider)] rounded-xl font-mono text-base text-[var(--color-on-background)] focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10 outline-none transition-all placeholder:text-[var(--color-text-faint)]"
                 placeholder="00-000"
                 type="text"
               />
               {errors.recipientPostalCode && <p className="text-[var(--color-error)] text-xs mt-2">{errors.recipientPostalCode.message}</p>}
             </div>
             <div className="w-32">
-              <label className="text-xs font-bold text-slate-600 block mb-2">{t.quote.recipient.country}</label>
+              <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.recipient.country}</label>
               <select
                 {...register('recipientCountry')}
-                className="w-full py-3 px-4 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:border-[var(--color-primary)] outline-none cursor-pointer"
+                className="w-full py-3 px-4 bg-[var(--color-surface-primary)] border border-[var(--color-divider)] rounded-xl text-sm font-bold text-[var(--color-on-background)] focus:border-[var(--color-primary)] outline-none cursor-pointer"
               >
                 {countries.map((country) => (
                   <option key={country.value} value={country.value}>{country.label}</option>
@@ -250,12 +250,12 @@ export function QuoteForm() {
       {/* Routing */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div>
-          <label className="text-xs font-bold text-slate-600 block mb-2">{t.quote.palletCount}</label>
+          <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.palletCount}</label>
           <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-lg">inventory_2</span>
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] text-lg">inventory_2</span>
             <input
               {...register('palletCount', { valueAsNumber: true })}
-              className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl font-data-mono text-base text-slate-900 focus:bg-white focus:border-[var(--color-primary)] outline-none transition-all"
+              className="w-full pl-12 pr-4 py-3 bg-[var(--color-surface-container)] border border-[var(--color-divider)] rounded-xl font-mono text-base text-[var(--color-on-background)] focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-all"
               placeholder="1"
               type="number"
               min={1}
@@ -265,12 +265,12 @@ export function QuoteForm() {
           {errors.palletCount && <p className="text-[var(--color-error)] text-xs mt-2">{errors.palletCount.message}</p>}
         </div>
         <div>
-          <label className="text-xs font-bold text-slate-600 block mb-2">{t.quote.weight}</label>
+          <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.weight}</label>
           <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-lg">scale</span>
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] text-lg">scale</span>
             <input
               {...register('weight', { valueAsNumber: true })}
-              className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl font-data-mono text-base text-slate-900 focus:bg-white focus:border-[var(--color-primary)] outline-none transition-all" 
+              className="w-full pl-12 pr-4 py-3 bg-[var(--color-surface-container)] border border-[var(--color-divider)] rounded-xl font-mono text-base text-[var(--color-on-background)] focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-all" 
               placeholder="500"
               type="number"
             />
@@ -278,12 +278,12 @@ export function QuoteForm() {
           {errors.weight && <p className="text-[var(--color-error)] text-xs mt-2">{errors.weight.message}</p>}
         </div>
         <div>
-          <label className="text-xs font-bold text-slate-600 block mb-2">{t.quote.height}</label>
+          <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.height}</label>
           <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-lg">height</span>
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] text-lg">height</span>
             <input
               {...register('height', { valueAsNumber: true })}
-              className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl font-data-mono text-base text-slate-900 focus:bg-white focus:border-[var(--color-primary)] outline-none transition-all" 
+              className="w-full pl-12 pr-4 py-3 bg-[var(--color-surface-container)] border border-[var(--color-divider)] rounded-xl font-mono text-base text-[var(--color-on-background)] focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-all" 
               placeholder="150"
               type="number"
             />
@@ -295,15 +295,15 @@ export function QuoteForm() {
       {/* Dimensions */}
       <div className="grid grid-cols-2 gap-6">
         <div>
-          <label className="text-xs font-bold text-slate-600 block mb-2">{t.quote.length}</label>
+          <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.length}</label>
           <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-lg">straighten</span>
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] text-lg">straighten</span>
             <input
               {...register('length', { valueAsNumber: true })}
-              className={`w-full pl-12 pr-4 py-3 rounded-xl font-data-mono text-base outline-none transition-all ${
+              className={`w-full pl-12 pr-4 py-3 rounded-xl font-mono text-base outline-none transition-all ${
                 watchedPalletType === 'custom' 
-                  ? 'bg-white border border-slate-200 text-slate-900 focus:border-[var(--color-primary)]' 
-                  : 'bg-slate-100 border border-transparent text-slate-400 cursor-not-allowed'
+                  ? 'bg-[var(--color-surface-primary)] border border-[var(--color-divider)] text-[var(--color-on-background)] focus:border-[var(--color-primary)]' 
+                  : 'bg-[var(--color-surface-container)] border border-transparent text-[var(--color-text-faint)] cursor-not-allowed'
               }`}
               placeholder="120"
               type="number"
@@ -313,15 +313,15 @@ export function QuoteForm() {
           {errors.length && <p className="text-[var(--color-error)] text-xs mt-2">{errors.length.message}</p>}
         </div>
         <div>
-          <label className="text-xs font-bold text-slate-600 block mb-2">{t.quote.width}</label>
+          <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.width}</label>
           <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-lg">straighten</span>
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] text-lg">straighten</span>
             <input
               {...register('width', { valueAsNumber: true })}
-              className={`w-full pl-12 pr-4 py-3 rounded-xl font-data-mono text-base outline-none transition-all ${
+              className={`w-full pl-12 pr-4 py-3 rounded-xl font-mono text-base outline-none transition-all ${
                 watchedPalletType === 'custom' 
-                  ? 'bg-white border border-slate-200 text-slate-900 focus:border-[var(--color-primary)]' 
-                  : 'bg-slate-100 border border-transparent text-slate-400 cursor-not-allowed'
+                  ? 'bg-[var(--color-surface-primary)] border border-[var(--color-divider)] text-[var(--color-on-background)] focus:border-[var(--color-primary)]' 
+                  : 'bg-[var(--color-surface-container)] border border-transparent text-[var(--color-text-faint)] cursor-not-allowed'
               }`}
               placeholder="80"
               type="number"
@@ -333,8 +333,8 @@ export function QuoteForm() {
       </div>
 
       {/* Options */}
-      <div className="rounded-[24px] border border-slate-100 p-6 bg-slate-50/30">
-        <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-5">{t.quote.conditions.title}</div>
+      <div className="rounded-[24px] border border-[var(--color-divider)] p-6 bg-[var(--color-surface-container)]/30">
+        <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--color-text-faint)] mb-5">{t.quote.conditions.title}</div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-4 gap-x-8">
           {[
             { id: 'isStackable', label: t.quote.conditions.stackable },
@@ -347,17 +347,17 @@ export function QuoteForm() {
               <input 
                 type="checkbox" 
                 {...register(opt.id as any)} 
-                className="w-5 h-5 rounded-lg border-2 border-slate-200 text-[var(--color-primary)] focus:ring-0 cursor-pointer transition-all checked:bg-[var(--color-primary)]" 
+                className="w-5 h-5 rounded-lg border-2 border-[var(--color-divider)] text-[var(--color-primary)] focus:ring-0 cursor-pointer transition-all checked:bg-[var(--color-primary)]" 
               />
-              <span className="text-sm font-medium text-slate-600 group-hover:text-slate-900 transition-colors">{opt.label}</span>
+              <span className="text-sm font-medium text-[var(--color-text-muted)] group-hover:text-[var(--color-on-background)] transition-colors">{opt.label}</span>
             </label>
           ))}
         </div>
       </div>
 
       {/* Visual Preview */}
-      <div className="bg-slate-900 rounded-[32px] p-8 overflow-hidden relative group">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-transparent opacity-50" />
+      <div className="bg-[var(--color-secondary)] rounded-[32px] p-8 overflow-hidden relative group border border-white/5 shadow-2xl">
+        <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-primary)]/20 to-transparent opacity-50" />
         <div className="relative z-10 flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
           <div className="flex-shrink-0">
             <PalletPreview 
@@ -368,15 +368,15 @@ export function QuoteForm() {
             />
           </div>
           <div className="flex-1 text-center sm:text-left min-w-0">
-            <div className="text-[10px] font-bold text-teal-400 uppercase tracking-widest mb-2">{t.quote.estimatedCost}</div>
-            <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-3 font-display-bold whitespace-nowrap">
+            <div className="text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-[0.2em] mb-2">{t.quote.estimatedCost}</div>
+            <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--color-on-secondary)] mb-3 tracking-tighter whitespace-nowrap">
               {Math.max(
                 120,
                 (Number(watchedValues.weight) || 0) * (Number(watchedValues.palletCount) || 1) * 0.2 +
                   (Number(watchedValues.height) || 0) * 0.5
-              ).toFixed(2).replace('.', ',')} <span className="text-lg sm:text-xl text-white/40">{t.quote.currency}</span>
+              ).toFixed(2).replace('.', ',')} <span className="text-lg sm:text-xl opacity-40">{t.quote.currency}</span>
             </div>
-            <p className="text-xs sm:text-sm text-white/40 whitespace-normal break-words max-w-[280px] sm:max-w-none">{t.quote.estimatedCostNote}</p>
+            <p className="text-xs sm:text-sm opacity-50 whitespace-normal break-words max-w-[280px] sm:max-w-none font-medium">{t.quote.estimatedCostNote}</p>
           </div>
         </div>
       </div>
@@ -384,7 +384,7 @@ export function QuoteForm() {
       <button 
         type="submit" 
         disabled={isSubmitting}
-        className="w-full bg-[var(--color-primary)] text-white font-bold text-lg py-5 rounded-2xl shadow-2xl shadow-[var(--color-primary)]/30 hover:scale-[1.01] transition-premium flex justify-center items-center gap-3 disabled:opacity-70 active:scale-95"
+        className="w-full bg-[var(--color-primary)] text-white font-bold text-lg py-5 rounded-2xl shadow-2xl shadow-[var(--color-primary)]/30 hover:shadow-[var(--color-primary)]/50 transition-premium flex justify-center items-center gap-3 disabled:opacity-70 active:scale-95"
       >
         <span>{isSubmitting ? t.quote.submitting : t.quote.submit}</span>
         {!isSubmitting && <span className="material-symbols-outlined">arrow_forward</span>}

@@ -4,6 +4,7 @@ import * as React from 'react';
 import { getCookie } from '@/lib/utils';
 import { useToastStore } from '@/lib/store/toast-store';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getApiBaseUrl } from '@/lib/api-url';
 
 interface Address {
   id: string;
@@ -28,13 +29,12 @@ export default function ClientAddressesPage() {
   const [isSaving, setIsSaving] = React.useState(false);
   const addToast = useToastStore(state => state.addToast);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const API_URL = getApiBaseUrl();
 
   const fetchAddresses = React.useCallback(async () => {
-    const token = getCookie('pb_auth_token');
     try {
       const response = await fetch(`${API_URL}/users/me/addresses`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       });
       if (response.ok) {
         const data = await response.json();
@@ -55,14 +55,14 @@ export default function ClientAddressesPage() {
     e.preventDefault();
     if (!editingAddress) return;
     setIsSaving(true);
-    const token = getCookie('pb_auth_token');
     const method = editingAddress.id ? 'PUT' : 'POST';
     const url = editingAddress.id ? `${API_URL}/users/me/addresses/${editingAddress.id}` : `${API_URL}/users/me/addresses`;
 
     try {
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(editingAddress),
       });
       if (res.ok) {
@@ -86,11 +86,10 @@ export default function ClientAddressesPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Czy na pewno chcesz usunąć ten adres?')) return;
-    const token = getCookie('pb_auth_token');
     try {
       const res = await fetch(`${API_URL}/users/me/addresses/${id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'include',
       });
       if (res.ok) {
         await fetchAddresses();

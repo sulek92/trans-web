@@ -44,7 +44,7 @@ export default function CmsDashboard() {
     fetchStats();
   }, []);
 
-  const navCards = [
+  const navCards: { title: string; desc: string; icon: string; href: string; color: string; count: number | null }[] = [
     {
       title: 'Strony CMS',
       desc: 'Zarządzaj statycznymi stronami, ofertami i treścią strony głównej.',
@@ -68,6 +68,14 @@ export default function CmsDashboard() {
       href: '/admin/cms/media',
       color: 'bg-purple-50 text-purple-600',
       count: stats.media
+    },
+    {
+      title: 'Opinie Klientów',
+      desc: 'Zarządzaj opiniami klientów wyświetlanymi na stronie.',
+      icon: 'reviews',
+      href: '/admin/cms/testimonials',
+      color: 'bg-green-50 text-green-600',
+      count: null
     }
   ];
 
@@ -95,9 +103,9 @@ export default function CmsDashboard() {
                 <h3 className="text-2xl font-bold tracking-tight">{card.title}</h3>
                 {loading ? (
                   <div className="h-6 w-8 bg-slate-100 animate-pulse rounded" />
-                ) : (
+                ) : card.count !== null ? (
                   <span className="text-sm font-bold bg-slate-50 px-3 py-1 rounded-full text-slate-400">{card.count}</span>
-                )}
+                ) : null}
               </div>
               <p className="text-slate-500 leading-relaxed">{card.desc}</p>
             </div>

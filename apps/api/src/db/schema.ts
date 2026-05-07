@@ -8,6 +8,7 @@ import {
   jsonb,
   timestamp,
   date,
+  integer,
   index,
 } from 'drizzle-orm/pg-core';
 
@@ -36,6 +37,8 @@ export const users = pgTable(
     isVerified: boolean('is_verified').default(false),
     authProvider: varchar('auth_provider', { length: 50 }).default('local'),
     externalId: varchar('external_id', { length: 255 }),
+    firstName: varchar('first_name', { length: 100 }),
+    lastName: varchar('last_name', { length: 100 }),
     companyId: uuid('company_id').references(() => companies.id),
     apiKey: varchar('api_key', { length: 255 }).unique(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
@@ -266,6 +269,19 @@ export const cmsArticles = pgTable('cms_articles', {
   metaDescription: varchar('meta_description', { length: 500 }),
   isPublished: boolean('is_published').default(false),
   publishedAt: timestamp('published_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+});
+
+export const cmsTestimonials = pgTable('cms_testimonials', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  role: varchar('role', { length: 255 }).notNull(),
+  text: text('text').notNull(),
+  avatar: varchar('avatar', { length: 100 }).default('person'),
+  avatarImage: varchar('avatar_image', { length: 500 }).default(''),
+  isActive: boolean('is_active').default(true),
+  sortOrder: integer('sort_order').default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });

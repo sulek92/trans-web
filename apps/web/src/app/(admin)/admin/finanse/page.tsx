@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { getCookie } from '@/lib/utils';
+import { getApiBaseUrl } from '@/lib/api-url';
 import { useToastStore } from '@/lib/store/toast-store';
 
 export default function AdminFinancePage() {
@@ -10,7 +11,7 @@ export default function AdminFinancePage() {
   const [isExporting, setIsExporting] = React.useState(false);
   const { addToast } = useToastStore();
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const API_URL = getApiBaseUrl();
 
   const handleExportZip = async () => {
     if (!startDate || !endDate) {

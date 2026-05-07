@@ -11,7 +11,9 @@ export interface CreateLeadPayload {
   preferredDate?: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+import { getApiBaseUrl } from '@/lib/api-url';
+
+const API_URL = getApiBaseUrl();
 
 function normalizeErrorMessage(raw: unknown): string {
   if (!raw || typeof raw !== 'object') return 'Form submission failed.';

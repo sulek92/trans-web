@@ -4,6 +4,7 @@ import * as React from 'react';
 import { getCookie } from '@/lib/utils';
 import { useToastStore } from '@/lib/store/toast-store';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getApiBaseUrl } from '@/lib/api-url';
 
 type Company = {
   id: string;
@@ -23,7 +24,7 @@ export default function ClientCompanyPage() {
   const [isSaving, setIsSaving] = React.useState(false);
   const addToast = useToastStore(state => state.addToast);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const API_URL = getApiBaseUrl();
 
   const fetchCompany = React.useCallback(async () => {
     const token = getCookie('pb_auth_token');

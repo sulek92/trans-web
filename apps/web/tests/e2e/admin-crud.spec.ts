@@ -22,7 +22,7 @@ async function createAdminToken() {
 
 test.describe('Admin Dashboard CRUD Operations', () => {
   test.beforeEach(async ({ context, baseURL }) => {
-    const resolvedBaseURL = baseURL || 'http://127.0.0.1:3101';
+    const resolvedBaseURL = baseURL || 'http://localhost:3101';
     const host = new URL(resolvedBaseURL).hostname;
 
     await context.addCookies([
@@ -37,14 +37,14 @@ test.describe('Admin Dashboard CRUD Operations', () => {
   });
 
   test('should add and manage pricing rules', async ({ page, baseURL }) => {
-    const resolvedBaseURL = baseURL || 'http://127.0.0.1:3101';
+    const resolvedBaseURL = baseURL || 'http://localhost:3101';
     await page.goto(`${resolvedBaseURL}/admin/cennik`);
     
     // Check if page loaded
-    await expect(page.locator('h1')).toContainText('Reguły Cennika');
+    await expect(page.locator('h1')).toContainText('Zarządzanie Cennikiem');
 
     // Click "Nowa Reguła"
-    await page.click('button:has-text("Nowa Reguła")');
+    await page.click('button:has-text("Dodaj Regułę")');
 
     // Fill form
     await page.fill('input:near(:text("Kod Przewoźnika"))', 'TEST_CARRIER');
@@ -54,15 +54,15 @@ test.describe('Admin Dashboard CRUD Operations', () => {
 
     // Submit
     const postPromise = page.waitForResponse(r => r.url().includes('/admin/pricing-rules') && r.request().method() === 'POST');
-    await page.click('button:has-text("Zapisz Regułę")');
+    await page.click('button:has-text("Zatwierdź Regułę")');
     await postPromise;
 
     // Verify it's in the list
-    await expect(page.locator('table')).toContainText('TEST_CARRIER', { timeout: 10000 });
+    await expect(page.locator('main')).toContainText('TEST_CARRIER', { timeout: 10000 });
   });
 
   test('should update CMS content', async ({ page, baseURL }) => {
-    const resolvedBaseURL = baseURL || 'http://127.0.0.1:3101';
+    const resolvedBaseURL = baseURL || 'http://localhost:3101';
     await page.goto(`${resolvedBaseURL}/admin/cms`);
     
     // Select "O nas" section from sidebar
@@ -84,7 +84,7 @@ test.describe('Admin Dashboard CRUD Operations', () => {
   });
 
   test('should navigate through all admin sections', async ({ page, baseURL }) => {
-    const resolvedBaseURL = baseURL || 'http://127.0.0.1:3101';
+    const resolvedBaseURL = baseURL || 'http://localhost:3101';
     await page.goto(`${resolvedBaseURL}/admin`);
 
     const sections = [

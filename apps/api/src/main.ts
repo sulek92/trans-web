@@ -4,13 +4,28 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { configureApp } from './app.setup';
 import helmet from 'helmet';
+import * as cookieParser from 'cookie-parser';
+
+import * as Sentry from '@sentry/nestjs';
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
 async function bootstrap() {
+  if (process.env.SENTRY_DSN) {
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN,
+      integrations: [nodeProfilingIntegration()],
+      tracesSampleRate: 1.0,
+      profilesSampleRate: 1.0,
+      environment: process.env.NODE_ENV || 'development',
+    });
+  }
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     rawBody: true,
     bufferLogs: true,
   });
 
+  app.use(cookieParser());
   app.use(helmet());
   app.set('trust proxy', 1);
   app.enableShutdownHooks();

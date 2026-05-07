@@ -99,7 +99,7 @@ export const Navbar = React.memo(function Navbar() {
       <nav className={cn(
         "max-w-[1280px] mx-auto transition-all duration-500 rounded-[24px] border border-transparent px-6",
         isScrolled 
-          ? "bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-[var(--glass-shadow)] border-[var(--glass-border)] h-16" 
+          ? "glass shadow-[var(--glass-shadow)] border-[var(--glass-border)] h-16" 
           : "bg-transparent h-20"
       )}>
         <div className="flex justify-between items-center h-full">
@@ -108,13 +108,13 @@ export const Navbar = React.memo(function Navbar() {
             <div className="w-10 h-10 rounded-xl bg-[var(--color-primary)] flex items-center justify-center text-white shadow-lg shadow-[var(--color-primary)]/20 group-hover:scale-110 transition-premium">
               <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>pallet</span>
             </div>
-            <span className="text-xl font-display-bold font-bold text-[var(--color-on-background)] tracking-tight">
+            <span className="text-xl font-display font-bold text-[var(--color-on-background)] tracking-tight">
               {brandName}
             </span>
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-1 bg-[var(--color-surface-container-low)]/50 p-1.5 rounded-2xl border border-[var(--color-divider)]/50">
+          <div className="hidden lg:flex items-center gap-1 bg-[var(--color-surface-container)]/30 backdrop-blur-sm p-1.5 rounded-2xl border border-[var(--color-divider)]/30">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
@@ -124,8 +124,8 @@ export const Navbar = React.memo(function Navbar() {
                   className={cn(
                     "px-5 py-2 rounded-xl text-[13px] font-bold uppercase tracking-wider transition-premium relative",
                     isActive 
-                      ? "text-[var(--color-primary)] bg-white dark:bg-slate-800 shadow-sm" 
-                      : "text-slate-500 hover:text-[var(--color-primary)] hover:bg-white/50 dark:hover:bg-slate-800/50"
+                      ? "text-[var(--color-primary)] bg-[var(--color-surface-primary)] shadow-[0_2px_10px_-3px_rgba(0,0,0,0.07)] dark:shadow-none" 
+                      : "text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-surface-primary)]/50"
                   )}
                 >
                   {link.label}
@@ -135,11 +135,11 @@ export const Navbar = React.memo(function Navbar() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center gap-3 mr-2">
-              <Link href="/logowanie" className="px-4 py-2 text-sm font-bold text-slate-600 hover:text-[var(--color-primary)] transition-premium">
+            <div className="hidden md:flex items-center gap-2 mr-2">
+              <Link href="/logowanie" className="px-4 py-2 text-sm font-bold text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-premium">
                 {t.common.login}
               </Link>
-              <Link href="/rejestracja" className="bg-slate-900 dark:bg-white dark:text-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-black/5 hover:scale-105 active:scale-95 transition-premium">
+              <Link href="/rejestracja" className="bg-[var(--color-primary)] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-[var(--color-primary)]/20 hover:scale-105 hover:bg-[var(--color-primary-hover)] active:scale-95 transition-premium">
                 {t.common.register}
               </Link>
             </div>
@@ -152,7 +152,7 @@ export const Navbar = React.memo(function Navbar() {
                   "flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-premium border",
                   langOpen
                     ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)] shadow-md"
-                    : "bg-[var(--color-surface-container-low)] text-slate-600 border-[var(--color-divider)] hover:border-slate-300 dark:hover:border-slate-600"
+                    : "bg-[var(--color-surface-container)] text-[var(--color-text-muted)] border-[var(--color-divider)] hover:border-[var(--color-text-faint)]"
                 )}
               >
                 <span className="text-xs">{currentLang.flag}</span>
@@ -161,16 +161,16 @@ export const Navbar = React.memo(function Navbar() {
               </button>
 
               {langOpen && (
-                <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-[var(--color-divider)] py-1 overflow-hidden animate-in slide-in-from-top-2 duration-200 z-50">
+                <div className="absolute right-0 mt-2 w-44 bg-[var(--color-surface-primary)] rounded-2xl shadow-2xl border border-[var(--color-divider)] py-1 overflow-hidden animate-in slide-in-from-top-2 duration-200 z-50">
                   {LANGUAGES.map((lang) => (
                     <button
                       key={lang.code}
                       onClick={() => { setLocale(lang.code); setLangOpen(false); }}
                       className={cn(
-                        "w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors",
+                        "w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors text-left",
                         locale === lang.code
                           ? "bg-[var(--color-primary)]/10 text-[var(--color-primary)] font-bold"
-                          : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                          : "text-[var(--color-text-muted)] hover:bg-[var(--color-surface-container)]"
                       )}
                     >
                       <span className="text-base w-7 text-center">{lang.flag}</span>
@@ -185,7 +185,7 @@ export const Navbar = React.memo(function Navbar() {
 
             {/* Mobile Menu Toggle */}
             <button 
-              className="lg:hidden w-10 h-10 flex items-center justify-center text-[var(--color-on-background)] hover:bg-[var(--color-surface-container-low)] rounded-xl transition-premium"
+              className="lg:hidden w-10 h-10 flex items-center justify-center text-[var(--color-on-background)] hover:bg-[var(--color-surface-container)] rounded-xl transition-premium"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               <span className="material-symbols-outlined">{isMobileMenuOpen ? 'close' : 'menu'}</span>
@@ -196,7 +196,7 @@ export const Navbar = React.memo(function Navbar() {
 
       {/* Mobile Menu Overlay */}
       <div className={cn(
-        "fixed inset-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl z-[60] lg:hidden transition-all duration-500 flex flex-col",
+        "fixed inset-0 bg-[var(--color-background)]/95 backdrop-blur-2xl z-[60] lg:hidden transition-all duration-500 flex flex-col",
         isMobileMenuOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
       )}>
         <div className="flex justify-between items-center p-8">
@@ -204,10 +204,10 @@ export const Navbar = React.memo(function Navbar() {
              <div className="w-10 h-10 rounded-xl bg-[var(--color-primary)] flex items-center justify-center text-white">
                 <span className="material-symbols-outlined text-2xl">pallet</span>
              </div>
-             <span className="text-xl font-bold">{brandName}</span>
+             <span className="text-xl font-bold text-[var(--color-on-background)]">{brandName}</span>
           </Link>
           <button 
-            className="w-12 h-12 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-full"
+            className="w-12 h-12 flex items-center justify-center bg-[var(--color-surface-container)] rounded-full text-[var(--color-on-background)]"
             onClick={() => setIsMobileMenuOpen(false)}
           >
             <span className="material-symbols-outlined">close</span>
@@ -222,14 +222,14 @@ export const Navbar = React.memo(function Navbar() {
               onClick={() => setIsMobileMenuOpen(false)}
               className={cn(
                 "flex items-center justify-between p-6 rounded-3xl transition-premium group",
-                pathname === link.href ? "bg-[var(--color-primary-highlight)] text-[var(--color-primary)]" : "hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                pathname === link.href ? "bg-[var(--color-primary-highlight)] text-[var(--color-primary)]" : "hover:bg-[var(--color-surface-container)]"
               )}
               style={{ transitionDelay: `${idx * 50}ms` }}
             >
               <div className="flex items-center gap-5">
                 <div className={cn(
                   "w-12 h-12 rounded-2xl flex items-center justify-center transition-premium",
-                  pathname === link.href ? "bg-white text-[var(--color-primary)]" : "bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:scale-110"
+                  pathname === link.href ? "bg-white text-[var(--color-primary)] shadow-sm" : "bg-[var(--color-surface-container)] text-[var(--color-text-muted)] group-hover:scale-110"
                 )}>
                   <span className="material-symbols-outlined text-2xl">{link.icon}</span>
                 </div>
@@ -249,7 +249,7 @@ export const Navbar = React.memo(function Navbar() {
                   "flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-premium",
                   locale === lang.code
                     ? "bg-[var(--color-primary)] text-white shadow-md"
-                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700"
+                    : "bg-[var(--color-surface-container)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-container-high)]"
                 )}
               >
                 <span className="text-base">{lang.flag}</span>
@@ -260,7 +260,7 @@ export const Navbar = React.memo(function Navbar() {
         </div>
 
         <div className="p-8 border-t border-[var(--color-divider)] flex flex-col gap-4">
-           <Link href="/logowanie" onClick={() => setIsMobileMenuOpen(false)} className="w-full py-5 rounded-2xl text-center font-bold text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 transition-premium">
+           <Link href="/logowanie" onClick={() => setIsMobileMenuOpen(false)} className="w-full py-5 rounded-2xl text-center font-bold text-[var(--color-text-muted)] hover:bg-[var(--color-surface-container)] transition-premium">
               {t.common.login}
            </Link>
            <Link href="/rejestracja" onClick={() => setIsMobileMenuOpen(false)} className="w-full py-5 rounded-2xl text-center font-bold bg-[var(--color-primary)] text-white shadow-xl shadow-[var(--color-primary)]/20 active:scale-95 transition-premium">

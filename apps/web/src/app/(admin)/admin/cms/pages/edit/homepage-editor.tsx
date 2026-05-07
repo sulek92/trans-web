@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from 'react';
-import { TextField, ToggleSwitch, ListEditor, StringListEditor, SectionHeader } from '../../components';
+import { TextField, ToggleSwitch, ListEditor, PartnerListEditor, type PartnerItem, SectionHeader } from '../../components';
 
 interface HomepageData {
   heroBadge?: string;
@@ -9,11 +9,10 @@ interface HomepageData {
   heroSubtitle?: string;
   heroVisualImage?: string;
   heroVisualCaption?: string;
-  partners?: string[];
+  partners?: PartnerItem[];
   activityTicker?: { city: string; status: string; time: string }[];
   howItWorks?: { step: string; title: string; desc: string; icon: string }[];
   stats?: { label: string; end: number; suffix: string }[];
-  testimonials?: { name: string; role: string; text: string; avatar: string; avatarImage: string }[];
   supportTitle?: string;
   supportSubtitle?: string;
   supportVisualImage?: string;
@@ -64,14 +63,6 @@ export const HomepageEditor: React.FC<Props> = ({ initialContent, onSave, saving
     { key: 'suffix', label: 'Przyrostek (np. +, %)' },
   ];
 
-  const testimonialFields = [
-    { key: 'name', label: 'Imię i nazwisko' },
-    { key: 'role', label: 'Stanowisko' },
-    { key: 'text', label: 'Treść opinii', type: 'textarea' as const },
-    { key: 'avatar', label: 'Avatar (ikonka Material)' },
-    { key: 'avatarImage', label: 'Ścieżka do zdjęcia' },
-  ];
-
   return (
     <div className="space-y-12">
       {/* Hero Section */}
@@ -87,7 +78,7 @@ export const HomepageEditor: React.FC<Props> = ({ initialContent, onSave, saving
       {/* Partners */}
       <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
         <SectionHeader title="Partnerzy" icon="handshake" />
-        <StringListEditor label="Lista partnerów" items={data.partners || []} onChange={(v) => update({ partners: v })} addLabel="Dodaj partnera" />
+        <PartnerListEditor label="Lista partnerów" items={data.partners || []} onChange={(v) => update({ partners: v })} addLabel="Dodaj partnera" />
       </section>
 
       {/* Activity Ticker */}
@@ -111,7 +102,18 @@ export const HomepageEditor: React.FC<Props> = ({ initialContent, onSave, saving
       {/* Testimonials */}
       <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
         <SectionHeader title="Opinie klientów" icon="reviews" />
-        <ListEditor label="Opinie" items={(data.testimonials || []) as unknown as Record<string, string>[]} fields={testimonialFields} onChange={(v) => update({ testimonials: v as unknown as HomepageData['testimonials'] })} addLabel="Dodaj opinię" />
+        <div className="p-6 bg-[var(--color-primary-highlight)] rounded-2xl border border-[var(--color-primary)]/10">
+          <p className="text-sm text-slate-700 font-medium mb-3">
+            Opinie klientów są teraz zarządzane jako osobny moduł w dedykowanej zakładce.
+          </p>
+          <a
+            href="/admin/cms/testimonials"
+            className="inline-flex items-center gap-2 text-[var(--color-primary)] font-bold text-sm hover:underline"
+          >
+            <span className="material-symbols-outlined text-base">reviews</span>
+            Przejdź do zarządzania opiniami
+          </a>
+        </div>
       </section>
 
       {/* Support */}

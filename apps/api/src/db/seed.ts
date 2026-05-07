@@ -1,6 +1,6 @@
 import { db } from './index';
 import { hash } from 'bcryptjs';
-import { carrierServices, users, cmsPages, cmsArticles } from './schema';
+import { carrierServices, users, cmsPages, cmsArticles, cmsTestimonials } from './schema';
 
 async function main() {
   console.log('Seeding carrier services...');
@@ -134,11 +134,11 @@ async function main() {
         heroVisualImage: '/images/home-hero-logistics.jpg',
         heroVisualCaption: 'Operacje paletowe 24/7',
         partners: [
-          'DHL Freight',
-          'FedEx Express',
-          'Raben',
-          'DSV',
-          'DB Schenker',
+          { name: 'DHL Freight', logo: '/images/partners/dhl.svg' },
+          { name: 'FedEx Express', logo: '/images/partners/fedex.svg' },
+          { name: 'Raben', logo: '/images/partners/raben.svg' },
+          { name: 'DSV', logo: '/images/partners/dsv.svg' },
+          { name: 'DB Schenker', logo: '/images/partners/dbschenker.svg' },
         ],
         activityTicker: [
           { city: 'Warszawa', status: 'Odebrano', time: '2 min temu' },
@@ -820,6 +820,40 @@ async function main() {
     .insert(cmsArticles)
     .values(articlesData)
     .onConflictDoNothing({ target: cmsArticles.slug });
+
+  const testimonialsData = [
+    {
+      name: 'Marek Jankowski',
+      role: 'CEO, E-com Group',
+      text: 'Przejście na PaletBroker skróciło czas nadawania przesyłek o połowę. Faktura zbiorcza to zbawienie dla naszej księgowości.',
+      avatar: 'person',
+      avatarImage: '/images/avatars/client-1.webp',
+      isActive: true,
+      sortOrder: 0,
+    },
+    {
+      name: 'Anna Nowak',
+      role: 'Logistics Manager, TechFood',
+      text: 'Najbardziej cenimy sobie dedykowanego opiekuna. W branży spożywczej liczy się każda godzina, a tu zawsze mamy wsparcie.',
+      avatar: 'person_3',
+      avatarImage: '/images/avatars/client-2.webp',
+      isActive: true,
+      sortOrder: 1,
+    },
+    {
+      name: 'Robert Wilk',
+      role: 'Właściciel, Wilk Meble',
+      text: 'Ceny są bezkonkurencyjne, a system śledzenia przesyłek pozwala nam spać spokojnie. Polecam każdemu producentowi.',
+      avatar: 'person_4',
+      avatarImage: '/images/avatars/client-3.webp',
+      isActive: true,
+      sortOrder: 2,
+    },
+  ];
+
+  for (const t of testimonialsData) {
+    await db.insert(cmsTestimonials).values(t).onConflictDoNothing();
+  }
 
   console.log('Seeding done.');
   process.exit(0);

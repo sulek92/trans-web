@@ -17,20 +17,24 @@ Profesjonalna platforma do wyceny, zamawiania i śledzenia transportu paletowego
 
 ```bash
 # 1. Sklonuj i zainstaluj
-git clone <repo-url> && cd strona-transport-wizytowka
+git clone <repo-url> && cd Strona-transport-wizytowka
 npm ci
 
 # 2. Skonfiguruj środowisko
 cp .env.example .env
 # Edytuj .env — ustaw SUPERADMIN_PASSWORD, ADMIN_PASSWORD, JWT_SECRET
 
-# 3. Uruchom z Docker
-docker compose up -d
+# 3. Uruchom infrastrukturę (PostgreSQL, Redis)
+docker compose up -d postgres redis
 
-# 4. Zseeduj bazę
-cd apps/api && npx ts-node src/db/seed.ts
+# 4. Zainicjalizuj bazę danych
+npm run db:push
+npm run db:seed
 
-# 5. Otwórz http://localhost:3000
+# 5. Uruchom aplikację
+npm run dev
+
+# 6. Otwórz http://localhost:3000
 ```
 
 ## Testy

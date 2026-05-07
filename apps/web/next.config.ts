@@ -40,6 +40,10 @@ const nextConfig: NextConfig = {
     return [
       { source: '/icons/icon-192x192.png', destination: '/next.svg' },
       { source: '/icons/icon-512x512.png', destination: '/next.svg' },
+      {
+        source: '/api/backend/:path*',
+        destination: `${process.env.INTERNAL_API_URL || 'http://localhost:4000'}/:path*`,
+      },
     ];
   },
   experimental: {
