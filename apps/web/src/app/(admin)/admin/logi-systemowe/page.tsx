@@ -54,35 +54,35 @@ export default function AuditLogsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-8 bg-white rounded-[32px] border border-[var(--color-divider)] shadow-sm overflow-hidden">
+        <div className="lg:col-span-8 bg-[var(--color-surface-primary)] rounded-[32px] border border-[var(--color-divider)] shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 border-b border-[var(--color-divider)]">
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Data</th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Użytkownik</th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Akcja</th>
-                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Encja</th>
+                <tr className="bg-[var(--color-surface-container)] border-b border-[var(--color-divider)]">
+                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-faint)]">Data</th>
+                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-faint)]">Użytkownik</th>
+                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-faint)]">Akcja</th>
+                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-faint)]">Encja</th>
                   <th className="px-6 py-4"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--color-divider)]">
                 {logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-50 transition-colors group cursor-pointer" onClick={() => setSelectedLog(log)}>
-                    <td className="px-6 py-4 text-xs font-medium text-slate-500">
+                  <tr key={log.id} className="hover:bg-[var(--color-surface-container)] transition-colors group cursor-pointer" onClick={() => setSelectedLog(log)}>
+                    <td className="px-6 py-4 text-xs font-medium text-[var(--color-text-muted)]">
                       {new Date(log.createdAt).toLocaleString('pl-PL')}
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-bold text-[var(--color-on-background)]">{log.actorEmail ?? 'system'}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-md text-[10px] font-bold uppercase">{log.action}</span>
+                      <span className="px-2 py-1 bg-blue-500/10 text-blue-500 rounded-md text-[10px] font-bold uppercase">{log.action}</span>
                     </td>
-                    <td className="px-6 py-4 text-xs text-slate-500 font-medium">
+                    <td className="px-6 py-4 text-xs text-[var(--color-text-muted)] font-medium">
                       {log.entityType} ({(log.entityId ?? 'brak').slice(0, 8)}...)
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <span className="material-symbols-outlined text-slate-300 group-hover:text-[var(--color-primary)] transition-colors">chevron_right</span>
+                      <span className="material-symbols-outlined text-[var(--color-text-faint)] group-hover:text-[var(--color-primary)] transition-colors">chevron_right</span>
                     </td>
                   </tr>
                 ))}
@@ -92,7 +92,7 @@ export default function AuditLogsPage() {
         </div>
 
         <div className="lg:col-span-4 space-y-6">
-          <div className="bg-slate-900 rounded-[32px] p-8 text-white shadow-2xl h-full min-h-[400px] sticky top-24">
+          <div className="bg-[var(--color-on-background)] rounded-[32px] p-8 text-[var(--color-background)] shadow-2xl h-full min-h-[400px] sticky top-24">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
               <span className="material-symbols-outlined text-amber-400">analytics</span>
               Szczegóły Zmian
@@ -101,22 +101,22 @@ export default function AuditLogsPage() {
             {selectedLog ? (
               <div className="space-y-6 animate-fade-in">
                 <div>
-                  <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">Metadane i Diff</div>
-                  <pre className="bg-black/30 p-4 rounded-2xl text-[11px] font-mono overflow-x-auto text-emerald-400 border border-white/5">
+                  <div className="text-[10px] font-bold text-[var(--color-background)]/40 uppercase tracking-widest mb-1">Metadane i Diff</div>
+                  <pre className="bg-black/50 p-4 rounded-2xl text-[11px] font-mono overflow-x-auto text-emerald-400 border border-white/5">
                     {JSON.stringify(selectedLog.metadata, null, 2)}
                   </pre>
                 </div>
-                <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                  <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">Kontekst Wykonania</div>
+                <div className="p-4 bg-[var(--color-surface-primary)]/5 rounded-2xl border border-white/10">
+                  <div className="text-[10px] font-bold text-[var(--color-background)]/40 uppercase tracking-widest mb-2">Kontekst Wykonania</div>
                   <div className="text-xs space-y-2">
-                    <p><span className="text-white/40">ID Logu:</span> {selectedLog.id}</p>
-                    <p><span className="text-white/40">Typ Obiektu:</span> {selectedLog.entityType}</p>
-                    <p><span className="text-white/40">Data:</span> {new Date(selectedLog.createdAt).toISOString()}</p>
+                    <p><span className="text-[var(--color-background)]/40">ID Logu:</span> {selectedLog.id}</p>
+                    <p><span className="text-[var(--color-background)]/40">Typ Obiektu:</span> {selectedLog.entityType}</p>
+                    <p><span className="text-[var(--color-background)]/40">Data:</span> {new Date(selectedLog.createdAt).toISOString()}</p>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="h-full flex flex-col items-center justify-center text-center text-white/20 p-10">
+              <div className="h-full flex flex-col items-center justify-center text-center text-[var(--color-background)]/20 p-10">
                 <span className="material-symbols-outlined text-6xl mb-4 opacity-10">data_object</span>
                 <p className="text-sm italic">Wybierz wpis z listy, aby zobaczyć szczegóły zmian (JSON diff).</p>
               </div>

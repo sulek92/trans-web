@@ -51,14 +51,14 @@ export const TrackingClient = () => {
 
   const statusColor = (s: string): string => {
     const map: Record<string, string> = {
-      delivered: 'bg-emerald-500',
-      in_transit: 'bg-blue-500',
-      pickup: 'bg-amber-500',
-      confirmed: 'bg-purple-500',
-      paid: 'bg-cyan-500',
-      cancelled: 'bg-red-500',
+      delivered: 'bg-[var(--color-success)]',
+      in_transit: 'bg-[var(--color-primary)]',
+      pickup: 'bg-[var(--color-warning)]',
+      confirmed: 'bg-[var(--color-primary-hover)]',
+      paid: 'bg-[var(--color-success)]',
+      cancelled: 'bg-[var(--color-error)]',
     };
-    return map[s] || 'bg-slate-400';
+    return map[s] || 'bg-[var(--color-text-faint)]';
   };
 
   return (

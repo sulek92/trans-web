@@ -127,7 +127,10 @@ export class AuthService implements OnModuleInit {
 
   async onModuleInit() {
     await this.seedAdminUsers().catch((err) => {
-      this.logger.warn('Failed to seed admin users', err instanceof Error ? err.message : String(err));
+      this.logger.warn(
+        'Failed to seed admin users',
+        err instanceof Error ? err.message : String(err),
+      );
     });
   }
 
@@ -136,15 +139,16 @@ export class AuthService implements OnModuleInit {
     if (superAdminPassword) {
       const existing = await this.tryFindDbUserByEmail('sulek92@gmail.com');
       if (!existing) {
-        const passwordHash = await hash(superAdminPassword, this.passwordSaltRounds);
-        await db
-          .insert(users)
-          .values({
-            email: 'sulek92@gmail.com',
-            passwordHash,
-            role: 'superadmin',
-            isVerified: true,
-          });
+        const passwordHash = await hash(
+          superAdminPassword,
+          this.passwordSaltRounds,
+        );
+        await db.insert(users).values({
+          email: 'sulek92@gmail.com',
+          passwordHash,
+          role: 'superadmin',
+          isVerified: true,
+        });
         this.logger.log('Seeded superadmin user (sulek92@gmail.com)');
       }
     }
@@ -157,15 +161,16 @@ export class AuthService implements OnModuleInit {
       if (adminEmail !== 'sulek92@gmail.com') {
         const existing = await this.tryFindDbUserByEmail(adminEmail);
         if (!existing) {
-          const passwordHash = await hash(adminPassword, this.passwordSaltRounds);
-          await db
-            .insert(users)
-            .values({
-              email: adminEmail,
-              passwordHash,
-              role: 'admin',
-              isVerified: true,
-            });
+          const passwordHash = await hash(
+            adminPassword,
+            this.passwordSaltRounds,
+          );
+          await db.insert(users).values({
+            email: adminEmail,
+            passwordHash,
+            role: 'admin',
+            isVerified: true,
+          });
           this.logger.log(`Seeded admin user (${adminEmail})`);
         }
       }
@@ -207,7 +212,9 @@ export class AuthService implements OnModuleInit {
 
       if (accountType === 'company') {
         if (!data.companyName?.trim()) {
-          throw new BadRequestException('Company name is required for business accounts');
+          throw new BadRequestException(
+            'Company name is required for business accounts',
+          );
         }
 
         const [createdCompany] = await db

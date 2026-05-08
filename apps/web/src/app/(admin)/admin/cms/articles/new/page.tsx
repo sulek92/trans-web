@@ -88,7 +88,7 @@ export default function CmsArticleCreate() {
       )}
 
       <div className="space-y-8">
-        <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+        <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
           <SectionHeader title="Podstawowe informacje i SEO" icon="settings" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <TextField label="Slug (unikalny identyfikator URL)" value={slug} onChange={setSlug} />
@@ -105,7 +105,7 @@ export default function CmsArticleCreate() {
           </div>
         </section>
 
-        <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+        <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
           <SectionHeader title="Treść artykułu" icon="edit_note" />
           <TextField
             label="Zajawka (excerpt)"
@@ -125,14 +125,14 @@ export default function CmsArticleCreate() {
           <button
             type="submit"
             disabled={saving}
-            className="bg-[var(--color-primary)] text-white px-8 py-4 rounded-2xl font-bold hover:scale-105 transition-all disabled:opacity-50"
+            className="bg-[var(--color-primary)] text-[var(--color-background)] px-8 py-4 rounded-2xl font-bold hover:scale-105 transition-all disabled:opacity-50"
           >
             {saving ? 'Tworzenie...' : 'Utwórz artykuł'}
           </button>
           <button
             type="button"
             onClick={() => router.push('/admin/cms/articles')}
-            className="border border-slate-200 px-8 py-4 rounded-2xl font-bold hover:bg-slate-50 transition-all"
+            className="border border-[var(--color-divider)] px-8 py-4 rounded-2xl font-bold hover:bg-[var(--color-surface-container)] transition-all"
           >
             Anuluj
           </button>

@@ -160,7 +160,7 @@ export default function ThemeEditorPage() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="bg-[var(--color-primary)] text-white px-8 py-3 rounded-xl font-bold hover:bg-[var(--color-surface-tint)] transition-premium shadow-lg disabled:opacity-50 flex items-center gap-2"
+          className="bg-[var(--color-primary)] text-[var(--color-background)] px-8 py-3 rounded-xl font-bold hover:bg-[var(--color-surface-tint)] transition-premium shadow-lg disabled:opacity-50 flex items-center gap-2"
         >
           <span className="material-symbols-outlined text-lg">{saving ? 'hourglass_top' : 'save'}</span>
           {saving ? 'Zapisywanie...' : 'Zapisz zmiany'}
@@ -178,7 +178,7 @@ export default function ThemeEditorPage() {
         {/* Left Column: Settings */}
         <div className="lg:col-span-2 space-y-8">
           {/* Presets */}
-          <div className="bg-white p-8 rounded-2xl border border-[var(--color-divider)] shadow-sm">
+          <div className="bg-[var(--color-surface-primary)] p-8 rounded-2xl border border-[var(--color-divider)] shadow-sm">
             <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
               <span className="material-symbols-outlined text-[var(--color-primary)]">auto_awesome</span>
               Presety kolorów
@@ -206,7 +206,7 @@ export default function ThemeEditorPage() {
           </div>
 
           {/* Colors */}
-          <div className="bg-white p-8 rounded-2xl border border-[var(--color-divider)] shadow-sm">
+          <div className="bg-[var(--color-surface-primary)] p-8 rounded-2xl border border-[var(--color-divider)] shadow-sm">
             <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
               <span className="material-symbols-outlined text-[var(--color-primary)]">format_color_fill</span>
               Kolory
@@ -236,7 +236,7 @@ export default function ThemeEditorPage() {
                   onClick={() => update('darkModeEnabled', !theme.darkModeEnabled)}
                   className={`w-12 h-7 rounded-full transition-all relative ${theme.darkModeEnabled ? 'bg-[var(--color-primary)]' : 'bg-slate-300'}`}
                 >
-                  <div className={`absolute w-5 h-5 bg-white rounded-full top-1 shadow-md transition-all ${theme.darkModeEnabled ? 'left-6' : 'left-1'}`}></div>
+                  <div className={`absolute w-5 h-5 bg-[var(--color-surface-primary)] rounded-full top-1 shadow-md transition-all ${theme.darkModeEnabled ? 'left-6' : 'left-1'}`}></div>
                 </button>
                 <span className="text-sm font-bold">{theme.darkModeEnabled ? 'Włączony' : 'Wyłączony'}</span>
               </div>
@@ -251,7 +251,7 @@ export default function ThemeEditorPage() {
           </div>
 
           {/* Typography */}
-          <div className="bg-white p-8 rounded-2xl border border-[var(--color-divider)] shadow-sm">
+          <div className="bg-[var(--color-surface-primary)] p-8 rounded-2xl border border-[var(--color-divider)] shadow-sm">
             <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
               <span className="material-symbols-outlined text-[var(--color-primary)]">text_fields</span>
               Typografia
@@ -262,7 +262,7 @@ export default function ThemeEditorPage() {
                 <select
                   value={theme.fontDisplay}
                   onChange={e => update('fontDisplay', e.target.value)}
-                  className="w-full p-3 rounded-xl border border-[var(--color-divider)] bg-white outline-none focus:border-[var(--color-primary)] transition-colors"
+                  className="w-full p-3 rounded-xl border border-[var(--color-divider)] bg-[var(--color-surface-primary)] outline-none focus:border-[var(--color-primary)] transition-colors"
                 >
                   {FONT_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}
                 </select>
@@ -273,7 +273,7 @@ export default function ThemeEditorPage() {
                 <select
                   value={theme.fontBody}
                   onChange={e => update('fontBody', e.target.value)}
-                  className="w-full p-3 rounded-xl border border-[var(--color-divider)] bg-white outline-none focus:border-[var(--color-primary)] transition-colors"
+                  className="w-full p-3 rounded-xl border border-[var(--color-divider)] bg-[var(--color-surface-primary)] outline-none focus:border-[var(--color-primary)] transition-colors"
                 >
                   {FONT_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}
                 </select>
@@ -283,7 +283,7 @@ export default function ThemeEditorPage() {
           </div>
 
           {/* Border Radius */}
-          <div className="bg-white p-8 rounded-2xl border border-[var(--color-divider)] shadow-sm">
+          <div className="bg-[var(--color-surface-primary)] p-8 rounded-2xl border border-[var(--color-divider)] shadow-sm">
             <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
               <span className="material-symbols-outlined text-[var(--color-primary)]">rounded_corner</span>
               Zaokrąglenia (Border Radius)
@@ -313,11 +313,11 @@ export default function ThemeEditorPage() {
         {/* Right Column: Live Preview */}
         <div className="lg:col-span-1">
           <div className="sticky top-8 space-y-6">
-            <div className="bg-white p-6 rounded-2xl border border-[var(--color-divider)] shadow-sm">
+            <div className="bg-[var(--color-surface-primary)] p-6 rounded-2xl border border-[var(--color-divider)] shadow-sm">
               <h3 className="text-sm font-bold text-[var(--color-on-surface-variant)] uppercase tracking-widest mb-4">Podgląd na żywo</h3>
               <div className="rounded-xl overflow-hidden border border-[var(--color-divider)]" style={{ backgroundColor: theme.colorBackground }}>
                 {/* Mini navbar */}
-                <div className="flex items-center gap-3 p-4 bg-white border-b border-[var(--color-divider)]">
+                <div className="flex items-center gap-3 p-4 bg-[var(--color-surface-primary)] border-b border-[var(--color-divider)]">
                   <div className="w-6 h-6 rounded-lg" style={{ backgroundColor: theme.colorPrimary }}></div>
                   <div className="text-xs font-bold" style={{ color: theme.colorPrimary }}>PaletBroker</div>
                   <div className="ml-auto flex gap-2">
@@ -332,7 +332,7 @@ export default function ThemeEditorPage() {
                   <div className="w-3/4 h-3 rounded mb-4 bg-slate-800"></div>
                   <div className="w-2/3 h-2 rounded mb-4 bg-slate-300"></div>
                   <div className="flex gap-2">
-                    <div className="h-8 px-4 rounded-lg text-[10px] text-white flex items-center font-bold" style={{ backgroundColor: theme.colorPrimary }}>CTA</div>
+                    <div className="h-8 px-4 rounded-lg text-[10px] text-[var(--color-background)] flex items-center font-bold" style={{ backgroundColor: theme.colorPrimary }}>CTA</div>
                     <div className="h-8 px-4 rounded-lg text-[10px] flex items-center font-bold border" style={{ borderColor: theme.colorDivider }}>Link</div>
                   </div>
                 </div>
@@ -340,24 +340,24 @@ export default function ThemeEditorPage() {
                 {/* Mini cards */}
                 <div className="px-6 pb-4 grid grid-cols-3 gap-2">
                   {[theme.colorPrimary, theme.colorSecondary, theme.colorTertiary].map((c, i) => (
-                    <div key={i} className="p-3 rounded-lg bg-white border" style={{ borderColor: theme.colorDivider }}>
+                    <div key={i} className="p-3 rounded-lg bg-[var(--color-surface-primary)] border" style={{ borderColor: theme.colorDivider }}>
                       <div className="w-6 h-6 rounded-md mb-2" style={{ backgroundColor: c, opacity: 0.2 }}></div>
                       <div className="w-full h-1.5 rounded bg-slate-200 mb-1"></div>
-                      <div className="w-2/3 h-1 rounded bg-slate-100"></div>
+                      <div className="w-2/3 h-1 rounded bg-[var(--color-surface-container-high)]"></div>
                     </div>
                   ))}
                 </div>
 
                 {/* Mini CTA section */}
                 <div className="m-4 p-4 rounded-xl text-center" style={{ backgroundColor: theme.colorCtaBg }}>
-                  <div className="w-20 h-2 rounded bg-white/40 mx-auto mb-2"></div>
-                  <div className="w-16 h-6 rounded-lg bg-white mx-auto"></div>
+                  <div className="w-20 h-2 rounded bg-[var(--color-surface-primary)]/40 mx-auto mb-2"></div>
+                  <div className="w-16 h-6 rounded-lg bg-[var(--color-surface-primary)] mx-auto"></div>
                 </div>
               </div>
             </div>
 
             {/* Gradient preview */}
-            <div className="bg-white p-6 rounded-2xl border border-[var(--color-divider)] shadow-sm">
+            <div className="bg-[var(--color-surface-primary)] p-6 rounded-2xl border border-[var(--color-divider)] shadow-sm">
               <h3 className="text-sm font-bold text-[var(--color-on-surface-variant)] uppercase tracking-widest mb-4">Gradient</h3>
               <div
                 className="h-16 rounded-2xl shadow-inner"
@@ -368,11 +368,11 @@ export default function ThemeEditorPage() {
             {/* Dark mode preview */}
             {theme.darkModeEnabled && (
               <div className="p-6 rounded-2xl border border-slate-700 shadow-sm" style={{ backgroundColor: theme.colorDarkBg }}>
-                <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest mb-4">Dark mode</h3>
+                <h3 className="text-sm font-bold text-[var(--color-background)]/40 uppercase tracking-widest mb-4">Dark mode</h3>
                 <div className="p-4 rounded-xl" style={{ backgroundColor: theme.colorDarkSurface }}>
                   <div className="w-20 h-2 rounded mb-2" style={{ backgroundColor: theme.colorDarkPrimary }}></div>
-                  <div className="w-full h-2 rounded bg-white/10 mb-1"></div>
-                  <div className="w-2/3 h-2 rounded bg-white/5"></div>
+                  <div className="w-full h-2 rounded bg-[var(--color-surface-primary)]/10 mb-1"></div>
+                  <div className="w-2/3 h-2 rounded bg-[var(--color-surface-primary)]/5"></div>
                 </div>
               </div>
             )}

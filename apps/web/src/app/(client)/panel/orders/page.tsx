@@ -1,10 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { getCookie } from '@/lib/utils';
+import { apiFetch, getApiBaseUrl } from '@/lib/api-url';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToastStore } from '@/lib/store/toast-store';
-import { getApiBaseUrl } from '@/lib/api-url';
 
 interface Order {
   id: string;
@@ -25,9 +24,7 @@ export default function ClientOrdersPage() {
   React.useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await fetch(`${API_URL}/orders/my`, {
-          credentials: 'include'
-        });
+        const response = await apiFetch('/orders/my');
         if (response.ok) {
           const data = await response.json();
           setOrders(data);
@@ -46,10 +43,10 @@ export default function ClientOrdersPage() {
 
   const getStatusStyle = (status: string) => {
     const s = status.toUpperCase();
-    if (['DORĘCZONE', 'DELIVERED', 'COMPLETED'].includes(s)) return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
-    if (['ANULOWANE', 'CANCELLED', 'ERROR'].includes(s)) return 'bg-red-500/10 text-red-500 border-red-500/20';
-    if (['W DRODZE', 'IN_TRANSIT', 'SHIPPED'].includes(s)) return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
-    return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
+    if (['DORĘCZONE', 'DELIVERED', 'COMPLETED'].includes(s)) return 'bg-[var(--color-success)]/10 text-[var(--color-success)] border-[var(--color-success)]/20';
+    if (['ANULOWANE', 'CANCELLED', 'ERROR'].includes(s)) return 'bg-[var(--color-error)]/10 text-[var(--color-error)] border-[var(--color-error)]/20';
+    if (['W DRODZE', 'IN_TRANSIT', 'SHIPPED'].includes(s)) return 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] border-[var(--color-primary)]/20';
+    return 'bg-[var(--color-warning)]/10 text-[var(--color-warning)] border-[var(--color-warning)]/20';
   };
 
   return (
@@ -107,9 +104,7 @@ export default function ClientOrdersPage() {
                         <button 
                           onClick={async (e) => {
                             e.stopPropagation();
-                            const res = await fetch(`${API_URL}/documents/label/${order.id}`, {
-                              credentials: 'include'
-                            });
+                            const res = await apiFetch(`/documents/label/${order.id}`);
                             if (res.ok) {
                               const blob = await res.blob();
                               const url = window.URL.createObjectURL(blob);
@@ -119,7 +114,7 @@ export default function ClientOrdersPage() {
                               a.click();
                             }
                           }}
-                          className="w-11 h-11 flex items-center justify-center rounded-xl text-[var(--color-text-faint)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary-highlight)] transition-premium material-symbols-outlined text-[22px] shadow-sm bg-[var(--color-surface-container)]"
+                          className="w-11 h-11 flex items-center justify-center rounded-xl text-[var(--color-primary)] bg-[var(--color-primary-highlight)] hover:scale-110 transition-premium material-symbols-outlined text-[22px] shadow-sm border border-[var(--color-primary)]/10"
                           title="Pobierz etykietę"
                         >
                           label
@@ -127,9 +122,7 @@ export default function ClientOrdersPage() {
                         <button 
                           onClick={async (e) => {
                             e.stopPropagation();
-                            const res = await fetch(`${API_URL}/documents/invoice/${order.id}`, {
-                              credentials: 'include'
-                            });
+                            const res = await apiFetch(`/documents/invoice/${order.id}`);
                             if (res.ok) {
                               const blob = await res.blob();
                               const url = window.URL.createObjectURL(blob);
@@ -139,7 +132,7 @@ export default function ClientOrdersPage() {
                               a.click();
                             }
                           }}
-                          className="w-11 h-11 flex items-center justify-center rounded-xl text-[var(--color-text-faint)] hover:text-emerald-500 hover:bg-emerald-500/10 transition-premium material-symbols-outlined text-[22px] shadow-sm bg-[var(--color-surface-container)]"
+                          className="w-11 h-11 flex items-center justify-center rounded-xl text-[var(--color-success)] bg-[var(--color-success)]/10 hover:scale-110 transition-premium material-symbols-outlined text-[22px] shadow-sm border border-[var(--color-success)]/20"
                           title="Pobierz fakturę"
                         >
                           receipt_long

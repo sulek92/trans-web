@@ -188,7 +188,7 @@ export function ContactClient({ data: d }: { data: ContactData }) {
           <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="bg-[var(--color-surface-primary)] p-10 rounded-[40px] border border-[var(--color-divider)] shadow-[var(--shadow-premium)] hover:shadow-2xl transition-premium group relative overflow-hidden">
               <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--color-primary)] opacity-[0.03] rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-700"></div>
-              <div className="w-16 h-16 rounded-2xl bg-[var(--color-surface-container)] text-[var(--color-text-faint)] flex items-center justify-center mb-8 group-hover:bg-[var(--color-primary)] group-hover:text-white transition-premium shadow-inner">
+              <div className="w-16 h-16 rounded-2xl bg-[var(--color-primary-highlight)] text-[var(--color-primary)] flex items-center justify-center mb-8 group-hover:scale-110 transition-premium shadow-inner">
                 <span className="material-symbols-outlined text-3xl">call</span>
               </div>
               <div className="font-bold text-2xl mb-2 text-[var(--color-on-background)] tracking-tight">Zadzwoń do nas</div>
@@ -198,7 +198,7 @@ export function ContactClient({ data: d }: { data: ContactData }) {
 
             <div className="bg-[var(--color-surface-primary)] p-10 rounded-[40px] border border-[var(--color-divider)] shadow-[var(--shadow-premium)] hover:shadow-2xl transition-premium group relative overflow-hidden">
               <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--color-primary)] opacity-[0.03] rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-700"></div>
-              <div className="w-16 h-16 rounded-2xl bg-[var(--color-surface-container)] text-[var(--color-text-faint)] flex items-center justify-center mb-8 group-hover:bg-[var(--color-primary)] group-hover:text-white transition-premium shadow-inner">
+              <div className="w-16 h-16 rounded-2xl bg-[var(--color-primary-highlight)] text-[var(--color-primary)] flex items-center justify-center mb-8 group-hover:scale-110 transition-premium shadow-inner">
                 <span className="material-symbols-outlined text-3xl">mail</span>
               </div>
               <div className="font-bold text-2xl mb-2 text-[var(--color-on-background)] tracking-tight">Napisz e-mail</div>

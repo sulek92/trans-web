@@ -8,7 +8,7 @@ import {
   MessageBody,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger, UseGuards } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 
 @WebSocketGateway({
   cors: {
@@ -40,7 +40,7 @@ export class NotificationsGateway
     }
 
     if (userId) {
-      client.join(`user_${userId}`);
+      void client.join(`user_${userId}`);
       this.connectedClients.set(client.id, client);
       this.logger.log(`Client connected: ${client.id}, User: ${userId}`);
     } else {
@@ -58,7 +58,7 @@ export class NotificationsGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { orderId: string },
   ) {
-    client.join(`order_${data.orderId}`);
+    void client.join(`order_${data.orderId}`);
     return { status: 'joined', room: `order_${data.orderId}` };
   }
 

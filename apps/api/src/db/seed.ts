@@ -1,6 +1,12 @@
 import { db } from './index';
 import { hash } from 'bcryptjs';
-import { carrierServices, users, cmsPages, cmsArticles, cmsTestimonials } from './schema';
+import {
+  carrierServices,
+  users,
+  cmsPages,
+  cmsArticles,
+  cmsTestimonials,
+} from './schema';
 
 async function main() {
   console.log('Seeding carrier services...');

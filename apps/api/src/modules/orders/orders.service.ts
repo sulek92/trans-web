@@ -227,12 +227,17 @@ export class OrdersService {
     }
 
     const { sql } = await import('drizzle-orm');
-    
+
     // Fetch current statuses for validation
-    const currentOrders = await db.select({ id: orders.id, status: orders.status }).from(orders).where(sql`${orders.id} = ANY(${ids})` as any);
+    const currentOrders = await db
+      .select({ id: orders.id, status: orders.status })
+      .from(orders)
+      .where(sql`${orders.id} = ANY(${ids})` as any);
     for (const o of currentOrders) {
       if (!this.validateStatusTransition(o.status, status)) {
-        throw new BadRequestException(`Invalid status transition for order ${o.id}: from ${o.status} to ${status}`);
+        throw new BadRequestException(
+          `Invalid status transition for order ${o.id}: from ${o.status} to ${status}`,
+        );
       }
     }
 

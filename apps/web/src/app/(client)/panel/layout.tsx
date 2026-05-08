@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { useWebsocket } from '@/hooks/use-websocket';
-import { jwtDecode } from 'jwt-decode';
 import { AuthGuard } from '@/components/auth/auth-guard';
+import { apiFetch } from '@/lib/api-url';
 
 const ChatWidget = dynamic(
   () => import('@/components/chat/chat-widget').then((mod) => ({ default: mod.ChatWidget })),
@@ -35,18 +35,31 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
   const [userId, setUserId] = React.useState<string | undefined>(undefined);
 
   React.useEffect(() => {
-    const token = getCookie('pb_auth_token');
-    if (token) {
+    const metaStr = getCookie('pb_user_meta');
+    if (metaStr) {
       try {
-        const decoded: any = jwtDecode(token);
-        setUserId(decoded.sub);
+        const meta = JSON.parse(decodeURIComponent(metaStr));
+        setUserId(meta.id);
       } catch (e) {
-        console.error('Failed to decode token', e);
+        console.error('Failed to parse user meta', e);
       }
     }
   }, []);
 
   useWebsocket(userId);
+
+  const handleLogout = async () => {
+    try {
+      // Clear session on server
+      await apiFetch('/auth/logout', { method: 'POST' });
+    } catch (e) {
+      console.error('Failed to logout on server', e);
+    }
+    
+    // Clear all client-side auth cookies (meta)
+    document.cookie = 'pb_user_meta=; path=/; max-age=0; SameSite=Lax';
+    window.location.href = '/logowanie';
+  };
 
   return (
     <AuthGuard>
@@ -91,12 +104,7 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
 
             <div className="mt-8 pt-4 border-t border-[var(--color-divider)] px-4 pb-2">
               <button
-                onClick={() => {
-                  document.cookie = 'pb_auth_token=; path=/; max-age=0; SameSite=Lax';
-                  document.cookie = 'pb_refresh_token=; path=/; max-age=0; SameSite=Lax';
-                  document.cookie = 'pb_user_role=; path=/; max-age=0; SameSite=Lax';
-                  window.location.href = '/logowanie';
-                }}
+                onClick={handleLogout}
                 className="flex items-center gap-3 text-red-500 font-bold text-sm hover:opacity-70 transition-opacity"
               >
                 <span className="material-symbols-outlined text-[20px]">logout</span>

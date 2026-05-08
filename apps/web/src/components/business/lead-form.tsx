@@ -47,23 +47,23 @@ export function BusinessLeadForm() {
   };
 
   return (
-    <div className="bg-white p-12 rounded-[40px] shadow-2xl border border-[var(--color-divider)] relative overflow-hidden group">
+    <div className="bg-[var(--color-surface-primary)] p-12 rounded-[40px] shadow-2xl border border-[var(--color-divider)] relative overflow-hidden group">
       <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-primary)] opacity-5 -mr-16 -mt-16 rounded-full group-hover:scale-150 transition-transform"></div>
       <form className="space-y-6 relative z-10" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+            <label className="text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-widest ml-1">
               {t.business.lead.name}
             </label>
             <input
               required
               name="name"
               placeholder={t.business.lead.namePlaceholder}
-              className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-transparent focus:bg-white focus:border-[var(--color-primary)] outline-none transition-premium font-medium"
+              className="w-full px-6 py-4 rounded-2xl bg-[var(--color-surface-container)] border border-transparent focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-premium font-medium"
             />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+            <label className="text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-widest ml-1">
               {t.business.lead.email}
             </label>
             <input
@@ -71,25 +71,25 @@ export function BusinessLeadForm() {
               type="email"
               name="email"
               placeholder={t.business.lead.emailPlaceholder}
-              className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-transparent focus:bg-white focus:border-[var(--color-primary)] outline-none transition-premium font-medium"
+              className="w-full px-6 py-4 rounded-2xl bg-[var(--color-surface-container)] border border-transparent focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-premium font-medium"
             />
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t.business.lead.company}</label>
+            <label className="text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-widest ml-1">{t.business.lead.company}</label>
             <input
               required
               name="company"
               placeholder={t.business.lead.companyPlaceholder}
-              className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-transparent focus:bg-white focus:border-[var(--color-primary)] outline-none transition-premium font-medium"
+              className="w-full px-6 py-4 rounded-2xl bg-[var(--color-surface-container)] border border-transparent focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-premium font-medium"
             />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t.business.lead.volume}</label>
+            <label className="text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-widest ml-1">{t.business.lead.volume}</label>
             <select
               name="volume"
-              className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-transparent focus:bg-white focus:border-[var(--color-primary)] outline-none transition-premium font-medium appearance-none"
+              className="w-full px-6 py-4 rounded-2xl bg-[var(--color-surface-container)] border border-transparent focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-premium font-medium appearance-none"
             >
               <option value="1-10 palet">1-10 palet</option>
               <option value="11-50 palet">11-50 palet</option>
@@ -98,13 +98,13 @@ export function BusinessLeadForm() {
           </div>
         </div>
         <div className="space-y-2">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">{t.business.lead.phone}</label>
+          <label className="text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-widest ml-1">{t.business.lead.phone}</label>
           <input
             required
             type="tel"
             name="phone"
             placeholder={t.business.lead.phonePlaceholder}
-            className="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-transparent focus:bg-white focus:border-[var(--color-primary)] outline-none transition-premium font-medium"
+            className="w-full px-6 py-4 rounded-2xl bg-[var(--color-surface-container)] border border-transparent focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-premium font-medium"
           />
         </div>
         <button

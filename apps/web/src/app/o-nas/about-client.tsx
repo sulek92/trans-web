@@ -106,8 +106,8 @@ export const AboutClient = ({ data }: { data: AboutData }) => {
               {data.team.map((member, i) => (
                 <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
                   className="p-10 bg-[var(--color-surface-primary)] rounded-[32px] border border-[var(--color-divider)] shadow-sm text-center hover:shadow-xl hover:-translate-y-2 transition-premium group">
-                  <div className="w-24 h-24 rounded-full bg-[var(--color-surface-container)] flex items-center justify-center mx-auto mb-6 shadow-inner border border-[var(--color-divider)]">
-                    <span className="material-symbols-outlined text-5xl text-[var(--color-text-faint)] group-hover:text-[var(--color-primary)] transition-colors">{member.icon}</span>
+                  <div className="w-24 h-24 rounded-full bg-[var(--color-primary-highlight)] flex items-center justify-center mx-auto mb-6 shadow-inner border border-[var(--color-primary)]/10">
+                    <span className="material-symbols-outlined text-5xl text-[var(--color-primary)] group-hover:scale-110 transition-transform">{member.icon}</span>
                   </div>
                   <h3 className="font-bold text-xl mb-1 text-[var(--color-on-background)] tracking-tight">{member.name}</h3>
                   <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--color-primary)]">{member.role}</p>

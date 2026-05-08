@@ -49,12 +49,12 @@ export const ThemeEditor: React.FC<Props> = ({ initialContent, onSave, saving })
 
   return (
     <div className="space-y-12">
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Preset" icon="palette" />
         <TextField label="Nazwa presetu" value={data.presetName || ''} onChange={(v) => update({ presetName: v })} />
       </section>
 
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Kolory (Light Mode)" icon="palette" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <TextField label="Kolor główny (Primary)" value={data.colorPrimary || ''} onChange={(v) => update({ colorPrimary: v })} />
@@ -67,7 +67,7 @@ export const ThemeEditor: React.FC<Props> = ({ initialContent, onSave, saving })
         </div>
       </section>
 
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Kolory (Dark Mode)" icon="dark_mode" />
         <ToggleSwitch label="Dark mode włączony" value={!!data.darkModeEnabled} onChange={(v) => update({ darkModeEnabled: v })} />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -77,7 +77,7 @@ export const ThemeEditor: React.FC<Props> = ({ initialContent, onSave, saving })
         </div>
       </section>
 
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Gradienty" icon="gradient" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <TextField label="Gradient od (gradientFrom)" value={data.gradientFrom || ''} onChange={(v) => update({ gradientFrom: v })} />
@@ -85,7 +85,7 @@ export const ThemeEditor: React.FC<Props> = ({ initialContent, onSave, saving })
         </div>
       </section>
 
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Typografia" icon="text_fields" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <TextField label="Font nagłówków" value={data.fontDisplay || ''} onChange={(v) => update({ fontDisplay: v })} />
@@ -99,7 +99,7 @@ export const ThemeEditor: React.FC<Props> = ({ initialContent, onSave, saving })
         <button
           onClick={handleSave}
           disabled={saving}
-          className="bg-[var(--color-primary)] text-white px-10 py-4 rounded-2xl font-bold hover:scale-105 transition-all disabled:opacity-50 flex items-center gap-2"
+          className="bg-[var(--color-primary)] text-[var(--color-background)] px-10 py-4 rounded-2xl font-bold hover:scale-105 transition-all disabled:opacity-50 flex items-center gap-2"
         >
           <span className="material-symbols-outlined">save</span>
           {saving ? 'Zapisuję...' : 'Zapisz stronę'}

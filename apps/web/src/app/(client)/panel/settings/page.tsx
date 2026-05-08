@@ -176,7 +176,7 @@ export default function ClientSettingsPage() {
         <div className="space-y-8">
           <div className="bg-[var(--color-primary)] rounded-[40px] p-8 text-white shadow-xl shadow-[var(--color-primary)]/20 relative overflow-hidden group">
             <div className="relative z-10">
-              <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center mb-6 shadow-inner group-hover:scale-110 transition-transform">
+              <div className="w-20 h-20 bg-[var(--color-surface-primary)]/20 backdrop-blur-md rounded-3xl flex items-center justify-center mb-6 shadow-inner group-hover:scale-110 transition-transform">
                 <span className="material-symbols-outlined text-4xl">account_circle</span>
               </div>
               <div className="text-2xl font-bold mb-2 tracking-tight">Witaj, {profile?.email?.split('@')[0]}!</div>
@@ -186,9 +186,9 @@ export default function ClientSettingsPage() {
                 document.cookie = 'pb_refresh_token=; path=/; max-age=0; SameSite=Lax';
                 document.cookie = 'pb_user_role=; path=/; max-age=0; SameSite=Lax';
                 window.location.href = '/logowanie';
-              }} className="w-full bg-white text-[var(--color-primary)] py-4 rounded-2xl font-bold text-sm hover:scale-[1.02] transition-premium shadow-lg active:scale-95">Wyloguj ze wszystkich urządzeń</button>
+              }} className="w-full bg-[var(--color-surface-primary)] text-[var(--color-primary)] py-4 rounded-2xl font-bold text-sm hover:scale-[1.02] transition-premium shadow-lg active:scale-95">Wyloguj ze wszystkich urządzeń</button>
             </div>
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-[var(--color-surface-primary)]/10 rounded-full blur-3xl"></div>
           </div>
         </div>
       </div>

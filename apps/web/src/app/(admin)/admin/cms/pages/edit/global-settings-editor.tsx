@@ -78,7 +78,7 @@ export const GlobalSettingsEditor: React.FC<Props> = ({ initialContent, onSave, 
   return (
     <div className="space-y-12">
       {/* Branding */}
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Branding" icon="storefront" />
         <TextField label="Nazwa marki (brandName)" value={data.brandName || ''} onChange={(v) => update({ brandName: v })} />
         <TextField label="Tagline w stopce (footerTagline)" value={data.footerTagline || ''} onChange={(v) => update({ footerTagline: v })} />
@@ -87,7 +87,7 @@ export const GlobalSettingsEditor: React.FC<Props> = ({ initialContent, onSave, 
       </section>
 
       {/* Banner & Maintenance */}
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Baner promocyjny i tryb serwisowy" icon="campaign" />
         <TextField label="Tekst banera (bannerText)" value={data.bannerText || ''} onChange={(v) => update({ bannerText: v })} />
         <TextField label="Kod promocyjny (bannerCode)" value={data.bannerCode || ''} onChange={(v) => update({ bannerCode: v })} />
@@ -98,7 +98,7 @@ export const GlobalSettingsEditor: React.FC<Props> = ({ initialContent, onSave, 
       </section>
 
       {/* Navigation */}
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Nawigacja główna (navLinks)" icon="navigation" />
         <ListEditor
           label="Linki w menu głównym"
@@ -110,7 +110,7 @@ export const GlobalSettingsEditor: React.FC<Props> = ({ initialContent, onSave, 
       </section>
 
       {/* Footer Links */}
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Stopka - Firma" icon="business" />
         <ListEditor
           label="Linki w stopce (Firma)"
@@ -121,7 +121,7 @@ export const GlobalSettingsEditor: React.FC<Props> = ({ initialContent, onSave, 
         />
       </section>
 
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Stopka - Narzędzia" icon="build" />
         <ListEditor
           label="Linki w stopce (Narzędzia)"
@@ -132,7 +132,7 @@ export const GlobalSettingsEditor: React.FC<Props> = ({ initialContent, onSave, 
         />
       </section>
 
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Stopka - Wsparcie" icon="support_agent" />
         <ListEditor
           label="Linki w stopce (Wsparcie)"
@@ -144,15 +144,15 @@ export const GlobalSettingsEditor: React.FC<Props> = ({ initialContent, onSave, 
       </section>
 
       {/* Cookie Consent */}
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Zgoda na cookies (RODO)" icon="cookie" />
-        <p className="text-sm text-slate-500 -mt-2 mb-2">
+        <p className="text-sm text-[var(--color-text-muted)] -mt-2 mb-2">
           Pozostaw puste pola, aby użyć domyślnych tłumaczeń. Wartości nadpisują wszystkie języki.
         </p>
         <ToggleSwitch label="Baner cookies włączony (cookieEnabled)" value={data.cookieEnabled !== false} onChange={(v) => update({ cookieEnabled: v })} />
 
-        <div className="border-t border-slate-100 pt-6">
-          <h4 className="text-sm font-bold text-slate-800 mb-4">Baner (pasek na dole)</h4>
+        <div className="border-t border-[var(--color-divider)] pt-6">
+          <h4 className="text-sm font-bold text-[var(--color-on-background)] mb-4">Baner (pasek na dole)</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <TextField label="Tytuł banera" value={data.cookieBannerTitle || ''} onChange={(v) => update({ cookieBannerTitle: v })} />
             <TextField label="Tekst 'Polityka prywatności'" value={data.cookiePrivacyPolicyLabel || ''} onChange={(v) => update({ cookiePrivacyPolicyLabel: v })} />
@@ -163,16 +163,16 @@ export const GlobalSettingsEditor: React.FC<Props> = ({ initialContent, onSave, 
           </div>
         </div>
 
-        <div className="border-t border-slate-100 pt-6">
-          <h4 className="text-sm font-bold text-slate-800 mb-4">Okno ustawień (modal)</h4>
+        <div className="border-t border-[var(--color-divider)] pt-6">
+          <h4 className="text-sm font-bold text-[var(--color-on-background)] mb-4">Okno ustawień (modal)</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <TextField label="Tytuł modala" value={data.cookieSettingsTitle || ''} onChange={(v) => update({ cookieSettingsTitle: v })} />
             <TextField label="Podtytuł modala" value={data.cookieSettingsSubtitle || ''} onChange={(v) => update({ cookieSettingsSubtitle: v })} />
           </div>
         </div>
 
-        <div className="border-t border-slate-100 pt-6">
-          <h4 className="text-sm font-bold text-slate-800 mb-4">Kategorie cookies</h4>
+        <div className="border-t border-[var(--color-divider)] pt-6">
+          <h4 className="text-sm font-bold text-[var(--color-on-background)] mb-4">Kategorie cookies</h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div className="space-y-2">
               <TextField label="Etykieta 'Niezbędne'" value={data.cookieEssentialLabel || ''} onChange={(v) => update({ cookieEssentialLabel: v })} />
@@ -189,8 +189,8 @@ export const GlobalSettingsEditor: React.FC<Props> = ({ initialContent, onSave, 
           </div>
         </div>
 
-        <div className="border-t border-slate-100 pt-6">
-          <h4 className="text-sm font-bold text-slate-800 mb-4">Przyciski modala</h4>
+        <div className="border-t border-[var(--color-divider)] pt-6">
+          <h4 className="text-sm font-bold text-[var(--color-on-background)] mb-4">Przyciski modala</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <TextField label="Przycisk 'Anuluj'" value={data.cookieCancelButton || ''} onChange={(v) => update({ cookieCancelButton: v })} />
             <TextField label="Przycisk 'Zapisz'" value={data.cookieSaveButton || ''} onChange={(v) => update({ cookieSaveButton: v })} />
@@ -199,7 +199,7 @@ export const GlobalSettingsEditor: React.FC<Props> = ({ initialContent, onSave, 
       </section>
 
       {/* Contact Info */}
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Dane kontaktowe w stopce" icon="contact_phone" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <TextField label="Telefon" value={data.phone || ''} onChange={(v) => update({ phone: v })} />
@@ -214,7 +214,7 @@ export const GlobalSettingsEditor: React.FC<Props> = ({ initialContent, onSave, 
         <button
           onClick={handleSave}
           disabled={saving}
-          className="bg-[var(--color-primary)] text-white px-10 py-4 rounded-2xl font-bold hover:scale-105 transition-all disabled:opacity-50 flex items-center gap-2"
+          className="bg-[var(--color-primary)] text-[var(--color-background)] px-10 py-4 rounded-2xl font-bold hover:scale-105 transition-all disabled:opacity-50 flex items-center gap-2"
         >
           <span className="material-symbols-outlined">save</span>
           {saving ? 'Zapisuję...' : 'Zapisz stronę'}

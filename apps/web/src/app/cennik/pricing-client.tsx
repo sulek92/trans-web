@@ -142,7 +142,7 @@ export function PricingClient({ data: d }: { data: PricingData }) {
                   {d.domesticRates.map((rate, i) => (
                     <div key={i} className="flex flex-col sm:flex-row justify-between items-center py-6 border-b border-[var(--color-divider)] last:border-0 group/row hover:bg-[var(--color-surface-container)] px-8 rounded-3xl transition-premium gap-4">
                       <div className="flex items-center gap-6 w-full sm:w-auto">
-                        <div className="w-14 h-14 rounded-2xl bg-[var(--color-surface-container)] flex items-center justify-center text-[var(--color-text-faint)] group-hover/row:text-[var(--color-primary)] group-hover/row:bg-[var(--color-primary-highlight)] transition-premium flex-shrink-0 shadow-inner">
+                        <div className="w-14 h-14 rounded-2xl bg-[var(--color-primary-highlight)] flex items-center justify-center text-[var(--color-primary)] group-hover/row:scale-110 transition-premium flex-shrink-0 shadow-inner border border-[var(--color-primary)]/5">
                           <span className="material-symbols-outlined text-2xl">{rate.icon}</span>
                         </div>
                         <span className="text-[var(--color-on-background)] font-bold text-lg leading-tight">{formatRateType(rate.type)}</span>
@@ -192,24 +192,24 @@ export function PricingClient({ data: d }: { data: PricingData }) {
         </Tabs>
 
         {/* Guarantee Section */}
-        <div className="bg-[var(--color-secondary)] text-[var(--color-on-secondary)] rounded-[60px] p-10 md:p-20 relative overflow-hidden group shadow-3xl mx-4 sm:mx-0">
+        <div className="bg-[#0f172a] dark:bg-[#111827] text-white rounded-[60px] p-10 md:p-20 relative overflow-hidden group shadow-3xl mx-4 sm:mx-0">
            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[var(--color-primary)] opacity-20 rounded-full -mr-32 -mt-32 blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
            <div className="flex flex-col lg:flex-row gap-16 relative z-10 w-full">
               <div className="w-full lg:w-1/2 flex flex-col items-start">
                  <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center mb-8 shadow-xl"><span className="material-symbols-outlined text-white text-3xl">verified_user</span></div>
                  <h3 className="text-4xl sm:text-5xl font-bold mb-8 tracking-tighter w-full block">{t.pricing.guarantee.title}</h3>
-                 <p className="opacity-70 text-xl leading-relaxed w-full block font-medium">{t.pricing.guarantee.desc}</p>
+                 <p className="text-white/70 text-xl leading-relaxed w-full block font-medium">{t.pricing.guarantee.desc}</p>
               </div>
               <div className="w-full lg:w-1/2 grid grid-cols-1 sm:grid-cols-2 gap-8">
                 <div className="p-10 bg-white/5 rounded-[40px] border border-white/10 hover:bg-white/10 transition-premium group/card w-full backdrop-blur-sm">
                    <div className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] mb-4">{t.pricing.guarantee.insurance}</div>
                    <div className="text-4xl font-bold text-[var(--color-primary)] mb-2 group-hover/card:scale-105 transition-transform tracking-tight">{t.pricing.guarantee.included}</div>
-                   <div className="text-sm opacity-40 font-medium">{t.pricing.guarantee.carrierOcp}</div>
+                   <div className="text-sm text-white/40 font-medium">{t.pricing.guarantee.carrierOcp}</div>
                 </div>
                 <div className="p-10 bg-white/5 rounded-[40px] border border-white/10 hover:bg-white/10 transition-premium group/card w-full backdrop-blur-sm">
                    <div className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] mb-4">{t.pricing.guarantee.fuelSurcharge}</div>
                    <div className="text-4xl font-bold text-[var(--color-primary)] mb-2 group-hover/card:scale-105 transition-transform tracking-tight">0%</div>
-                   <div className="text-sm opacity-40 font-medium">{t.pricing.guarantee.alwaysIncluded}</div>
+                   <div className="text-sm text-white/40 font-medium">{t.pricing.guarantee.alwaysIncluded}</div>
                 </div>
               </div>
            </div>
@@ -229,7 +229,7 @@ export function PricingClient({ data: d }: { data: PricingData }) {
                 { q: t.pricing.faq.q4, a: t.pricing.faq.a4 },
               ].map((faq, i) => (
                 <div key={i} className="bg-[var(--color-surface-primary)] p-12 rounded-[48px] border border-[var(--color-divider)] hover:shadow-3xl hover:-translate-y-2 transition-premium group shadow-sm">
-                   <div className="w-14 h-14 rounded-2xl bg-[var(--color-surface-container)] flex items-center justify-center mb-8 group-hover:bg-[var(--color-primary)] group-hover:text-white transition-premium shadow-inner">
+                   <div className="w-14 h-14 rounded-2xl bg-[var(--color-primary-highlight)] flex items-center justify-center mb-8 group-hover:scale-110 transition-premium shadow-inner border border-[var(--color-primary)]/10 text-[var(--color-primary)]">
                      <span className="material-symbols-outlined text-2xl">help</span>
                    </div>
                    <h4 className="font-bold text-2xl mb-6 group-hover:text-[var(--color-primary)] transition-colors tracking-tight leading-tight">{faq.q}</h4>

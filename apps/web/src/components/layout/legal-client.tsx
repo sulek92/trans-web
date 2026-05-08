@@ -76,7 +76,7 @@ export function LegalClient({ title, lastUpdated, sections }: LegalClientProps) 
                   }`}
                 >
                   <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-[11px] border transition-colors shrink-0 ${
-                    activeSection === i ? 'bg-white/10 border-white/20' : 'bg-[var(--color-surface-container)] border-[var(--color-divider)]'
+                    activeSection === i ? 'bg-[var(--color-surface-primary)]/10 border-white/20' : 'bg-[var(--color-surface-container)] border-[var(--color-divider)]'
                   }`}>
                     {i + 1}
                   </span>

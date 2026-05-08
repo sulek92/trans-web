@@ -66,7 +66,10 @@ export class NewsletterService {
     return { success: true };
   }
 
-  async sendNewsletter(payload: { subject: string; content: string }): Promise<boolean> {
+  async sendNewsletter(payload: {
+    subject: string;
+    content: string;
+  }): Promise<boolean> {
     const subscribers = await this.getSubscribers();
     const activeSubscribers = subscribers.filter((s) => s.isActive);
 

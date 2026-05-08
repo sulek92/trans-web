@@ -12,12 +12,12 @@ export default function InvoicesPage() {
           <p className="text-[var(--color-on-surface-variant)] text-lg">Przeglądaj i pobieraj faktury za swoje zamówienia.</p>
         </div>
 
-        <div className="bg-white rounded-[40px] border border-dashed border-slate-200 p-20 text-center">
-          <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="material-symbols-outlined text-4xl text-slate-300">receipt_long</span>
+        <div className="bg-[var(--color-surface-primary)] rounded-[40px] border border-dashed border-[var(--color-divider)] p-20 text-center">
+          <div className="w-20 h-20 bg-[var(--color-surface-container)] rounded-full flex items-center justify-center mx-auto mb-6">
+            <span className="material-symbols-outlined text-4xl text-[var(--color-text-faint)]">receipt_long</span>
           </div>
-          <h3 className="text-xl font-bold text-slate-900 mb-2">Brak faktur</h3>
-          <p className="text-slate-500 mb-8 max-w-sm mx-auto">
+          <h3 className="text-xl font-bold text-[var(--color-on-background)] mb-2">Brak faktur</h3>
+          <p className="text-[var(--color-text-muted)] mb-8 max-w-sm mx-auto">
             Faktury za zrealizowane zamówienia będą dostępne tutaj.
           </p>
           <Link href="/zamowienia" className="inline-flex items-center gap-2 text-[var(--color-primary)] font-bold hover:underline">

@@ -31,6 +31,7 @@ function LoginContent() {
       const response = await fetch(`${getApiBaseUrl()}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
 
@@ -39,12 +40,6 @@ function LoginContent() {
         setError(payload?.message || 'Niepoprawne dane logowania.');
         return;
       }
-
-      document.cookie = `pb_auth_token=${payload.accessToken}; Path=/; Max-Age=${payload.expiresIn || 43200}; SameSite=Lax`;
-      if (payload.refreshToken) {
-        document.cookie = `pb_refresh_token=${payload.refreshToken}; Path=/; Max-Age=${7 * 24 * 60 * 60}; SameSite=Lax`;
-      }
-      document.cookie = `pb_user_role=${payload.user?.role || 'customer'}; Path=/; Max-Age=${payload.expiresIn || 43200}; SameSite=Lax`;
 
       const nextPath = searchParams.get('next');
       if (payload.user?.role === 'admin' || payload.user?.role === 'superadmin') {

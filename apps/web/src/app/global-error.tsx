@@ -16,7 +16,7 @@ export default function GlobalErrorPage({
         <h1 className="text-3xl font-bold text-slate-800 mb-4">
           Wystąpił krytyczny błąd
         </h1>
-        <p className="text-lg text-slate-500 max-w-lg mb-8">
+        <p className="text-lg text-[var(--color-text-muted)] max-w-lg mb-8">
           Przepraszamy, wystąpił nieoczekiwany błąd. Prosimy odświeżyć stronę.
         </p>
         <button
@@ -26,7 +26,7 @@ export default function GlobalErrorPage({
           Odśwież stronę
         </button>
         {error.digest && (
-          <p className="text-xs text-slate-400 mt-8">
+          <p className="text-xs text-[var(--color-text-faint)] mt-8">
             ID błędu: {error.digest}
           </p>
         )}

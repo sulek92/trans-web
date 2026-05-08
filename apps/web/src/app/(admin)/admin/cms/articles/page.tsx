@@ -76,12 +76,12 @@ export default function CmsArticlesIndex() {
             Zarządzanie treścią
           </div>
           <h1 className="text-4xl font-bold tracking-tight">Artykuły i Blog</h1>
-          <p className="text-slate-500 text-lg">Publikuj aktualności, poradniki i artykuły eksperckie.</p>
+          <p className="text-[var(--color-text-muted)] text-lg">Publikuj aktualności, poradniki i artykuły eksperckie.</p>
         </div>
 
         <Link
           href="/admin/cms/articles/new"
-          className="inline-flex items-center gap-3 bg-[var(--color-primary)] text-white px-8 py-4 rounded-2xl font-bold hover:scale-105 transition-all active:scale-95 shadow-xl shadow-[var(--color-primary)]/20"
+          className="inline-flex items-center gap-3 bg-[var(--color-primary)] text-[var(--color-background)] px-8 py-4 rounded-2xl font-bold hover:scale-105 transition-all active:scale-95 shadow-xl shadow-[var(--color-primary)]/20"
         >
           <span className="material-symbols-outlined">add</span>
           Nowy artykuł
@@ -91,20 +91,20 @@ export default function CmsArticlesIndex() {
       {loading ? (
         <div className="p-12 flex flex-col items-center justify-center space-y-4">
           <div className="w-12 h-12 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
-          <p className="text-slate-500 font-bold">Ładowanie artykułów...</p>
+          <p className="text-[var(--color-text-muted)] font-bold">Ładowanie artykułów...</p>
         </div>
       ) : articles.length === 0 ? (
-        <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-[40px] p-24 text-center space-y-6">
-          <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-300">
+        <div className="bg-[var(--color-surface-container)] border-2 border-dashed border-[var(--color-divider)] rounded-[40px] p-24 text-center space-y-6">
+          <div className="w-20 h-20 bg-[var(--color-surface-container-high)] rounded-full flex items-center justify-center mx-auto text-[var(--color-text-faint)]">
             <span className="material-symbols-outlined text-4xl">post_add</span>
           </div>
           <div className="space-y-2">
-            <h3 className="text-xl font-bold text-slate-900">Brak artykułów</h3>
-            <p className="text-slate-500 max-w-sm mx-auto text-lg">Dodaj pierwszy artykuł, aby zacząć budować centrum wiedzy dla klientów.</p>
+            <h3 className="text-xl font-bold text-[var(--color-on-background)]">Brak artykułów</h3>
+            <p className="text-[var(--color-text-muted)] max-w-sm mx-auto text-lg">Dodaj pierwszy artykuł, aby zacząć budować centrum wiedzy dla klientów.</p>
           </div>
           <Link
             href="/admin/cms/articles/new"
-            className="inline-flex items-center gap-2 bg-[var(--color-primary)] text-white px-6 py-3 rounded-xl font-bold hover:scale-105 transition-all"
+            className="inline-flex items-center gap-2 bg-[var(--color-primary)] text-[var(--color-background)] px-6 py-3 rounded-xl font-bold hover:scale-105 transition-all"
           >
             <span className="material-symbols-outlined">add</span>
             Utwórz pierwszy artykuł
@@ -113,10 +113,10 @@ export default function CmsArticlesIndex() {
       ) : (
         <div className="space-y-4">
           {articles.map((a) => (
-            <div key={a.slug} className="group bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col sm:flex-row sm:items-center gap-6">
+            <div key={a.slug} className="group bg-[var(--color-surface-primary)] border border-[var(--color-divider)] rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col sm:flex-row sm:items-center gap-6">
               <div className="flex-1 min-w-0 space-y-2">
                 <div className="flex items-center gap-3 flex-wrap">
-                  <h3 className="text-lg font-bold text-slate-900 truncate">{a.title}</h3>
+                  <h3 className="text-lg font-bold text-[var(--color-on-background)] truncate">{a.title}</h3>
                   <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                     a.isPublished
                       ? 'bg-green-50 text-green-600 border border-green-100'
@@ -125,16 +125,16 @@ export default function CmsArticlesIndex() {
                     {a.isPublished ? 'Opublikowany' : 'Szkic'}
                   </span>
                   {a.category && (
-                    <span className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-500">
+                    <span className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[var(--color-surface-container-high)] text-[var(--color-text-muted)]">
                       {a.category}
                     </span>
                   )}
                 </div>
-                <div className="text-xs font-mono text-slate-400">slug: {a.slug}</div>
+                <div className="text-xs font-mono text-[var(--color-text-faint)]">slug: {a.slug}</div>
                 {a.excerpt && (
-                  <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">{a.excerpt}</p>
+                  <p className="text-sm text-[var(--color-text-muted)] line-clamp-2 leading-relaxed">{a.excerpt}</p>
                 )}
-                <div className="text-[10px] text-slate-400 font-medium">
+                <div className="text-[10px] text-[var(--color-text-faint)] font-medium">
                   {a.isPublished && a.publishedAt
                     ? `Opublikowano: ${new Date(a.publishedAt).toLocaleDateString('pl-PL')}`
                     : `Zaktualizowano: ${a.updatedAt ? new Date(a.updatedAt).toLocaleDateString('pl-PL') : '—'}`}
@@ -144,14 +144,14 @@ export default function CmsArticlesIndex() {
               <div className="flex items-center gap-2 shrink-0">
                 <Link
                   href={`/admin/cms/articles/edit/${encodeURIComponent(a.slug)}`}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-50 text-slate-700 font-bold text-sm hover:bg-[var(--color-primary)] hover:text-white transition-all"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--color-surface-container)] text-[var(--color-text-muted)] font-bold text-sm hover:bg-[var(--color-primary)] hover:text-[var(--color-background)] transition-all"
                 >
                   <span className="material-symbols-outlined text-sm">edit</span>
                   Edytuj
                 </Link>
                 <button
                   onClick={() => deleteArticle(a.slug)}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-50 text-red-600 font-bold text-sm hover:bg-red-600 hover:text-white transition-all"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-50 text-red-600 font-bold text-sm hover:bg-red-600 hover:text-[var(--color-background)] transition-all"
                 >
                   <span className="material-symbols-outlined text-sm">delete</span>
                   Usuń

@@ -13,7 +13,11 @@ export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
   private transporter: nodemailer.Transporter | null = null;
   private resend: Resend | null = null;
-  private fromEmail = process.env.EMAIL_FROM || (process.env.RESEND_API_KEY ? 'onboarding@resend.dev' : 'PaletBroker <no-reply@paletbroker.pl>');
+  private fromEmail =
+    process.env.EMAIL_FROM ||
+    (process.env.RESEND_API_KEY
+      ? 'onboarding@resend.dev'
+      : 'PaletBroker <no-reply@paletbroker.pl>');
 
   constructor() {
     const resendApiKey = process.env.RESEND_API_KEY;
@@ -45,7 +49,12 @@ export class NotificationsService {
     }
   }
 
-  async sendMail(options: { to: string; subject: string; html: string; text?: string }) {
+  async sendMail(options: {
+    to: string;
+    subject: string;
+    html: string;
+    text?: string;
+  }) {
     if (this.resend) {
       try {
         await this.resend.emails.send({

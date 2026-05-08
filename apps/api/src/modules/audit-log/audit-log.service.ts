@@ -23,7 +23,9 @@ export class AuditLogService {
 
   private isValidUuid(id: string | null | undefined): boolean {
     if (!id) return false;
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      id,
+    );
   }
 
   async record(entry: AuditEntry): Promise<void> {
@@ -36,7 +38,9 @@ export class AuditLogService {
 
     try {
       await db.insert(auditLogs).values({
-        actorUserId: this.isValidUuid(entry.actorUserId) ? entry.actorUserId : null,
+        actorUserId: this.isValidUuid(entry.actorUserId)
+          ? entry.actorUserId
+          : null,
         actorEmail: entry.actorEmail ?? null,
         action: entry.action,
         entityType: entry.entityType,

@@ -229,7 +229,7 @@ export const Navbar = React.memo(function Navbar() {
               <div className="flex items-center gap-5">
                 <div className={cn(
                   "w-12 h-12 rounded-2xl flex items-center justify-center transition-premium",
-                  pathname === link.href ? "bg-white text-[var(--color-primary)] shadow-sm" : "bg-[var(--color-surface-container)] text-[var(--color-text-muted)] group-hover:scale-110"
+                  pathname === link.href ? "bg-[var(--color-surface-primary)] text-[var(--color-primary)] shadow-sm" : "bg-[var(--color-surface-container)] text-[var(--color-text-muted)] group-hover:scale-110"
                 )}>
                   <span className="material-symbols-outlined text-2xl">{link.icon}</span>
                 </div>

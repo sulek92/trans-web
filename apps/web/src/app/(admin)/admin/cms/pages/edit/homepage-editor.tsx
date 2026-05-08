@@ -66,7 +66,7 @@ export const HomepageEditor: React.FC<Props> = ({ initialContent, onSave, saving
   return (
     <div className="space-y-12">
       {/* Hero Section */}
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Sekcja Hero" icon="captive_portal" />
         <TextField label="Odznaka (heroBadge)" value={data.heroBadge || ''} onChange={(v) => update({ heroBadge: v })} />
         <TextField label="Tytuł Hero (heroTitle)" value={data.heroTitle || ''} onChange={(v) => update({ heroTitle: v })} />
@@ -76,34 +76,34 @@ export const HomepageEditor: React.FC<Props> = ({ initialContent, onSave, saving
       </section>
 
       {/* Partners */}
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Partnerzy" icon="handshake" />
         <PartnerListEditor label="Lista partnerów" items={data.partners || []} onChange={(v) => update({ partners: v })} addLabel="Dodaj partnera" />
       </section>
 
       {/* Activity Ticker */}
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Activity Ticker (aktywności na żywo)" icon="pulse_alert" />
         <ListEditor label="Elementy activity ticker" items={(data.activityTicker || []) as unknown as Record<string, string>[]} fields={activityFields} onChange={(v) => update({ activityTicker: v as unknown as HomepageData['activityTicker'] })} addLabel="Dodaj aktywność" />
       </section>
 
       {/* How It Works */}
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Jak to działa" icon="play_circle" />
         <ListEditor label="Kroki" items={(data.howItWorks || []) as unknown as Record<string, string>[]} fields={howItWorksFields} onChange={(v) => update({ howItWorks: v as unknown as HomepageData['howItWorks'] })} addLabel="Dodaj krok" />
       </section>
 
       {/* Stats */}
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Statystyki (liczniki)" icon="bar_chart" />
         <ListEditor label="Statystyki" items={(data.stats || []).map((s) => ({ label: String(s.label || ''), end: String(s.end ?? ''), suffix: String(s.suffix || '') }))} fields={statsFields} onChange={(v) => update({ stats: v.map((s) => ({ label: s.label, end: Number(s.end) || 0, suffix: s.suffix })) })} addLabel="Dodaj statystykę" />
       </section>
 
       {/* Testimonials */}
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Opinie klientów" icon="reviews" />
         <div className="p-6 bg-[var(--color-primary-highlight)] rounded-2xl border border-[var(--color-primary)]/10">
-          <p className="text-sm text-slate-700 font-medium mb-3">
+          <p className="text-sm text-[var(--color-text-muted)] font-medium mb-3">
             Opinie klientów są teraz zarządzane jako osobny moduł w dedykowanej zakładce.
           </p>
           <a
@@ -117,7 +117,7 @@ export const HomepageEditor: React.FC<Props> = ({ initialContent, onSave, saving
       </section>
 
       {/* Support */}
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Sekcja Wsparcie" icon="support_agent" />
         <TextField label="Tytuł wsparcia (supportTitle)" value={data.supportTitle || ''} onChange={(v) => update({ supportTitle: v })} />
         <TextField label="Podtytuł wsparcia (supportSubtitle)" value={data.supportSubtitle || ''} onChange={(v) => update({ supportSubtitle: v })} rows={3} />
@@ -125,7 +125,7 @@ export const HomepageEditor: React.FC<Props> = ({ initialContent, onSave, saving
       </section>
 
       {/* CTA */}
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Call to Action" icon="campaign" />
         <TextField label="Tytuł CTA (ctaTitle)" value={data.ctaTitle || ''} onChange={(v) => update({ ctaTitle: v })} />
         <TextField label="Podtytuł CTA (ctaSubtitle)" value={data.ctaSubtitle || ''} onChange={(v) => update({ ctaSubtitle: v })} rows={3} />
@@ -137,7 +137,7 @@ export const HomepageEditor: React.FC<Props> = ({ initialContent, onSave, saving
         <button
           onClick={handleSave}
           disabled={saving}
-          className="bg-[var(--color-primary)] text-white px-10 py-4 rounded-2xl font-bold hover:scale-105 transition-all disabled:opacity-50 flex items-center gap-2"
+          className="bg-[var(--color-primary)] text-[var(--color-background)] px-10 py-4 rounded-2xl font-bold hover:scale-105 transition-all disabled:opacity-50 flex items-center gap-2"
         >
           <span className="material-symbols-outlined">save</span>
           {saving ? 'Zapisuję...' : 'Zapisz stronę'}

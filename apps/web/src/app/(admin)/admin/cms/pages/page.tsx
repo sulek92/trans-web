@@ -10,7 +10,7 @@ export default async function CmsPagesIndex() {
       <h1 className="text-2xl font-bold mb-4">CMS Pages ({pages.length})</h1>
       <div className="grid gap-3">
         {pages.map((p: any) => (
-          <div key={p.slug} className="p-4 bg-white border rounded flex justify-between items-center">
+          <div key={p.slug} className="p-4 bg-[var(--color-surface-primary)] border rounded flex justify-between items-center">
             <div>
               <strong>{p.title || p.slug}</strong>
               <span className="text-xs text-gray-500 ml-2">/{p.slug}</span>

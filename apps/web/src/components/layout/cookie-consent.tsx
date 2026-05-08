@@ -278,7 +278,7 @@ export const CookieConsent = React.memo(function CookieConsent() {
                     >
                       <motion.div
                         animate={{ x: preferences.analytics ? 24 : 0 }}
-                        className="w-4 h-4 rounded-full bg-white shadow-sm"
+                        className="w-4 h-4 rounded-full bg-[var(--color-surface-primary)] shadow-sm"
                       />
                     </div>
                   </div>
@@ -314,7 +314,7 @@ export const CookieConsent = React.memo(function CookieConsent() {
                     >
                       <motion.div
                         animate={{ x: preferences.marketing ? 24 : 0 }}
-                        className="w-4 h-4 rounded-full bg-white shadow-sm"
+                        className="w-4 h-4 rounded-full bg-[var(--color-surface-primary)] shadow-sm"
                       />
                     </div>
                   </div>

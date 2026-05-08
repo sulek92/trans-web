@@ -56,18 +56,21 @@ export class AuthController {
       maxAge: result.expiresIn * 1000,
     });
 
-    res.cookie('pb_refresh_token', result.refreshToken, {
-      ...cookieOptions,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    if (result.refreshToken) {
+      res.cookie('pb_refresh_token', result.refreshToken, {
+        ...cookieOptions,
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+    }
 
-    // Set non-HttpOnly metadata cookie for frontend UI state
+    // Set non-HttpOnly metadata cookie for frontend UI state (role, email, etc)
     res.cookie(
       'pb_user_meta',
       JSON.stringify({
         id: result.user.id,
         email: result.user.email,
         role: result.user.role,
+        name: result.user.name,
       }),
       {
         ...cookieOptions,

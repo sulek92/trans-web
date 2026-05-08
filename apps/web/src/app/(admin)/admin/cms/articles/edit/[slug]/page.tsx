@@ -93,7 +93,7 @@ export default function CmsArticleEditor() {
     return (
       <div className="p-12 flex flex-col items-center justify-center space-y-4">
         <div className="w-12 h-12 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
-        <p className="text-slate-500 font-bold">Wczytywanie edytora...</p>
+        <p className="text-[var(--color-text-muted)] font-bold">Wczytywanie edytora...</p>
       </div>
     );
   }
@@ -116,7 +116,7 @@ export default function CmsArticleEditor() {
           }`}>
             {published ? 'Opublikowany' : 'Szkic'}
           </span>
-          <div className="text-xs font-mono bg-slate-100 px-3 py-1.5 rounded-lg text-slate-500">
+          <div className="text-xs font-mono bg-[var(--color-surface-container-high)] px-3 py-1.5 rounded-lg text-[var(--color-text-muted)]">
             slug: {slug}
           </div>
         </div>
@@ -130,7 +130,7 @@ export default function CmsArticleEditor() {
       )}
 
       <div className="space-y-8">
-        <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+        <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
           <SectionHeader title="Podstawowe informacje i SEO" icon="settings" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <TextField label="Tytuł artykułu" value={title} onChange={setTitle} />
@@ -147,7 +147,7 @@ export default function CmsArticleEditor() {
         </section>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-          <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+          <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
             <SectionHeader title="Edytor treści" icon="edit_note" />
             <TextField
               label="Zajawka (excerpt) — krótki opis widoczny na liście bloga"
@@ -166,26 +166,26 @@ export default function CmsArticleEditor() {
               <button
                 onClick={onSave}
                 disabled={saving}
-                className="bg-[var(--color-primary)] text-white px-8 py-4 rounded-2xl font-bold hover:scale-105 transition-all disabled:opacity-50"
+                className="bg-[var(--color-primary)] text-[var(--color-background)] px-8 py-4 rounded-2xl font-bold hover:scale-105 transition-all disabled:opacity-50"
               >
                 {saving ? 'Zapisuję...' : 'Zapisz zmiany'}
               </button>
               <button
                 onClick={() => router.push('/admin/cms/articles')}
-                className="border border-slate-200 px-8 py-4 rounded-2xl font-bold hover:bg-slate-50 transition-all"
+                className="border border-[var(--color-divider)] px-8 py-4 rounded-2xl font-bold hover:bg-[var(--color-surface-container)] transition-all"
               >
                 Anuluj
               </button>
             </div>
           </section>
 
-          <section className="bg-[var(--color-surface-container-low)] p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+          <section className="bg-[var(--color-surface-container-low)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
             <SectionHeader title="Podgląd Live" icon="visibility" />
-            <div className="prose prose-slate max-w-none bg-white p-8 rounded-2xl border border-slate-100 min-h-[500px]">
+            <div className="prose prose-slate max-w-none bg-[var(--color-surface-primary)] p-8 rounded-2xl border border-[var(--color-divider)] min-h-[500px]">
               {content ? (
                 <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }} />
               ) : (
-                <p className="text-slate-300 italic text-center py-20">Treść artykułu pojawi się tutaj podczas edycji...</p>
+                <p className="text-[var(--color-text-faint)] italic text-center py-20">Treść artykułu pojawi się tutaj podczas edycji...</p>
               )}
             </div>
           </section>

@@ -91,7 +91,7 @@ export function TestimonialsModule({ fallbackTestimonials }: TestimonialsModuleP
 
   if (loading) {
     return (
-      <section className="py-32 bg-white dark:bg-slate-900 overflow-hidden">
+      <section className="py-32 bg-[var(--color-surface-primary)] dark:bg-slate-900 overflow-hidden">
         <div className="max-w-[1280px] mx-auto px-8">
           <div className="text-center">
             <div className="w-12 h-12 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin mx-auto" />

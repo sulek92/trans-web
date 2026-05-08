@@ -112,7 +112,7 @@ export default function CmsMediaPage() {
     return (
       <div className="p-12 flex flex-col items-center justify-center space-y-4">
         <div className="w-12 h-12 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
-        <p className="text-slate-500 font-bold">Wczytywanie biblioteki...</p>
+        <p className="text-[var(--color-text-muted)] font-bold">Wczytywanie biblioteki...</p>
       </div>
     );
   }
@@ -128,7 +128,7 @@ export default function CmsMediaPage() {
           <h1 className="text-4xl font-bold tracking-tight">Biblioteka Mediów</h1>
         </div>
 
-        <label className="relative flex items-center justify-center gap-3 bg-[var(--color-primary)] text-white px-8 py-4 rounded-2xl font-bold hover:scale-105 transition-all active:scale-95 cursor-pointer shadow-xl shadow-[var(--color-primary)]/20">
+        <label className="relative flex items-center justify-center gap-3 bg-[var(--color-primary)] text-[var(--color-background)] px-8 py-4 rounded-2xl font-bold hover:scale-105 transition-all active:scale-95 cursor-pointer shadow-xl shadow-[var(--color-primary)]/20">
           {uploading ? (
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
           ) : (
@@ -140,21 +140,21 @@ export default function CmsMediaPage() {
       </header>
 
       {items.length === 0 ? (
-        <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-[40px] p-24 text-center space-y-6">
-          <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-300">
+        <div className="bg-[var(--color-surface-container)] border-2 border-dashed border-[var(--color-divider)] rounded-[40px] p-24 text-center space-y-6">
+          <div className="w-20 h-20 bg-[var(--color-surface-container-high)] rounded-full flex items-center justify-center mx-auto text-[var(--color-text-faint)]">
             <span className="material-symbols-outlined text-4xl">image_not_supported</span>
           </div>
           <div className="space-y-2">
-            <h3 className="text-xl font-bold text-slate-900">Brak mediów w bibliotece</h3>
-            <p className="text-slate-500 max-w-sm mx-auto text-lg">Wgraj pierwsze zdjęcia, aby móc z nich korzystać przy tworzeniu treści na stronie.</p>
+            <h3 className="text-xl font-bold text-[var(--color-on-background)]">Brak mediów w bibliotece</h3>
+            <p className="text-[var(--color-text-muted)] max-w-sm mx-auto text-lg">Wgraj pierwsze zdjęcia, aby móc z nich korzystać przy tworzeniu treści na stronie.</p>
           </div>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
           {items.map((m) => (
-            <div key={m.fileName} className="group relative bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500">
+            <div key={m.fileName} className="group relative bg-[var(--color-surface-primary)] border border-[var(--color-divider)] rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500">
               {/* Image Preview Container */}
-              <div className="aspect-square bg-slate-100 relative overflow-hidden">
+              <div className="aspect-square bg-[var(--color-surface-container-high)] relative overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img 
                   src={m.url} 
@@ -163,17 +163,17 @@ export default function CmsMediaPage() {
                 />
                 
                 {/* Overlay Actions */}
-                <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-sm">
+                <div className="absolute inset-0 bg-[var(--color-on-background)]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-sm">
                   <button 
                     onClick={() => copyToClipboard(m.url)}
-                    className="w-10 h-10 rounded-full bg-white text-slate-900 flex items-center justify-center hover:bg-[var(--color-primary)] hover:text-white transition-all transform translate-y-4 group-hover:translate-y-0 duration-500 delay-[0ms]"
+                    className="w-10 h-10 rounded-full bg-[var(--color-surface-primary)] text-[var(--color-on-background)] flex items-center justify-center hover:bg-[var(--color-primary)] hover:text-[var(--color-background)] transition-all transform translate-y-4 group-hover:translate-y-0 duration-500 delay-[0ms]"
                     title="Kopiuj URL"
                   >
                     <span className="material-symbols-outlined text-sm">content_copy</span>
                   </button>
                   <button 
                     onClick={() => onDelete(m.url)}
-                    className="w-10 h-10 rounded-full bg-white text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all transform translate-y-4 group-hover:translate-y-0 duration-500 delay-[50ms]"
+                    className="w-10 h-10 rounded-full bg-[var(--color-surface-primary)] text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-[var(--color-background)] transition-all transform translate-y-4 group-hover:translate-y-0 duration-500 delay-[50ms]"
                     title="Usuń plik"
                   >
                     <span className="material-symbols-outlined text-sm">delete</span>
@@ -183,8 +183,8 @@ export default function CmsMediaPage() {
 
               {/* Info Area */}
               <div className="p-4 space-y-1">
-                <p className="text-xs font-bold text-slate-900 truncate" title={m.fileName}>{m.fileName}</p>
-                <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium">
+                <p className="text-xs font-bold text-[var(--color-on-background)] truncate" title={m.fileName}>{m.fileName}</p>
+                <div className="flex items-center justify-between text-[10px] text-[var(--color-text-faint)] font-medium">
                   <span>{(m.size / 1024).toFixed(1)} KB</span>
                   <span>{new Date(m.updatedAt).toLocaleDateString()}</span>
                 </div>

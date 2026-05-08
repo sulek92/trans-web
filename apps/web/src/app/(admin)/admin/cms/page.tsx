@@ -50,7 +50,7 @@ export default function CmsDashboard() {
       desc: 'Zarządzaj statycznymi stronami, ofertami i treścią strony głównej.',
       icon: 'description',
       href: '/admin/cms/pages',
-      color: 'bg-blue-50 text-blue-600',
+      color: 'bg-blue-500/10 text-blue-500',
       count: stats.pages
     },
     {
@@ -83,7 +83,7 @@ export default function CmsDashboard() {
     <div className="p-8 max-w-7xl mx-auto space-y-12">
       <header className="space-y-2">
         <h1 className="text-4xl font-display-bold font-bold tracking-tight">System CMS</h1>
-        <p className="text-slate-500 text-lg">Witaj w centrum zarządzania treścią PaletBroker. Wybierz obszar, który chcesz edytować.</p>
+        <p className="text-[var(--color-text-muted)] text-lg">Witaj w centrum zarządzania treścią PaletBroker. Wybierz obszar, który chcesz edytować.</p>
       </header>
 
       {/* Stats Quick Grid */}
@@ -92,7 +92,7 @@ export default function CmsDashboard() {
           <Link 
             key={card.href} 
             href={card.href}
-            className="group relative bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:border-[var(--color-primary)]/20 transition-all duration-500 overflow-hidden"
+            className="group relative bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm hover:shadow-xl hover:border-[var(--color-primary)]/20 transition-all duration-500 overflow-hidden"
           >
             <div className={`w-16 h-16 ${card.color} rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500`}>
               <span className="material-symbols-outlined text-3xl">{card.icon}</span>
@@ -102,12 +102,12 @@ export default function CmsDashboard() {
               <div className="flex items-center justify-between">
                 <h3 className="text-2xl font-bold tracking-tight">{card.title}</h3>
                 {loading ? (
-                  <div className="h-6 w-8 bg-slate-100 animate-pulse rounded" />
+                  <div className="h-6 w-8 bg-[var(--color-surface-container-high)] animate-pulse rounded" />
                 ) : card.count !== null ? (
-                  <span className="text-sm font-bold bg-slate-50 px-3 py-1 rounded-full text-slate-400">{card.count}</span>
+                  <span className="text-sm font-bold bg-[var(--color-surface-container)] px-3 py-1 rounded-full text-[var(--color-text-faint)]">{card.count}</span>
                 ) : null}
               </div>
-              <p className="text-slate-500 leading-relaxed">{card.desc}</p>
+              <p className="text-[var(--color-text-muted)] leading-relaxed">{card.desc}</p>
             </div>
 
             <div className="mt-8 flex items-center text-[var(--color-primary)] font-bold text-sm gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-x-[-10px] group-hover:translate-x-0 transition-transform duration-500">
@@ -121,35 +121,35 @@ export default function CmsDashboard() {
       </div>
 
       {/* Shortcuts / Tips Section */}
-      <div className="bg-slate-900 text-white rounded-[40px] p-12 overflow-hidden relative group">
+      <div className="bg-[var(--color-on-background)] text-[var(--color-background)] rounded-[40px] p-12 overflow-hidden relative group">
         <div className="absolute top-0 right-0 p-16 opacity-5 group-hover:scale-110 group-hover:rotate-12 transition-all duration-1000">
           <span className="material-symbols-outlined text-[200px]">auto_awesome</span>
         </div>
         
         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 rounded-full text-xs font-bold uppercase tracking-widest text-[var(--color-primary)]">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[var(--color-surface-primary)]/10 rounded-full text-xs font-bold uppercase tracking-widest text-[var(--color-primary)]">
               <span className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-pulse" />
               Szybka Porada
             </div>
             <h2 className="text-3xl font-bold leading-tight">Edytuj sekcję Hero bezpośrednio na stronie głównej</h2>
-            <p className="text-slate-400 text-lg">Przejdź do edycji strony &quot;home&quot;, aby zmienić napisy na banerze głównym, dodać nowe opinie klientów lub zaktualizować logotypy partnerów.</p>
+            <p className="text-[var(--color-text-faint)] text-lg">Przejdź do edycji strony &quot;home&quot;, aby zmienić napisy na banerze głównym, dodać nowe opinie klientów lub zaktualizować logotypy partnerów.</p>
             <Link 
               href="/admin/cms/pages/edit/home" 
-              className="inline-flex items-center gap-4 bg-[var(--color-primary)] text-white px-8 py-4 rounded-2xl font-bold hover:scale-105 transition-all active:scale-95"
+              className="inline-flex items-center gap-4 bg-[var(--color-primary)] text-[var(--color-background)] px-8 py-4 rounded-2xl font-bold hover:scale-105 transition-all active:scale-95"
             >
               Edytuj Home <span className="material-symbols-outlined">edit</span>
             </Link>
           </div>
           
           <div className="hidden lg:grid grid-cols-2 gap-4">
-            <div className="p-6 bg-white/5 border border-white/10 rounded-3xl space-y-2">
+            <div className="p-6 bg-[var(--color-surface-primary)]/5 border border-white/10 rounded-3xl space-y-2">
               <div className="font-bold">Optymalizacja SEO</div>
-              <div className="text-xs text-slate-500">Każda strona posiada pola Meta Title i Description dla Google.</div>
+              <div className="text-xs text-[var(--color-text-muted)]">Każda strona posiada pola Meta Title i Description dla Google.</div>
             </div>
-            <div className="p-6 bg-white/5 border border-white/10 rounded-3xl space-y-2">
+            <div className="p-6 bg-[var(--color-surface-primary)]/5 border border-white/10 rounded-3xl space-y-2">
               <div className="font-bold">Media Library</div>
-              <div className="text-xs text-slate-500">Wgrywaj pliki WebP dla lepszej wydajności strony.</div>
+              <div className="text-xs text-[var(--color-text-muted)]">Wgrywaj pliki WebP dla lepszej wydajności strony.</div>
             </div>
           </div>
         </div>

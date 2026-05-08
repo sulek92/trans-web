@@ -58,6 +58,14 @@ Status projektu i znane problemy: [TASK.md](TASK.md)
 
 Wymagane zmienne środowiskowe: [.env.example](.env.example)
 
+## Bezpieczeństwo i Autentykacja (v1.2.0+)
+
+W wersji 1.2.0 wprowadzono utwardzone mechanizmy sesji i modernizację UI:
+- **HttpOnly Cookies**: Tokeny `pb_auth_token` i `pb_refresh_token` są teraz przechowywane w bezpiecznych ciasteczkach, niedostępnych dla JavaScript, co drastycznie zwiększa odporność na ataki XSS.
+- **Metadata Cookies**: Stan interfejsu (rola, imię) jest synchronizowany przez ciasteczko `pb_user_meta` (dostępne dla JS), co pozwala na płynną nawigację przy zachowaniu pełnego bezpieczeństwa.
+- **Standard apiFetch**: Frontend korzysta z centralnego wrappera `apiFetch`, który zapewnia spójne przesyłanie poświadczeń (`credentials: include`) i upraszcza komunikację z API.
+- **Premium Dark Mode**: Cały system przeszedł audyt wizualny pod kątem dostępności i estetyki w trybie ciemnym (Dark Mode), z użyciem semantycznych zmiennych projektowych.
+
 ## Struktura projektu
 
 ```

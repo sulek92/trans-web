@@ -6,17 +6,17 @@ import Link from 'next/link';
 function HelpFaqItem({ question, answer }: { question: string; answer: string }) {
   const [isOpen, setIsOpen] = React.useState(false);
   return (
-    <div className="bg-white rounded-3xl border border-[var(--color-divider)] shadow-sm overflow-hidden transition-all duration-300">
+    <div className="bg-[var(--color-surface-primary)] rounded-3xl border border-[var(--color-divider)] shadow-sm overflow-hidden transition-all duration-300">
       <button onClick={() => setIsOpen(!isOpen)} className="w-full text-left p-8 flex items-center justify-between group">
         <h3 className="font-bold text-xl text-[var(--color-on-background)] group-hover:text-[var(--color-primary)] transition-colors">{question}</h3>
-        <span className={`material-symbols-outlined transition-transform duration-300 ${isOpen ? 'rotate-180 text-[var(--color-primary)]' : 'text-slate-300'}`}>expand_more</span>
+        <span className={`material-symbols-outlined transition-transform duration-300 ${isOpen ? 'rotate-180 text-[var(--color-primary)]' : 'text-[var(--color-text-faint)]'}`}>expand_more</span>
       </button>
       <div className={`overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-96' : 'max-h-0'}`}>
-        <div className="p-8 pt-0 text-[var(--color-on-surface-variant)] leading-relaxed border-t border-slate-50">
+        <div className="p-8 pt-0 text-[var(--color-text-muted)] leading-relaxed border-t border-[var(--color-divider)]">
           {answer}
-          <div className="mt-6 flex items-center gap-4 text-xs font-bold text-slate-300 uppercase tracking-widest">
+          <div className="mt-6 flex items-center gap-4 text-xs font-bold text-[var(--color-text-faint)] uppercase tracking-widest">
             Czy to było pomocne?
-            <button className="hover:text-emerald-500 transition-colors flex items-center gap-1"><span className="material-symbols-outlined text-sm">thumb_up</span> Tak</button>
+            <button className="hover:text-[var(--color-primary)] transition-colors flex items-center gap-1"><span className="material-symbols-outlined text-sm">thumb_up</span> Tak</button>
             <button className="hover:text-red-500 transition-colors flex items-center gap-1"><span className="material-symbols-outlined text-sm">thumb_down</span> Nie</button>
           </div>
         </div>
@@ -52,11 +52,11 @@ export function HelpClient({ data: d }: { data: HelpData }) {
           <h1 className="font-display-bold text-5xl font-bold text-[var(--color-on-background)] mb-6">{d.title}</h1>
           <p className="text-[var(--color-on-surface-variant)] text-xl mb-12">{d.subtitle}</p>
           <div className="max-w-3xl mx-auto relative group">
-            <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 text-2xl group-focus-within:text-[var(--color-primary)] transition-colors">search</span>
+            <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] text-2xl group-focus-within:text-[var(--color-primary)] transition-colors">search</span>
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              className="w-full pl-16 pr-8 py-6 rounded-3xl border border-[var(--color-divider)] shadow-lg focus:border-[var(--color-primary)] outline-none transition-premium text-lg bg-white"
+              className="w-full pl-16 pr-8 py-6 rounded-3xl border border-[var(--color-divider)] shadow-lg focus:border-[var(--color-primary)] outline-none transition-premium text-lg bg-[var(--color-surface-primary)] text-[var(--color-on-background)]"
               placeholder="Wpisz słowa kluczowe, np. 'wycena', 'status', 'faktura'..."
             />
           </div>
@@ -64,12 +64,12 @@ export function HelpClient({ data: d }: { data: HelpData }) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-24">
           {d.categories.map((c, i) => (
-            <div key={i} className="bg-white p-10 rounded-[40px] border border-[var(--color-divider)] shadow-sm hover:shadow-xl transition-premium hover:-translate-y-2 group cursor-pointer text-center">
-              <div className="w-16 h-16 rounded-2xl bg-[var(--color-surface-container-low)] text-[var(--color-primary)] flex items-center justify-center mx-auto mb-6 group-hover:bg-[var(--color-primary)] group-hover:text-white transition-premium">
+            <div key={i} className="bg-[var(--color-surface-primary)] p-10 rounded-[40px] border border-[var(--color-divider)] shadow-sm hover:shadow-xl transition-premium hover:-translate-y-2 group cursor-pointer text-center">
+              <div className="w-16 h-16 rounded-2xl bg-[var(--color-surface-container)] text-[var(--color-primary)] flex items-center justify-center mx-auto mb-6 group-hover:bg-[var(--color-primary)] group-hover:text-white transition-premium">
                 <span className="material-symbols-outlined text-3xl">{c.icon}</span>
               </div>
               <h3 className="font-bold text-lg mb-2">{c.title}</h3>
-              <div className="text-xs text-slate-400 font-bold uppercase tracking-widest">{c.count} artykułów</div>
+              <div className="text-xs text-[var(--color-text-faint)] font-bold uppercase tracking-widest">{c.count} artykułów</div>
             </div>
           ))}
         </div>
@@ -83,7 +83,7 @@ export function HelpClient({ data: d }: { data: HelpData }) {
               ))}
             </div>
           ) : (
-            <div className="rounded-3xl border border-dashed border-[var(--color-divider)] bg-white p-10 text-center text-[var(--color-on-surface-variant)]">
+            <div className="rounded-3xl border border-dashed border-[var(--color-divider)] bg-[var(--color-surface-primary)] p-10 text-center text-[var(--color-text-muted)]">
               Nie znaleziono odpowiedzi dla: <span className="font-bold">&ldquo;{query}&rdquo;</span>. Spróbuj innej frazy lub skontaktuj się z nami bezpośrednio.
             </div>
           )}

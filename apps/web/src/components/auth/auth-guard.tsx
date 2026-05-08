@@ -15,19 +15,24 @@ export function AuthGuard({ children, requireAdmin = false, fallback }: AuthGuar
   const [isAuthorized, setIsAuthorized] = React.useState<boolean | null>(null);
 
   React.useEffect(() => {
-    const token = getCookie('pb_auth_token');
-    if (!token) {
+    const userMetaRaw = getCookie('pb_user_meta');
+    if (!userMetaRaw) {
       const loginUrl = `/logowanie?next=${encodeURIComponent(window.location.pathname)}`;
       router.replace(loginUrl);
       return;
     }
 
-    if (requireAdmin) {
-      const roleCookie = getCookie('pb_user_role');
-      if (roleCookie !== 'admin' && roleCookie !== 'superadmin') {
-        router.replace('/logowanie?forbidden=1');
-        return;
+    try {
+      const userMeta = JSON.parse(decodeURIComponent(userMetaRaw));
+      if (requireAdmin) {
+        if (userMeta.role !== 'admin' && userMeta.role !== 'superadmin') {
+          router.replace('/logowanie?forbidden=1');
+          return;
+        }
       }
+    } catch {
+      router.replace('/logowanie?expired=1');
+      return;
     }
 
     setIsAuthorized(true);

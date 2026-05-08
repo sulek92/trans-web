@@ -201,7 +201,7 @@ export default function APIPage() {
                 <h2 className="font-display-bold text-2xl md:text-3xl font-bold text-white mb-4">
                   Bądź pierwszy, gdy API wystartuje
                 </h2>
-                <p className="text-slate-400 text-lg mb-8 leading-relaxed">
+                <p className="text-[var(--color-text-faint)] text-lg mb-8 leading-relaxed">
                   Zostaw swój adres email, a powiadomimy Cię o premierze z ekskluzywnym dostępem do wersji beta.
                 </p>
 
@@ -217,7 +217,7 @@ export default function APIPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="twoj@email.pl"
-                      className="w-full px-6 py-4 rounded-2xl bg-white/10 border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-premium"
+                      className="w-full px-6 py-4 rounded-2xl bg-white/10 border border-white/10 text-white placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-premium"
                       required
                     />
                     <button 

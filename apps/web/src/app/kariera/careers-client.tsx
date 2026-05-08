@@ -91,7 +91,7 @@ export function CareersClient({ cmsContent }: CareersClientProps) {
                   <span className="flex items-center gap-1"><span className="material-symbols-outlined text-sm">schedule</span>{offer.type}</span>
                 </div>
               </div>
-              <div className="w-12 h-12 rounded-xl bg-[var(--color-surface-container)] flex items-center justify-center group-hover:bg-[var(--color-primary)] group-hover:text-white transition-premium shadow-inner">
+              <div className="w-12 h-12 rounded-xl bg-[var(--color-primary-highlight)] flex items-center justify-center text-[var(--color-primary)] group-hover:scale-110 transition-premium shadow-inner border border-[var(--color-primary)]/10">
                 <span className="material-symbols-outlined">arrow_forward</span>
               </div>
             </motion.div>

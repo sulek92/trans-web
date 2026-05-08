@@ -104,13 +104,10 @@ export class UsersController {
     }
 
     const isVerified = body.status === 'ACTIVE';
-    const [targetUser] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, id));
+    const [targetUser] = await db.select().from(users).where(eq(users.id, id));
 
     if (!targetUser) throw new BadRequestException('User not found');
-    
+
     // Protect superadmin from standard admin
     if (targetUser.role === 'superadmin' && req.user?.role !== 'superadmin') {
       throw new BadRequestException('Cannot modify superadmin account');
@@ -180,10 +177,15 @@ export class UsersController {
     const targetUsers = await db
       .select({ id: users.id, role: users.role })
       .from(users)
-      .where(sql`${users.id} = ANY(${body.ids})` as any);
+      .where(sql`${users.id} = ANY(${body.ids})`);
 
-    if (targetUsers.some(u => u.role === 'superadmin') && req.user?.role !== 'superadmin') {
-      throw new BadRequestException('Cannot modify superadmin accounts via bulk action');
+    if (
+      targetUsers.some((u) => u.role === 'superadmin') &&
+      req.user?.role !== 'superadmin'
+    ) {
+      throw new BadRequestException(
+        'Cannot modify superadmin accounts via bulk action',
+      );
     }
 
     const updated = await db
@@ -234,17 +236,20 @@ export class UsersController {
     if (!userPayload) {
       return null;
     }
-    
+
     const identity = this.authService.me(userPayload);
     if (!identity) return null;
-    
+
     try {
-      const [dbUser] = await db.select().from(users).where(eq(users.id, identity.id));
+      const [dbUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, identity.id));
       if (dbUser) return dbUser;
     } catch {
       // Ignore DB errors in fallback mode
     }
-    
+
     return {
       id: identity.id,
       email: identity.email,
@@ -392,16 +397,15 @@ export class UsersController {
     if (dto.firstName) updateData.firstName = dto.firstName;
     if (dto.lastName) updateData.lastName = dto.lastName;
     if (dto.password) {
-      updateData.passwordHash = await this.authService.hashPassword(dto.password);
+      updateData.passwordHash = await this.authService.hashPassword(
+        dto.password,
+      );
     }
 
-    const [targetUser] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, id));
+    const [targetUser] = await db.select().from(users).where(eq(users.id, id));
 
     if (!targetUser) throw new BadRequestException('User not found');
-    
+
     // Protect superadmin from standard admin
     if (targetUser.role === 'superadmin' && req.user?.role !== 'superadmin') {
       throw new BadRequestException('Cannot modify superadmin account');

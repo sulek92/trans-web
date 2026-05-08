@@ -154,7 +154,7 @@ export default function TestimonialsPage() {
     return (
       <div className="p-12 flex flex-col items-center justify-center space-y-4">
         <div className="w-12 h-12 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
-        <p className="text-slate-500 font-bold">Wczytywanie opinii...</p>
+        <p className="text-[var(--color-text-muted)] font-bold">Wczytywanie opinii...</p>
       </div>
     );
   }
@@ -172,7 +172,7 @@ export default function TestimonialsPage() {
       </header>
 
       {/* Form */}
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <h2 className="font-bold text-xl flex items-center gap-2">
           <span className="material-symbols-outlined text-[var(--color-primary)]">{editing ? 'edit' : 'add_circle'}</span>
           {editing ? 'Edytuj opinię' : 'Nowa opinia'}
@@ -180,34 +180,34 @@ export default function TestimonialsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Imię i nazwisko</label>
-            <input className="w-full p-4 rounded-xl bg-slate-50 border border-transparent focus:bg-white focus:border-[var(--color-primary)] outline-none transition-all text-sm" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="np. Marek Jankowski" />
+            <label className="text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-widest ml-1">Imię i nazwisko</label>
+            <input className="w-full p-4 rounded-xl bg-[var(--color-surface-container)] border border-transparent focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="np. Marek Jankowski" />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Stanowisko / Firma</label>
-            <input className="w-full p-4 rounded-xl bg-slate-50 border border-transparent focus:bg-white focus:border-[var(--color-primary)] outline-none transition-all text-sm" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} placeholder="np. CEO, E-com Group" />
+            <label className="text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-widest ml-1">Stanowisko / Firma</label>
+            <input className="w-full p-4 rounded-xl bg-[var(--color-surface-container)] border border-transparent focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} placeholder="np. CEO, E-com Group" />
           </div>
         </div>
 
         <div className="space-y-2">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Treść opinii</label>
-          <textarea className="w-full p-4 rounded-xl bg-slate-50 border border-transparent focus:bg-white focus:border-[var(--color-primary)] outline-none transition-all text-sm" value={form.text} onChange={(e) => setForm({ ...form, text: e.target.value })} rows={4} placeholder="Treść opinii klienta..." />
+          <label className="text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-widest ml-1">Treść opinii</label>
+          <textarea className="w-full p-4 rounded-xl bg-[var(--color-surface-container)] border border-transparent focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm" value={form.text} onChange={(e) => setForm({ ...form, text: e.target.value })} rows={4} placeholder="Treść opinii klienta..." />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Ikona (Material Symbol)</label>
-            <input className="w-full p-4 rounded-xl bg-slate-50 border border-transparent focus:bg-white focus:border-[var(--color-primary)] outline-none transition-all text-sm" value={form.avatar} onChange={(e) => setForm({ ...form, avatar: e.target.value })} placeholder="person" />
+            <label className="text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-widest ml-1">Ikona (Material Symbol)</label>
+            <input className="w-full p-4 rounded-xl bg-[var(--color-surface-container)] border border-transparent focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm" value={form.avatar} onChange={(e) => setForm({ ...form, avatar: e.target.value })} placeholder="person" />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Zdjęcie (avatarImage)</label>
+            <label className="text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-widest ml-1">Zdjęcie (avatarImage)</label>
             <div className="flex items-center gap-3">
               {form.avatarImage ? (
-                <div className="relative w-12 h-12 rounded-xl border border-slate-200 overflow-hidden flex-shrink-0">
+                <div className="relative w-12 h-12 rounded-xl border border-[var(--color-divider)] overflow-hidden flex-shrink-0">
                   <Image src={form.avatarImage} alt="" fill className="object-cover" sizes="48px" />
                 </div>
               ) : null}
-              <label className="cursor-pointer inline-flex items-center gap-1 px-4 py-2 rounded-lg bg-slate-50 border border-slate-200 text-xs font-bold text-slate-600 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors">
+              <label className="cursor-pointer inline-flex items-center gap-1 px-4 py-2 rounded-lg bg-[var(--color-surface-container)] border border-[var(--color-divider)] text-xs font-bold text-[var(--color-text-muted)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors">
                 <span className="material-symbols-outlined text-sm">{uploadingLogo ? 'progress_activity' : 'upload'}</span>
                 {uploadingLogo ? 'Przesyłanie...' : 'Prześlij zdjęcie'}
                 <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} disabled={uploadingLogo} />
@@ -218,32 +218,32 @@ export default function TestimonialsPage() {
             </div>
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Kolejność</label>
-            <input type="number" className="w-full p-4 rounded-xl bg-slate-50 border border-transparent focus:bg-white focus:border-[var(--color-primary)] outline-none transition-all text-sm" value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })} />
+            <label className="text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-widest ml-1">Kolejność</label>
+            <input type="number" className="w-full p-4 rounded-xl bg-[var(--color-surface-container)] border border-transparent focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm" value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })} />
           </div>
         </div>
 
-        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+        <div className="flex items-center justify-between p-4 bg-[var(--color-surface-container)] rounded-xl border border-[var(--color-divider)]">
           <div>
             <div className="font-bold text-sm">Aktywna</div>
-            <p className="text-xs text-slate-400 mt-1">Nieaktywne opinie nie będą wyświetlane na stronie.</p>
+            <p className="text-xs text-[var(--color-text-faint)] mt-1">Nieaktywne opinie nie będą wyświetlane na stronie.</p>
           </div>
           <button
             type="button"
             onClick={() => setForm({ ...form, isActive: !form.isActive })}
             className={`w-12 h-6 rounded-full relative transition-colors ${form.isActive ? 'bg-[var(--color-primary)]' : 'bg-slate-300'}`}
           >
-            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${form.isActive ? 'left-7' : 'left-1'}`} />
+            <div className={`absolute top-1 w-4 h-4 bg-[var(--color-surface-primary)] rounded-full shadow-sm transition-all ${form.isActive ? 'left-7' : 'left-1'}`} />
           </button>
         </div>
 
         <div className="flex gap-4 pt-2">
-          <button onClick={saveItem} disabled={saving || !form.name || !form.text} className="bg-[var(--color-primary)] text-white px-8 py-4 rounded-2xl font-bold hover:scale-105 transition-all disabled:opacity-50 flex items-center gap-2">
+          <button onClick={saveItem} disabled={saving || !form.name || !form.text} className="bg-[var(--color-primary)] text-[var(--color-background)] px-8 py-4 rounded-2xl font-bold hover:scale-105 transition-all disabled:opacity-50 flex items-center gap-2">
             <span className="material-symbols-outlined">save</span>
             {saving ? 'Zapisuję...' : editing ? 'Zapisz zmiany' : 'Dodaj opinię'}
           </button>
           {editing && (
-            <button onClick={cancelEdit} className="border border-slate-200 px-8 py-4 rounded-2xl font-bold hover:bg-slate-50 transition-all">Anuluj</button>
+            <button onClick={cancelEdit} className="border border-[var(--color-divider)] px-8 py-4 rounded-2xl font-bold hover:bg-[var(--color-surface-container)] transition-all">Anuluj</button>
           )}
         </div>
       </section>
@@ -256,16 +256,16 @@ export default function TestimonialsPage() {
         </h2>
 
         {items.length === 0 ? (
-          <div className="p-8 text-center text-slate-300 text-sm border-2 border-dashed border-slate-100 rounded-xl">Brak opinii. Dodaj pierwszą opinię powyżej.</div>
+          <div className="p-8 text-center text-[var(--color-text-faint)] text-sm border-2 border-dashed border-[var(--color-divider)] rounded-xl">Brak opinii. Dodaj pierwszą opinię powyżej.</div>
         ) : (
           <div className="space-y-3">
             {items.map((item) => (
-              <div key={item.id} className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm flex items-start gap-4 group hover:border-[var(--color-primary)]/20 transition-colors">
-                <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100">
+              <div key={item.id} className="bg-[var(--color-surface-primary)] p-6 rounded-[24px] border border-[var(--color-divider)] shadow-sm flex items-start gap-4 group hover:border-[var(--color-primary)]/20 transition-colors">
+                <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-[var(--color-surface-container)] flex items-center justify-center overflow-hidden border border-[var(--color-divider)]">
                   {item.avatarImage ? (
                     <Image src={item.avatarImage} alt={item.name} width={56} height={56} className="object-cover" />
                   ) : (
-                    <span className="material-symbols-outlined text-slate-400 text-2xl">{item.avatar || 'person'}</span>
+                    <span className="material-symbols-outlined text-[var(--color-text-faint)] text-2xl">{item.avatar || 'person'}</span>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -274,13 +274,13 @@ export default function TestimonialsPage() {
                     <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-primary)]">{item.role}</span>
                     {!item.isActive && <span className="text-[9px] bg-red-50 text-red-500 px-2 py-0.5 rounded-full font-bold">Nieaktywna</span>}
                   </div>
-                  <p className="text-sm text-slate-500 line-clamp-2">{item.text}</p>
+                  <p className="text-sm text-[var(--color-text-muted)] line-clamp-2">{item.text}</p>
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                  <button onClick={() => startEdit(item)} className="p-2 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-[var(--color-primary)]" title="Edytuj">
+                  <button onClick={() => startEdit(item)} className="p-2 hover:bg-[var(--color-surface-container)] rounded-lg text-[var(--color-text-faint)] hover:text-[var(--color-primary)]" title="Edytuj">
                     <span className="material-symbols-outlined text-sm">edit</span>
                   </button>
-                  <button onClick={() => { if (confirm('Usunąć tę opinię?')) deleteItem(item.id); }} className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500" title="Usuń">
+                  <button onClick={() => { if (confirm('Usunąć tę opinię?')) deleteItem(item.id); }} className="p-2 hover:bg-red-50 rounded-lg text-[var(--color-text-faint)] hover:text-red-500" title="Usuń">
                     <span className="material-symbols-outlined text-sm">delete</span>
                   </button>
                 </div>

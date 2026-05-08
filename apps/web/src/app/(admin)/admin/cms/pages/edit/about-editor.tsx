@@ -56,13 +56,13 @@ export const AboutEditor: React.FC<Props> = ({ initialContent, onSave, saving })
 
   return (
     <div className="space-y-12">
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Sekcja Hero" icon="captive_portal" />
         <TextField label="Tytuł Hero" value={data.heroTitle || ''} onChange={(v) => update({ heroTitle: v })} />
         <TextField label="Opis Hero" value={data.heroDesc || ''} onChange={(v) => update({ heroDesc: v })} rows={4} />
       </section>
 
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Statystyki Hero" icon="bar_chart" />
         <ListEditor
           label="Statystyki"
@@ -73,13 +73,13 @@ export const AboutEditor: React.FC<Props> = ({ initialContent, onSave, saving })
         />
       </section>
 
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Cytat" icon="format_quote" />
         <TextField label="Cytat" value={data.quote || ''} onChange={(v) => update({ quote: v })} rows={3} />
         <TextField label="Autor cytatu" value={data.quoteAuthor || ''} onChange={(v) => update({ quoteAuthor: v })} />
       </section>
 
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Wartości" icon="verified_user" />
         <ListEditor
           label="Wartości firmy"
@@ -90,7 +90,7 @@ export const AboutEditor: React.FC<Props> = ({ initialContent, onSave, saving })
         />
       </section>
 
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Zespół" icon="groups" />
         <ListEditor
           label="Członkowie zespołu"
@@ -101,7 +101,7 @@ export const AboutEditor: React.FC<Props> = ({ initialContent, onSave, saving })
         />
       </section>
 
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Call to Action" icon="campaign" />
         <TextField label="Tytuł CTA" value={data.ctaTitle || ''} onChange={(v) => update({ ctaTitle: v })} rows={2} />
       </section>
@@ -110,7 +110,7 @@ export const AboutEditor: React.FC<Props> = ({ initialContent, onSave, saving })
         <button
           onClick={handleSave}
           disabled={saving}
-          className="bg-[var(--color-primary)] text-white px-10 py-4 rounded-2xl font-bold hover:scale-105 transition-all disabled:opacity-50 flex items-center gap-2"
+          className="bg-[var(--color-primary)] text-[var(--color-background)] px-10 py-4 rounded-2xl font-bold hover:scale-105 transition-all disabled:opacity-50 flex items-center gap-2"
         >
           <span className="material-symbols-outlined">save</span>
           {saving ? 'Zapisuję...' : 'Zapisz stronę'}

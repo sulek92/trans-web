@@ -113,7 +113,7 @@ export default function NewsletterAdminPage() {
             placeholder="Szukaj po email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="px-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm outline-none focus:border-[var(--color-primary)]"
+            className="px-4 py-2 rounded-xl bg-[var(--color-surface-container)] border border-[var(--color-divider)] text-sm outline-none focus:border-[var(--color-primary)]"
           />
         </div>
       </div>
@@ -130,16 +130,16 @@ export default function NewsletterAdminPage() {
             return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
           }).length, color: 'bg-purple-500' },
         ].map((stat, i) => (
-          <div key={i} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+          <div key={i} className="bg-[var(--color-surface-primary)] p-6 rounded-2xl border border-[var(--color-divider)] shadow-sm">
             <div className={`w-3 h-3 rounded-full ${stat.color} mb-3`} />
             <div className="text-3xl font-bold">{stat.value}</div>
-            <div className="text-xs font-bold text-slate-400 uppercase mt-1">{stat.label}</div>
+            <div className="text-xs font-bold text-[var(--color-text-faint)] uppercase mt-1">{stat.label}</div>
           </div>
         ))}
       </div>
 
       {/* Add form */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+      <div className="bg-[var(--color-surface-primary)] p-6 rounded-2xl border border-[var(--color-divider)] shadow-sm">
         <h3 className="font-bold text-lg mb-4">Dodaj subskrybenta ręcznie</h3>
         <div className="flex gap-3">
           <input
@@ -148,12 +148,12 @@ export default function NewsletterAdminPage() {
             value={newEmail}
             onChange={(e) => setNewEmail(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-            className="flex-1 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:border-[var(--color-primary)]"
+            className="flex-1 px-4 py-3 rounded-xl bg-[var(--color-surface-container)] border border-[var(--color-divider)] outline-none focus:border-[var(--color-primary)]"
           />
           <button
             onClick={handleAdd}
             disabled={adding}
-            className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-xl font-bold hover:scale-105 transition-all disabled:opacity-50"
+            className="bg-[var(--color-primary)] text-[var(--color-background)] px-6 py-3 rounded-xl font-bold hover:scale-105 transition-all disabled:opacity-50"
           >
             {adding ? 'Dodaję...' : 'Dodaj'}
           </button>
@@ -161,31 +161,31 @@ export default function NewsletterAdminPage() {
       </div>
 
       {/* Subscribers list */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="bg-[var(--color-surface-primary)] rounded-2xl border border-[var(--color-divider)] shadow-sm overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-slate-400 font-bold">Ładowanie...</div>
+          <div className="p-12 text-center text-[var(--color-text-faint)] font-bold">Ładowanie...</div>
         ) : subscribers.length === 0 ? (
-          <div className="p-12 text-center text-slate-400">Brak subskrybentów{search ? ' dla podanego wyszukiwania' : ''}.</div>
+          <div className="p-12 text-center text-[var(--color-text-faint)]">Brak subskrybentów{search ? ' dla podanego wyszukiwania' : ''}.</div>
         ) : (
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/50">
-                <th className="text-left p-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Email</th>
-                <th className="text-left p-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
-                <th className="text-left p-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Data zapisu</th>
-                <th className="text-right p-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Akcje</th>
+              <tr className="border-b border-[var(--color-divider)] bg-[var(--color-surface-container)]/50">
+                <th className="text-left p-4 text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-widest">Email</th>
+                <th className="text-left p-4 text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-widest">Status</th>
+                <th className="text-left p-4 text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-widest">Data zapisu</th>
+                <th className="text-right p-4 text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-widest">Akcje</th>
               </tr>
             </thead>
             <tbody>
               {subscribers.map((s) => (
-                <tr key={s.id} className="border-b border-slate-50 hover:bg-slate-50/30 transition-colors">
+                <tr key={s.id} className="border-b border-slate-50 hover:bg-[var(--color-surface-container)]/30 transition-colors">
                   <td className="p-4 font-medium">{s.email}</td>
                   <td className="p-4">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${s.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${s.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-[var(--color-surface-container-high)] text-[var(--color-text-faint)]'}`}>
                       {s.isActive ? 'Aktywny' : 'Nieaktywny'}
                     </span>
                   </td>
-                  <td className="p-4 text-sm text-slate-500">{new Date(s.createdAt).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                  <td className="p-4 text-sm text-[var(--color-text-muted)]">{new Date(s.createdAt).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
                   <td className="p-4 text-right">
                     <button onClick={() => handleDelete(s.id, s.email)} className="text-red-500 hover:text-red-700 font-bold text-sm">
                       Usuń

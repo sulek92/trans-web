@@ -279,23 +279,27 @@ export class AdminController {
     const recentActivity = await this.auditLogService.listRecent(10);
 
     return {
-      chartData: adminStats.ordersOverTime.map((d: { date: string; count: number }) => ({
-        date: d.date,
-        value: d.count,
-      })),
+      chartData: adminStats.ordersOverTime.map(
+        (d: { date: string; count: number }) => ({
+          date: d.date,
+          value: d.count,
+        }),
+      ),
       carrierStats,
       recentActivity,
       revenueByCurrency: adminStats.revenueByCurrency,
       topCustomers: adminStats.topCustomers,
       summary: {
         totalRevenue: adminStats.revenueByCurrency.reduce(
-          (sum: number, c: { currency: string; total: string }) => sum + Number(c.total),
+          (sum: number, c: { currency: string; total: string }) =>
+            sum + Number(c.total),
           0,
         ),
         avgOrderValue:
           recentOrders.length > 0
             ? adminStats.revenueByCurrency.reduce(
-                (sum: number, c: { currency: string; total: string }) => sum + Number(c.total),
+                (sum: number, c: { currency: string; total: string }) =>
+                  sum + Number(c.total),
                 0,
               ) / recentOrders.length
             : 0,

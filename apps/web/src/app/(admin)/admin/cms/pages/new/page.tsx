@@ -52,7 +52,7 @@ export default function CmsPageCreate() {
   };
 
   return (
-    <form onSubmit={onSubmit} className="p-6 space-y-4 bg-white border rounded-md shadow-sm">
+    <form onSubmit={onSubmit} className="p-6 space-y-4 bg-[var(--color-surface-primary)] border rounded-md shadow-sm">
       <h3 className="text-lg font-bold">Dodaj nową stronę CMS</h3>
       {error && <div className="text-sm text-red-700">{error}</div>}
       <div>
@@ -72,7 +72,7 @@ export default function CmsPageCreate() {
         <label htmlFor="published-new">Opublikowana</label>
       </div>
       <div className="flex gap-2">
-        <button className="bg-[var(--color-primary)] text-white px-4 py-2 rounded" type="submit" disabled={loading}>
+        <button className="bg-[var(--color-primary)] text-[var(--color-background)] px-4 py-2 rounded" type="submit" disabled={loading}>
           {loading ? 'Tworzenie...' : 'Utwórz'}
         </button>
         <button className="border border-slate-400 px-4 py-2 rounded" type="button" onClick={() => router.push('/admin/cms/pages')}>

@@ -35,5 +35,4 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   nip?: string;
-
 }

@@ -570,7 +570,11 @@ export class CmsService {
     const cacheKey = 'cms:testimonials';
     const cached = await this.redisService.get(cacheKey);
     if (cached) {
-      try { return JSON.parse(cached); } catch { /* ignore, refetch */ }
+      try {
+        return JSON.parse(cached);
+      } catch {
+        /* ignore, refetch */
+      }
     }
 
     const rows = await db
@@ -617,7 +621,14 @@ export class CmsService {
   }
 
   async createTestimonial(
-    payload: { name: string; role: string; text: string; avatar?: string; avatarImage?: string; sortOrder?: number },
+    payload: {
+      name: string;
+      role: string;
+      text: string;
+      avatar?: string;
+      avatarImage?: string;
+      sortOrder?: number;
+    },
     actor?: ActorContext,
   ) {
     const [created] = await db
@@ -648,7 +659,15 @@ export class CmsService {
 
   async updateTestimonial(
     id: string,
-    payload: { name?: string; role?: string; text?: string; avatar?: string; avatarImage?: string; isActive?: boolean; sortOrder?: number },
+    payload: {
+      name?: string;
+      role?: string;
+      text?: string;
+      avatar?: string;
+      avatarImage?: string;
+      isActive?: boolean;
+      sortOrder?: number;
+    },
     actor?: ActorContext,
   ) {
     const existing = await db
@@ -667,9 +686,13 @@ export class CmsService {
         ...(payload.role !== undefined && { role: payload.role }),
         ...(payload.text !== undefined && { text: payload.text }),
         ...(payload.avatar !== undefined && { avatar: payload.avatar }),
-        ...(payload.avatarImage !== undefined && { avatarImage: payload.avatarImage }),
+        ...(payload.avatarImage !== undefined && {
+          avatarImage: payload.avatarImage,
+        }),
         ...(payload.isActive !== undefined && { isActive: payload.isActive }),
-        ...(payload.sortOrder !== undefined && { sortOrder: payload.sortOrder }),
+        ...(payload.sortOrder !== undefined && {
+          sortOrder: payload.sortOrder,
+        }),
         updatedAt: new Date(),
       })
       .where(eq(cmsTestimonials.id, id))

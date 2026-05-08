@@ -42,14 +42,14 @@ export const OfferEditor: React.FC<Props> = ({ initialContent, onSave, saving })
 
   return (
     <div className="space-y-12">
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Sekcja Hero" icon="captive_portal" />
         <TextField label="Odznaka (heroBadge)" value={data.heroBadge || ''} onChange={(v) => update({ heroBadge: v })} />
         <TextField label="Tytuł Hero" value={data.heroTitle || ''} onChange={(v) => update({ heroTitle: v })} />
         <TextField label="Opis Hero" value={data.heroDesc || ''} onChange={(v) => update({ heroDesc: v })} rows={3} />
       </section>
 
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Benefity B2B" icon="card_giftcard" />
         <ListEditor
           label="Lista benefitów"
@@ -60,7 +60,7 @@ export const OfferEditor: React.FC<Props> = ({ initialContent, onSave, saving })
         />
       </section>
 
-      <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
         <SectionHeader title="Integracje" icon="integration_instructions" />
         <StringListEditor
           label="Lista integracji"
@@ -74,7 +74,7 @@ export const OfferEditor: React.FC<Props> = ({ initialContent, onSave, saving })
         <button
           onClick={handleSave}
           disabled={saving}
-          className="bg-[var(--color-primary)] text-white px-10 py-4 rounded-2xl font-bold hover:scale-105 transition-all disabled:opacity-50 flex items-center gap-2"
+          className="bg-[var(--color-primary)] text-[var(--color-background)] px-10 py-4 rounded-2xl font-bold hover:scale-105 transition-all disabled:opacity-50 flex items-center gap-2"
         >
           <span className="material-symbols-outlined">save</span>
           {saving ? 'Zapisuję...' : 'Zapisz stronę'}

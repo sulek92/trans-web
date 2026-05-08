@@ -62,10 +62,10 @@ export const PalletTypesClient = ({ data }: { data: PalletData }) => {
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1, duration: 0.6 }}
-              viewport={{ once: true }}
-              className="bg-white rounded-[40px] shadow-sm border border-[var(--color-divider)] overflow-hidden flex flex-col hover:shadow-2xl transition-premium group"
+               viewport={{ once: true }}
+              className="bg-[var(--color-surface-primary)] rounded-[40px] shadow-sm border border-[var(--color-divider)] overflow-hidden flex flex-col hover:shadow-2xl transition-premium group"
             >
-              <div className="p-12 bg-slate-50 flex items-center justify-center relative overflow-hidden">
+              <div className="p-12 bg-[var(--color-surface-container)] flex items-center justify-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-[var(--color-primary)] opacity-0 group-hover:opacity-[0.03] transition-opacity"></div>
                 <span className="material-symbols-outlined text-8xl text-[var(--color-primary)] opacity-40 group-hover:scale-110 group-hover:opacity-100 transition-premium">{t.icon}</span>
               </div>
@@ -73,14 +73,14 @@ export const PalletTypesClient = ({ data }: { data: PalletData }) => {
                 <h2 className="text-2xl font-bold mb-6 tracking-tight">{t.name}</h2>
                 <div className="space-y-4 mb-8">
                   {[{ l: 'Wymiary:', v: t.dims }, { l: 'Waga własna:', v: t.weight }, { l: 'Nośność:', v: t.capacity }].map((row, j) => (
-                    <div key={j} className="flex justify-between text-sm py-3 border-b border-slate-50 last:border-0">
-                      <span className="text-slate-400 font-medium">{row.l}</span>
-                      <span className="font-bold text-slate-900">{row.v}</span>
+                    <div key={j} className="flex justify-between text-sm py-3 border-b border-[var(--color-divider)] last:border-0">
+                      <span className="text-[var(--color-text-faint)] font-medium">{row.l}</span>
+                      <span className="font-bold text-[var(--color-on-background)]">{row.v}</span>
                     </div>
                   ))}
                 </div>
-                <p className="text-slate-500 text-sm leading-relaxed mb-10">{t.desc}</p>
-                <Link href={`/?palletType=${palletTypeParam(t.name)}`} className="mt-auto w-full py-5 rounded-2xl bg-white border-2 border-slate-100 text-slate-900 font-bold hover:bg-[var(--color-primary)] hover:text-white hover:border-transparent transition-premium text-center block shadow-sm active:scale-[0.98]">
+                <p className="text-[var(--color-text-muted)] text-sm leading-relaxed mb-10">{t.desc}</p>
+                <Link href={`/?palletType=${palletTypeParam(t.name)}`} className="mt-auto w-full py-5 rounded-2xl bg-[var(--color-surface-primary)] border-2 border-[var(--color-divider)] text-[var(--color-on-background)] font-bold hover:bg-[var(--color-primary)] hover:text-white hover:border-transparent transition-premium text-center block shadow-sm active:scale-[0.98]">
                   Wyceń transport
                 </Link>
               </div>
@@ -92,7 +92,7 @@ export const PalletTypesClient = ({ data }: { data: PalletData }) => {
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mt-32 p-16 bg-white rounded-[50px] border border-[var(--color-divider)] shadow-xl relative overflow-hidden"
+          className="mt-32 p-16 bg-[var(--color-surface-primary)] rounded-[50px] border border-[var(--color-divider)] shadow-xl relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 p-16 opacity-[0.03] pointer-events-none">
             <span className="material-symbols-outlined text-[200px]">straighten</span>
@@ -111,16 +111,16 @@ export const PalletTypesClient = ({ data }: { data: PalletData }) => {
                     viewport={{ once: true }}
                     className="flex gap-4 items-start"
                   >
-                    <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-1">
+                     <div className="w-6 h-6 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center flex-shrink-0 mt-1">
                       <span className="material-symbols-outlined text-sm font-bold">check</span>
                     </div>
-                    <span className="text-slate-600 font-medium leading-relaxed">{item}</span>
+                    <span className="text-[var(--color-text-muted)] font-medium leading-relaxed">{item}</span>
                   </motion.li>
                 ))}
               </ul>
             </div>
-            <div className="aspect-video bg-slate-50 rounded-[40px] flex items-center justify-center border border-slate-100 group">
-              <span className="material-symbols-outlined text-[120px] text-slate-200 group-hover:scale-110 group-hover:text-[var(--color-primary)] transition-premium">straighten</span>
+             <div className="aspect-video bg-[var(--color-surface-container)] rounded-[40px] flex items-center justify-center border border-[var(--color-divider)] group">
+              <span className="material-symbols-outlined text-[120px] text-[var(--color-divider)] group-hover:scale-110 group-hover:text-[var(--color-primary)] transition-premium">straighten</span>
             </div>
           </div>
         </motion.div>

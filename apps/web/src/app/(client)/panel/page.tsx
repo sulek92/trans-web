@@ -2,9 +2,8 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { getCookie } from '@/lib/utils';
+import { apiFetch, getApiBaseUrl } from '@/lib/api-url';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getApiBaseUrl } from '@/lib/api-url';
 
 interface Order {
   id: string;
@@ -29,9 +28,7 @@ export default function PanelPage() {
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${API_URL}/orders/my`, {
-          credentials: 'include'
-        });
+        const response = await apiFetch('/orders/my');
         if (response.ok) {
           const data = await response.json();
           setOrders(data.slice(0, 5));
@@ -119,7 +116,7 @@ export default function PanelPage() {
                     <td className="px-8 py-4 text-sm">
                       <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase border ${
                         order.status === 'DORĘCZONE' 
-                          ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' 
+                          ? 'bg-[var(--color-success)]/10 text-[var(--color-success)] border-[var(--color-success)]/20' 
                           : 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] border-[var(--color-primary)]/20'
                       }`}>
                         {order.status}

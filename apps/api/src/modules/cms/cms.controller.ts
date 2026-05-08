@@ -234,7 +234,15 @@ export class CmsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   async createTestimonial(
-    @Body() payload: { name: string; role: string; text: string; avatar?: string; avatarImage?: string; sortOrder?: number },
+    @Body()
+    payload: {
+      name: string;
+      role: string;
+      text: string;
+      avatar?: string;
+      avatarImage?: string;
+      sortOrder?: number;
+    },
     @Req() req: AuthenticatedRequest,
   ) {
     return this.cmsService.createTestimonial(payload, {
@@ -248,7 +256,16 @@ export class CmsController {
   @Roles('admin')
   async updateTestimonial(
     @Param('id') id: string,
-    @Body() payload: { name?: string; role?: string; text?: string; avatar?: string; avatarImage?: string; isActive?: boolean; sortOrder?: number },
+    @Body()
+    payload: {
+      name?: string;
+      role?: string;
+      text?: string;
+      avatar?: string;
+      avatarImage?: string;
+      isActive?: boolean;
+      sortOrder?: number;
+    },
     @Req() req: AuthenticatedRequest,
   ) {
     return this.cmsService.updateTestimonial(id, payload, {

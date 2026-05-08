@@ -28,7 +28,7 @@ export class JwtAuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
-    
+
     // Try to get token from Authorization header first
     const authHeaderRaw = request.headers.authorization;
     const authHeader =
@@ -37,10 +37,8 @@ export class JwtAuthGuard implements CanActivate {
         : Array.isArray(authHeaderRaw)
           ? authHeaderRaw[0]
           : undefined;
-    
-    let token = authHeader?.startsWith('Bearer ')
-      ? authHeader.slice(7)
-      : null;
+
+    let token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
 
     // Fallback to pb_auth_token cookie
     if (!token && request.cookies) {

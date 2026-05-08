@@ -51,29 +51,29 @@ export default function AddressBookPage() {
         </div>
 
         {isLoading ? (
-          <div className="bg-white rounded-[40px] p-20 text-center text-slate-300">Ładowanie...</div>
+          <div className="bg-[var(--color-surface-primary)] rounded-[40px] p-20 text-center text-[var(--color-text-faint)]">Ładowanie...</div>
         ) : addresses.length === 0 ? (
-          <div className="bg-white rounded-[40px] border border-dashed border-slate-200 p-20 text-center">
-            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span className="material-symbols-outlined text-4xl text-slate-300">location_on</span>
+          <div className="bg-[var(--color-surface-primary)] rounded-[40px] border border-dashed border-[var(--color-divider)] p-20 text-center">
+            <div className="w-20 h-20 bg-[var(--color-surface-container)] rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="material-symbols-outlined text-4xl text-[var(--color-text-faint)]">location_on</span>
             </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">Brak zapisanych adresów</h3>
-            <p className="text-slate-500">Dodaj swój pierwszy adres, aby przyspieszyć nadawanie przesyłek.</p>
+            <h3 className="text-xl font-bold text-[var(--color-on-background)] mb-2">Brak zapisanych adresów</h3>
+            <p className="text-[var(--color-text-muted)]">Dodaj swój pierwszy adres, aby przyspieszyć nadawanie przesyłek.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {addresses.map((addr) => (
-              <div key={addr.id} className="bg-white p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm">
+              <div key={addr.id} className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm">
                 <div className="flex items-center gap-3 mb-4">
-                  <span className="text-[10px] font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-500 uppercase tracking-wider">
+                  <span className="text-[10px] font-bold px-3 py-1 rounded-full bg-[var(--color-surface-container-high)] text-[var(--color-text-muted)] uppercase tracking-wider">
                     {addr.label || 'Adres'}
                   </span>
                 </div>
-                <div className="font-bold text-slate-900 mb-1">{addr.name}</div>
-                {addr.companyName && <div className="text-sm text-slate-500 mb-1">{addr.companyName}</div>}
-                <div className="text-sm text-slate-500">{addr.addressLine}</div>
-                <div className="text-sm text-slate-500">{addr.postalCode} {addr.city}, {addr.country}</div>
-                {addr.phone && <div className="text-sm text-slate-400 mt-2">{addr.phone}</div>}
+                <div className="font-bold text-[var(--color-on-background)] mb-1">{addr.name}</div>
+                {addr.companyName && <div className="text-sm text-[var(--color-text-muted)] mb-1">{addr.companyName}</div>}
+                <div className="text-sm text-[var(--color-text-muted)]">{addr.addressLine}</div>
+                <div className="text-sm text-[var(--color-text-muted)]">{addr.postalCode} {addr.city}, {addr.country}</div>
+                {addr.phone && <div className="text-sm text-[var(--color-text-faint)] mt-2">{addr.phone}</div>}
               </div>
             ))}
           </div>
