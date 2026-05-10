@@ -20,6 +20,11 @@ export const TrackingClient = () => {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [searched, setSearched] = React.useState(false);
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,8 +66,18 @@ export const TrackingClient = () => {
     return map[s] || 'bg-[var(--color-text-faint)]';
   };
 
+  if (!mounted) {
+    return (
+      <main className="min-h-screen bg-background">
+        <div className="max-w-[800px] mx-auto px-8 pt-24 text-center">
+          <h1 className="font-display-bold text-5xl font-bold text-[var(--color-on-background)] mb-4 tracking-tighter">{t.tracking.title}</h1>
+        </div>
+      </main>
+    );
+  }
+
   return (
-    <main className="min-h-screen bg-[var(--color-background)]">
+    <main className="min-h-screen bg-background">
       <div className="max-w-[800px] mx-auto px-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="pt-24 pb-12 text-center">
           <span className="text-[var(--color-primary)] font-bold tracking-[0.4em] uppercase text-[11px] mb-4 block">{t.tracking.label}</span>
@@ -74,13 +89,13 @@ export const TrackingClient = () => {
           className="flex gap-4 mb-16 max-w-2xl mx-auto">
           <div className="flex-1 relative group">
              <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] group-focus-within:text-[var(--color-primary)] transition-colors">qr_code_scanner</span>
-            <input
-              type="text"
-              value={orderNumber}
-              onChange={(e) => setOrderNumber(e.target.value)}
-              placeholder={t.tracking.placeholder}
-              className="w-full pl-14 pr-6 py-5 rounded-2xl bg-[var(--color-surface-container)] border border-[var(--color-divider)] text-lg outline-none focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] transition-premium shadow-inner text-[var(--color-on-background)]"
-            />
+              <input
+                type="text"
+                value={orderNumber}
+                onChange={(e) => setOrderNumber(e.target.value)}
+                placeholder={t.tracking.placeholder}
+                className="w-full pl-14 pr-6 py-5 rounded-2xl bg-surface-container border border-[var(--color-divider)] text-lg outline-none focus:bg-surface-primary focus:border-[var(--color-primary)] transition-premium shadow-inner text-[var(--color-on-background)]"
+              />
           </div>
           <button
             type="submit"
@@ -112,17 +127,17 @@ export const TrackingClient = () => {
                        ['cancelled', 'error'].includes(event.internalStatus.toLowerCase()) ? 'close' : 'local_shipping'}
                     </span>
                   </div>
-                  <div className="bg-[var(--color-surface-primary)] rounded-[32px] p-8 border border-[var(--color-divider)] shadow-sm flex-1 group-hover:border-[var(--color-primary)]/20 transition-premium">
+                  <div className="bg-surface-primary rounded-[32px] p-8 border border-[var(--color-divider)] shadow-sm flex-1 group-hover:border-[var(--color-primary)]/20 transition-premium">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                       <div className="text-left">
                         <div className="flex items-center gap-3 mb-2">
                            <h3 className="font-bold text-xl tracking-tight text-[var(--color-on-background)]">{statusLabel(event.internalStatus)}</h3>
-                           <span className="px-3 py-1 bg-[var(--color-surface-container)] rounded-full text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-faint)]">{event.carrierStatus}</span>
+                           <span className="px-3 py-1 bg-surface-container rounded-full text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-faint)]">{event.carrierStatus}</span>
                         </div>
                         <p className="text-[var(--color-text-muted)] font-medium leading-relaxed">{event.carrierDescription || event.carrierStatus}</p>
-                        {event.location && <p className="text-xs text-[var(--color-text-faint)] mt-4 flex items-center gap-2 font-bold uppercase tracking-widest bg-[var(--color-surface-container)] w-fit px-3 py-1.5 rounded-lg"><span className="material-symbols-outlined text-[16px] text-[var(--color-primary)]">location_on</span> {event.location}</p>}
+                        {event.location && <p className="text-xs text-[var(--color-text-faint)] mt-4 flex items-center gap-2 font-bold uppercase tracking-widest bg-surface-container w-fit px-3 py-1.5 rounded-lg"><span className="material-symbols-outlined text-[16px] text-[var(--color-primary)]">location_on</span> {event.location}</p>}
                       </div>
-                      <span className="text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-[0.2em] bg-[var(--color-surface-container)] px-4 py-2 rounded-xl h-fit border border-[var(--color-divider)]">
+                      <span className="text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-[0.2em] bg-surface-container px-4 py-2 rounded-xl h-fit border border-[var(--color-divider)]">
                         {new Date(event.occurredAt).toLocaleString(locale === 'pl' ? 'pl-PL' : 'en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
@@ -133,7 +148,7 @@ export const TrackingClient = () => {
           )}
 
           {searched && events.length === 0 && !error && !loading && (
-            <div className="text-center p-20 bg-[var(--color-surface-container)] rounded-[48px] border border-dashed border-[var(--color-divider)]">
+            <div className="text-center p-20 bg-surface-container rounded-[48px] border border-dashed border-[var(--color-divider)]">
               <span className="material-symbols-outlined text-7xl text-[var(--color-text-faint)] mb-6 block opacity-20">inventory_2</span>
               <p className="text-[var(--color-on-background)] font-bold text-2xl tracking-tight">{t.tracking.noEvents}</p>
               <p className="text-[var(--color-text-faint)] text-lg mt-2 font-medium">{t.tracking.checkNumber}</p>

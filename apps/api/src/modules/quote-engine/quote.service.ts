@@ -21,6 +21,10 @@ export class QuoteService {
   constructor(private readonly redisService: RedisService) {}
 
   async calculateQuote(params: QuoteRequestDto) {
+    // 1. Calculate Volumetric Weight (L*W*H / 4000 is standard for many pallet carriers)
+    const volumetricWeight = (params.dimensions.length * params.dimensions.width * params.dimensions.height) / 4000;
+    const chargeableWeight = Math.max(params.weight, volumetricWeight);
+
     const exceedsAutomaticDimensionLimits =
       params.dimensions.length > 300 ||
       params.dimensions.width > 300 ||
@@ -28,7 +32,7 @@ export class QuoteService {
 
     const isNonStandard =
       params.palletType === 'custom' ||
-      params.weight > 1200 ||
+      chargeableWeight > 1200 ||
       exceedsAutomaticDimensionLimits;
 
     if (isNonStandard) {
@@ -37,7 +41,9 @@ export class QuoteService {
         results: [],
         isNonStandard: true,
         nonStandardReason:
-          'Waga lub wymiary przekraczają standardowe limity automatycznej wyceny.',
+          chargeableWeight > 1200 
+            ? `Waga całkowita (${chargeableWeight.toFixed(0)}kg) przekracza limit 1200kg dla wyceny automatycznej.` 
+            : 'Wymiary przekraczają standardowe limity automatycznej wyceny.',
       };
     }
 
@@ -62,24 +68,56 @@ export class QuoteService {
       );
     }
 
-    // Filter rules by weight in memory
+    // Filter rules by weight and ROUTE (Country)
     const activeRules = allActiveRules.filter((rule) => {
       const minW = parseFloat(rule.minWeight);
       const maxW = parseFloat(rule.maxWeight);
-      return params.weight >= minW && params.weight <= maxW;
+      
+      // Match weight
+      const weightMatches = chargeableWeight >= minW && chargeableWeight <= maxW;
+      
+      // Match country (if specified in rule, otherwise default to PL)
+      const senderMatches = !rule.senderCountry || rule.senderCountry === params.sender.country;
+      const recipientMatches = !rule.recipientCountry || rule.recipientCountry === params.recipient.country;
+
+      return weightMatches && senderMatches && recipientMatches;
     });
 
     if (activeRules.length === 0) {
-      // Fallback or empty if no rules match weight
       return {
         quoteId: null,
         results: [],
         isNonStandard: false,
-        error: 'Brak dostępnych ofert dla podanych parametrów.',
+        error: `Brak dostępnych ofert dla relacji ${params.sender.country} -> ${params.recipient.country} przy wadze ${chargeableWeight.toFixed(0)}kg.`,
       };
     }
 
-    const surchargesTotal = params.options?.senderPrivate ? 20 : 0;
+    // Surcharge calculation helper
+    const calculateSurcharges = (params: QuoteRequestDto) => {
+      let total = 0;
+      const breakdown: Record<string, number> = {};
+
+      if (params.options?.senderPrivate) {
+        breakdown['Prywatny nadawca'] = 25.0;
+        total += 25.0;
+      }
+      if (params.options?.recipientPrivate) {
+        breakdown['Prywatny odbiorca'] = 25.0;
+        total += 25.0;
+      }
+      if (params.options?.fragile) {
+        breakdown['Ostrożnie'] = 15.0;
+        total += 15.0;
+      }
+      if (params.options?.adr) {
+        breakdown['ADR'] = 80.0;
+        total += 80.0;
+      }
+
+      return { total, breakdown };
+    };
+
+    const { total: surchargesTotal, breakdown: surchargesBreakdown } = calculateSurcharges(params);
 
     const results: CarrierOffer[] = activeRules.map((rule) => {
       const basePrice = parseFloat(rule.basePrice);
@@ -98,7 +136,7 @@ export class QuoteService {
         surchargeBreakdown: {
           basePrice,
           margin: parseFloat(margin.toFixed(2)),
-          surcharges: surchargesTotal,
+          ...surchargesBreakdown,
         },
         eta: rule.carrierCode === 'dpd' ? '1 dzień roboczy' : '1-2 dni robocze',
         availableAdditionalServices:

@@ -43,10 +43,9 @@ const ALLOWED_IMAGE_MIME_TYPES = new Map<string, string>([
 
 @Injectable()
 export class CmsService {
-  private readonly mediaDirectory = path.resolve(
-    process.cwd(),
-    'apps/web/public/images/uploads',
-  );
+  private readonly mediaDirectory = process.env.UPLOAD_DIR 
+    ? path.resolve(process.env.UPLOAD_DIR)
+    : path.resolve(process.cwd(), 'apps/web/public/images/uploads');
 
   constructor(
     private readonly auditLogService: AuditLogService,

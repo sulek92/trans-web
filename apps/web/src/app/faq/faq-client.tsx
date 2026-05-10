@@ -13,6 +13,11 @@ export function FAQClient({ cmsContent }: FAQClientProps) {
   const [searchQuery, setSearchQuery] = React.useState('');
   const [openIndex, setOpenIndex] = React.useState<number | null>(0);
   const [feedbackGiven, setFeedbackGiven] = React.useState<Record<number, boolean>>({});
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Parse CMS content or fallback to i18n dictionary
   const content = React.useMemo(() => {
@@ -42,8 +47,18 @@ export function FAQClient({ cmsContent }: FAQClientProps) {
     setFeedbackGiven(prev => ({ ...prev, [idx]: true }));
   };
 
+  if (!mounted) {
+    return (
+      <div className="max-w-[1000px] mx-auto px-8 py-32 min-h-screen bg-background">
+        <h1 className="text-5xl md:text-7xl font-bold text-[var(--color-on-background)] mb-8 tracking-tight text-center">
+          {content.title}
+        </h1>
+      </div>
+    );
+  }
+
   return (
-    <div key={locale} className="max-w-[1000px] mx-auto px-8 py-32 min-h-screen relative overflow-hidden transition-colors duration-500">
+    <div key={locale} className="max-w-[1000px] mx-auto px-8 py-32 min-h-screen relative overflow-hidden transition-colors duration-500 bg-background">
       {/* Background elements */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[1000px] bg-[var(--color-primary)] opacity-[0.03] rounded-full blur-3xl pointer-events-none -mt-96"></div>
 
@@ -52,7 +67,7 @@ export function FAQClient({ cmsContent }: FAQClientProps) {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 bg-[var(--color-surface-primary)] border border-[var(--color-divider)] rounded-full text-[10px] font-bold uppercase tracking-[0.2em] mb-8 shadow-sm text-[var(--color-text-faint)]"
+          className="inline-flex items-center gap-2 px-4 py-1.5 bg-surface-primary border border-[var(--color-divider)] rounded-full text-[10px] font-bold uppercase tracking-[0.2em] mb-8 shadow-sm text-[var(--color-text-faint)]"
         >
           <span className="material-symbols-outlined text-sm">live_help</span>
           Centrum Wiedzy
@@ -90,7 +105,7 @@ export function FAQClient({ cmsContent }: FAQClientProps) {
           placeholder={content.searchPlaceholder}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-20 pr-10 py-7 bg-[var(--color-surface-primary)] border border-[var(--color-divider)] rounded-[40px] shadow-[var(--shadow-premium)] focus:border-[var(--color-primary)] outline-none transition-premium text-xl font-medium text-[var(--color-on-background)] placeholder:text-[var(--color-text-faint)]"
+          className="w-full pl-20 pr-10 py-7 bg-surface-primary border border-[var(--color-divider)] rounded-[40px] shadow-[var(--shadow-premium)] focus:border-[var(--color-primary)] outline-none transition-premium text-xl font-medium text-[var(--color-on-background)] placeholder:text-[var(--color-text-faint)]"
         />
       </motion.div>
 
@@ -108,8 +123,8 @@ export function FAQClient({ cmsContent }: FAQClientProps) {
                 layout
                 className={`rounded-[40px] border transition-premium overflow-hidden ${
                   isOpen 
-                  ? 'bg-[var(--color-surface-primary)] border-transparent shadow-[var(--shadow-premium)]' 
-                  : 'bg-[var(--color-surface-container)]/30 border-[var(--color-divider)] hover:bg-[var(--color-surface-primary)] hover:shadow-xl'
+                  ? 'bg-surface-primary border-transparent shadow-[var(--shadow-premium)]' 
+                  : 'bg-surface-container/30 border-[var(--color-divider)] hover:bg-surface-primary hover:shadow-xl'
                 }`}
               >
                 <button 
@@ -151,10 +166,10 @@ export function FAQClient({ cmsContent }: FAQClientProps) {
                               </motion.span>
                             ) : (
                               <>
-                                <button onClick={() => handleFeedback(idx)} className="w-12 h-12 rounded-2xl bg-[var(--color-surface-primary)] border border-[var(--color-divider)] flex items-center justify-center text-[var(--color-text-faint)] hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-premium shadow-sm">
+                                <button onClick={() => handleFeedback(idx)} className="w-12 h-12 rounded-2xl bg-surface-primary border border-[var(--color-divider)] flex items-center justify-center text-[var(--color-text-faint)] hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-premium shadow-sm">
                                   <span className="material-symbols-outlined text-lg">thumb_up</span>
                                 </button>
-                                <button onClick={() => handleFeedback(idx)} className="w-12 h-12 rounded-2xl bg-[var(--color-surface-primary)] border border-[var(--color-divider)] flex items-center justify-center text-[var(--color-text-faint)] hover:bg-red-500 hover:text-white hover:border-red-500 transition-premium shadow-sm">
+                                <button onClick={() => handleFeedback(idx)} className="w-12 h-12 rounded-2xl bg-surface-primary border border-[var(--color-divider)] flex items-center justify-center text-[var(--color-text-faint)] hover:bg-red-500 hover:text-white hover:border-red-500 transition-premium shadow-sm">
                                   <span className="material-symbols-outlined text-lg">thumb_down</span>
                                 </button>
                               </>

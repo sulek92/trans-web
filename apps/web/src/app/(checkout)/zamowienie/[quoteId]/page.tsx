@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { useRouter, useParams } from 'next/navigation';
 import { useToastStore } from '@/lib/store/toast-store';
 import { AddressBookModal } from '@/components/checkout/AddressBookModal';
+import { getCookie } from '@/lib/utils';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getApiBaseUrl } from '@/lib/api-url';
@@ -28,6 +29,11 @@ export default function CheckoutWizard() {
   const quoteId = params.quoteId as string;
 
   const API_URL = getApiBaseUrl();
+  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsLoggedIn(!!getCookie('pb_auth_token'));
+  }, []);
 
   const validateStep = () => {
     if (currentStep === 2) {
@@ -106,6 +112,30 @@ export default function CheckoutWizard() {
               Bezpieczne połączenie SSL
             </div>
           </div>
+
+          {!isLoggedIn && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-10 p-6 rounded-3xl bg-blue-50/50 border border-blue-200/50 flex flex-col sm:flex-row items-center justify-between gap-4"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600">
+                  <span className="material-symbols-outlined">person</span>
+                </div>
+                <div>
+                  <div className="font-bold text-[var(--color-on-background)]">Masz już konto?</div>
+                  <div className="text-sm text-[var(--color-text-muted)] font-medium">Zaloguj się, aby skorzystać z książki adresowej i zbierać punkty.</div>
+                </div>
+              </div>
+              <Link 
+                href={`/logowanie?next=${encodeURIComponent(window.location.pathname)}`}
+                className="px-6 py-3 bg-white text-[var(--color-primary)] font-bold rounded-xl border border-blue-100 hover:bg-blue-50 transition-premium shadow-sm whitespace-nowrap"
+              >
+                Zaloguj się
+              </Link>
+            </motion.div>
+          )}
           
           <div className="relative mb-12 px-4 sm:px-0">
             <div aria-hidden="true" className="absolute inset-0 flex items-center px-6">

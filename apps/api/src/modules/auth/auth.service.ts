@@ -23,12 +23,14 @@ interface AuthUser {
   email: string;
   role: 'admin' | 'customer' | 'superadmin';
   password: string;
+  name?: string;
 }
 
 type JwtPayload = {
   sub: string;
   email: string;
   role: 'admin' | 'customer' | 'superadmin';
+  name?: string;
   type: 'access' | 'refresh';
   jti: string;
   iat?: number;
@@ -292,6 +294,7 @@ export class AuthService implements OnModuleInit {
       id: string;
       email: string;
       role: 'admin' | 'customer' | 'superadmin';
+      name?: string;
     } | null = null;
 
     if (dbUser?.passwordHash) {
@@ -495,6 +498,7 @@ export class AuthService implements OnModuleInit {
     sub: string;
     email: string;
     role: 'admin' | 'customer' | 'superadmin';
+    name?: string;
   }) {
     const accessJti = randomUUID();
     const refreshJti = randomUUID();
@@ -616,11 +620,13 @@ export class AuthService implements OnModuleInit {
     id: string;
     email: string;
     role: 'admin' | 'customer' | 'superadmin';
+    name?: string;
   } {
     return {
       id: user.id,
       email: user.email,
       role: this.normalizeRole(user.role),
+      name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : (user.firstName || user.lastName || undefined),
     };
   }
 

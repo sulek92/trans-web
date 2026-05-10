@@ -18,10 +18,10 @@ import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { Throttle } from '@nestjs/throttler';
-import type { Request } from 'express';
+
 
 type AuthenticatedRequest = Request & {
-  user?: { sub: string; email: string; role: 'admin' | 'customer' };
+  user?: { sub: string; email: string; role: 'admin' | 'customer' | 'superadmin'; name?: string };
 };
 
 @Controller('auth')

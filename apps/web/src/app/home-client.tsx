@@ -124,6 +124,7 @@ export function HomePageClient({
   const { t, locale } = useTranslation();
   const [isSending, setIsSending] = React.useState<string | null>(null);
   const [showQuickBar, setShowQuickBar] = React.useState(false);
+  const [mounted, setMounted] = React.useState(false);
   const addToast = useToastStore((state) => state.addToast);
 
   const c = (initialCmsData ?? {}) as CmsPageData;
@@ -167,6 +168,7 @@ export function HomePageClient({
   const ctaVisualImage = c.ctaVisualImage || '/images/home-cta-warehouse.webp';
 
   React.useEffect(() => {
+    setMounted(true);
     let ticking = false;
     const handleScroll = () => {
       if (!ticking) {
@@ -220,11 +222,11 @@ export function HomePageClient({
   };
 
   return (
-    <main key={locale} className="pb-12 sm:pb-16 bg-[var(--color-background)] text-[var(--color-on-background)] transition-colors duration-500">
+    <main key={locale} className="pb-12 sm:pb-16 bg-[var(--color-background)] transition-colors duration-500">
       {/* Quick Quote Bar - Redesigned as a floating premium pill */}
       <div className={cn(
         "fixed top-32 left-1/2 -translate-x-1/2 z-[100] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]",
-        showQuickBar ? "translate-y-0 opacity-100 scale-100" : "-translate-y-20 opacity-0 scale-90 pointer-events-none"
+        (mounted && showQuickBar) ? "translate-y-0 opacity-100 scale-100" : "-translate-y-20 opacity-0 scale-90 pointer-events-none"
       )}>
         <div className="glass rounded-full px-2 py-2 flex items-center gap-6 shadow-[var(--shadow-premium-hover)]">
           <div className="flex items-center gap-4 px-6 border-r border-[var(--color-divider)]">
@@ -474,7 +476,7 @@ export function HomePageClient({
                 viewport={{ once: true }}
                 className="relative group"
               >
-                <div className="bg-[var(--color-surface-secondary)] rounded-[40px] p-10 border border-[var(--color-divider)] shadow-sm hover:shadow-2xl transition-premium h-full text-left">
+                <div className="bg-surface-secondary rounded-[40px] p-10 border border-[var(--color-divider)] shadow-sm hover:shadow-2xl transition-premium h-full text-left">
                   <div className="text-[80px] font-display font-bold text-[var(--color-on-background)] opacity-5 group-hover:text-[var(--color-primary)]/10 transition-colors mb-6 leading-none">{step.step}</div>
                   <div className="w-14 h-14 rounded-2xl bg-[var(--color-primary-highlight)] text-[var(--color-primary)] flex items-center justify-center mb-6 shadow-inner">
                     <span className="material-symbols-outlined text-2xl">{step.icon}</span>

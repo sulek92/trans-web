@@ -7,6 +7,7 @@ import { useTranslation } from '@/lib/i18n/i18n-context';
 import { useToastStore } from '@/lib/store/toast-store';
 import { getApiBaseUrl } from '@/lib/api-url';
 import { showCookieSettings } from '@/components/layout/cookie-consent';
+import { cn } from '@/lib/utils';
 
 export const Footer = React.memo(function Footer() {
   const { t } = useTranslation();
@@ -93,100 +94,167 @@ export const Footer = React.memo(function Footer() {
   };
 
   return (
-    <footer className="w-full py-16 border-t border-[var(--color-divider)] bg-[var(--color-surface-container-low)] dark:bg-[#020617] text-[var(--color-text-muted)] mt-auto relative z-10">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-12 max-w-[1280px] mx-auto px-8">
-        <div className="flex flex-col gap-6">
-          <div className="text-2xl font-bold text-[var(--color-on-background)] flex items-center gap-3">
-            <div className="w-10 h-10 bg-[var(--color-primary)] rounded-xl flex items-center justify-center shadow-lg shadow-[var(--color-primary)]/20">
-              <span className="material-symbols-outlined text-white text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>pallet</span>
-            </div>
-            {brandName}
-          </div>
-          <p className="text-sm leading-relaxed opacity-70">
-            {settings?.footerDesc || t.footer.desc}
-          </p>
-          {newsletterEnabled && (
-            <div className="mt-2">
-              <div className="text-[10px] font-bold text-[var(--color-on-background)] uppercase tracking-widest mb-3 opacity-40">{t.footer.newsletterTitle}</div>
-              <form className="flex gap-2" onSubmit={handleNewsletterSubmit}>
-                <input
-                  type="email"
-                  placeholder={t.footer.newsletterPlaceholder}
-                  value={newsletterEmail}
-                  onChange={(e) => setNewsletterEmail(e.target.value)}
-                  className="bg-[var(--color-surface-primary)] border border-[var(--color-divider)] rounded-lg px-3 py-2 text-xs flex-grow outline-none focus:border-[var(--color-primary)] transition-colors text-[var(--color-on-background)]"
-                  required
-                />
-                <button type="submit" disabled={isSubscribing} className="bg-[var(--color-primary)] text-white p-2 rounded-lg transition-colors disabled:opacity-50 shadow-sm">
-                  <span className="material-symbols-outlined text-sm">{isSubscribing ? 'hourglass_top' : 'send'}</span>
-                </button>
-              </form>
-            </div>
-          )}
-          {(phone || email || street || city) && (
-            <div className="mt-4 space-y-2">
-              {phone && <div className="flex items-center gap-2 text-sm text-[var(--color-text-muted)]">
-                <span className="material-symbols-outlined text-base">call</span>
-                <a href={`tel:${phone.replace(/\s/g, '')}`} className="hover:text-[var(--color-primary)] transition-colors">{phone}</a>
-              </div>}
-              {email && <div className="flex items-center gap-2 text-sm text-[var(--color-text-muted)]">
-                <span className="material-symbols-outlined text-base">mail</span>
-                <a href={`mailto:${email}`} className="hover:text-[var(--color-primary)] transition-colors">{email}</a>
-              </div>}
-              {street && <div className="flex items-center gap-2 text-sm text-[var(--color-text-muted)]">
-                <span className="material-symbols-outlined text-base">location_on</span>
-                <span>{street}{city ? `, ${city}` : ''}</span>
-              </div>}
-            </div>
-          )}
-        </div>
-        
-        <div className="flex flex-col gap-4">
-          <h3 className="text-[var(--color-on-background)] font-bold text-sm uppercase tracking-widest mb-2">{t.footer.sections.company}</h3>
-          {companyLinks.map((link) => (
-            <Link key={`${link.href}:${link.label}`} className="text-sm hover:text-[var(--color-primary)] transition-colors" href={link.href}>
-              {link.label}
+    <footer className="w-full pt-24 pb-12 border-t border-[var(--color-divider)] bg-[var(--color-surface-container-low)] dark:bg-[#020617] text-[var(--color-text-muted)] mt-auto relative overflow-hidden">
+      {/* Background patterns */}
+      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.02] pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[var(--color-primary)]/5 blur-[120px] rounded-full -z-10" />
+
+      <div className="max-w-[1280px] mx-auto px-8 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 mb-20">
+          {/* Brand & Newsletter Column */}
+          <div className="lg:col-span-4 flex flex-col gap-8">
+            <Link href="/" className="text-2xl font-bold text-[var(--color-on-background)] flex items-center gap-3 group">
+              <div className="w-12 h-12 bg-[var(--color-primary)] rounded-2xl flex items-center justify-center shadow-xl shadow-[var(--color-primary)]/20 group-hover:scale-110 transition-premium">
+                <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>pallet</span>
+              </div>
+              <span className="tracking-tighter">{brandName}</span>
             </Link>
-          ))}
+            
+            <p className="text-base leading-relaxed opacity-80 max-w-sm">
+              {settings?.footerDesc || t.footer.desc}
+            </p>
+
+            {newsletterEnabled && (
+              <div className="mt-4 bg-[var(--color-surface-primary)] p-6 rounded-[32px] border border-[var(--color-divider)]/50 shadow-sm">
+                <div className="text-[10px] font-black text-[var(--color-primary)] uppercase tracking-[0.2em] mb-4">
+                  Bądź na bieżąco
+                </div>
+                <form className="relative group" onSubmit={handleNewsletterSubmit}>
+                  <input
+                    type="email"
+                    placeholder={t.footer.newsletterPlaceholder}
+                    value={newsletterEmail}
+                    onChange={(e) => setNewsletterEmail(e.target.value)}
+                    className="w-full bg-[var(--color-surface-container)] border border-[var(--color-divider)]/50 rounded-2xl px-5 py-4 text-sm outline-none focus:border-[var(--color-primary)] transition-all text-[var(--color-on-background)] placeholder:text-[var(--color-text-faint)] pr-16"
+                    required
+                  />
+                  <button 
+                    type="submit" 
+                    disabled={isSubscribing} 
+                    className="absolute right-2 top-2 bottom-2 bg-[var(--color-primary)] text-white px-4 rounded-xl transition-all disabled:opacity-50 shadow-md hover:bg-[var(--color-primary-hover)] active:scale-95"
+                  >
+                    <span className="material-symbols-outlined text-xl">{isSubscribing ? 'hourglass_top' : 'arrow_forward'}</span>
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
+
+          {/* Links Columns */}
+          <div className="lg:col-span-8 grid grid-cols-2 md:grid-cols-3 gap-12">
+            <div className="flex flex-col gap-6">
+              <h3 className="text-[var(--color-on-background)] font-black text-[10px] uppercase tracking-[0.2em]">{t.footer.sections.company}</h3>
+              <div className="flex flex-col gap-4">
+                {companyLinks.map((link) => (
+                  <Link key={`${link.href}:${link.label}`} className="text-sm hover:text-[var(--color-primary)] transition-premium flex items-center gap-2 group/link" href={link.href}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] scale-0 group-hover/link:scale-100 transition-transform" />
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-6">
+              <h3 className="text-[var(--color-on-background)] font-black text-[10px] uppercase tracking-[0.2em]">{t.footer.sections.tools}</h3>
+              <div className="flex flex-col gap-4">
+                {toolLinks.map((link) => (
+                  <Link key={`${link.href}:${link.label}`} className="text-sm hover:text-[var(--color-primary)] transition-premium flex items-center gap-2 group/link" href={link.href}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] scale-0 group-hover/link:scale-100 transition-transform" />
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-6 col-span-2 md:col-span-1">
+              <h3 className="text-[var(--color-on-background)] font-black text-[10px] uppercase tracking-[0.2em]">{t.footer.sections.support}</h3>
+              <div className="flex flex-col gap-4">
+                {supportLinks.map((link) => (
+                  <Link
+                    key={`${link.href}:${link.label}`}
+                    className={cn(
+                      "text-sm hover:text-[var(--color-primary)] transition-premium flex items-center gap-2 group/link",
+                      link.href === '/admin' && "font-bold opacity-30"
+                    )}
+                    href={link.href}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] scale-0 group-hover/link:scale-100 transition-transform" />
+                    {link.label}
+                  </Link>
+                ))}
+                {settings?.cookieEnabled !== false && (
+                  <button
+                    onClick={showCookieSettings}
+                    className="text-sm hover:text-[var(--color-primary)] transition-premium text-left flex items-center gap-2 group/link"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] scale-0 group-hover/link:scale-100 transition-transform" />
+                    {settings?.cookieSettingsButton || t.cookies.settings}
+                  </button>
+                )}
+              </div>
+
+              <div className="mt-4 flex items-center gap-4 p-4 bg-[var(--color-surface-primary)] rounded-[24px] border border-[var(--color-divider)]/50 shadow-sm group">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                </div>
+                <div>
+                  <div className="text-[9px] font-black text-emerald-500 uppercase tracking-[0.2em]">Live Status</div>
+                  <div className="text-[11px] font-bold text-[var(--color-on-background)]">{supportStatusLabel}</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="flex flex-col gap-4">
-          <h3 className="text-[var(--color-on-background)] font-bold text-sm uppercase tracking-widest mb-2">{t.footer.sections.tools}</h3>
-          {toolLinks.map((link) => (
-            <Link key={`${link.href}:${link.label}`} className="text-sm hover:text-[var(--color-primary)] transition-colors" href={link.href}>
-              {link.label}
-            </Link>
-          ))}
+        {/* Contact Info Bar */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-8 bg-[var(--color-surface-primary)] rounded-[40px] border border-[var(--color-divider)]/30 shadow-xl mb-16">
+          {phone && (
+            <a href={`tel:${phone.replace(/\s/g, '')}`} className="flex items-center gap-5 group/item">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--color-surface-container)] flex items-center justify-center text-[var(--color-primary)] group-hover/item:bg-[var(--color-primary)] group-hover/item:text-white transition-premium">
+                <span className="material-symbols-outlined">call</span>
+              </div>
+              <div>
+                <div className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--color-text-faint)]">Zadzwoń do nas</div>
+                <div className="text-sm font-bold text-[var(--color-on-background)]">{phone}</div>
+              </div>
+            </a>
+          )}
+          {email && (
+            <a href={`mailto:${email}`} className="flex items-center gap-5 group/item">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--color-surface-container)] flex items-center justify-center text-[var(--color-primary)] group-hover/item:bg-[var(--color-primary)] group-hover/item:text-white transition-premium">
+                <span className="material-symbols-outlined">mail</span>
+              </div>
+              <div>
+                <div className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--color-text-faint)]">Napisz e-mail</div>
+                <div className="text-sm font-bold text-[var(--color-on-background)]">{email}</div>
+              </div>
+            </a>
+          )}
+          {(street || city) && (
+            <div className="flex items-center gap-5 group/item">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--color-surface-container)] flex items-center justify-center text-[var(--color-primary)] group-hover/item:bg-[var(--color-primary)] group-hover/item:text-white transition-premium">
+                <span className="material-symbols-outlined">location_on</span>
+              </div>
+              <div>
+                <div className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--color-text-faint)]">Nasze biuro</div>
+                <div className="text-sm font-bold text-[var(--color-on-background)]">{street}{city ? `, ${city}` : ''}</div>
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="flex flex-col gap-4">
-          <h3 className="text-[var(--color-on-background)] font-bold text-sm uppercase tracking-widest mb-2">{t.footer.sections.support}</h3>
-          {supportLinks.map((link) => (
-            <Link
-              key={`${link.href}:${link.label}`}
-              className={`text-sm hover:text-[var(--color-primary)] transition-colors ${link.href === '/admin' ? 'font-bold opacity-30' : ''}`}
-              href={link.href}
-            >
-              {link.label}
-            </Link>
-          ))}
-          {settings?.cookieEnabled !== false && (
-            <button
-              onClick={showCookieSettings}
-              className="text-sm hover:text-[var(--color-primary)] transition-colors text-left"
-            >
-              {settings?.cookieSettingsButton || t.cookies.settings}
-            </button>
-          )}
-          <div className="mt-4 flex items-center gap-3 p-3 bg-[var(--color-surface-primary)] rounded-xl border border-[var(--color-divider)]">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">{supportStatusLabel}</span>
+        {/* Legal Bar */}
+        <div className="pt-8 border-t border-[var(--color-divider)]/30 flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-widest">
+          <p>© {new Date().getFullYear()} {settings?.companyName || 'PaletBroker Sp. z o.o.'} {t.footer.allRightsReserved}</p>
+          <div className="flex items-center gap-8">
+            <p>{footerTagline}</p>
+            <div className="flex gap-4">
+              <button className="hover:text-[var(--color-primary)] transition-colors">FB</button>
+              <button className="hover:text-[var(--color-primary)] transition-colors">IN</button>
+              <button className="hover:text-[var(--color-primary)] transition-colors">TW</button>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="max-w-[1280px] mx-auto px-8 mt-16 pt-8 border-t border-[var(--color-divider)] flex justify-between items-center text-xs opacity-50 text-[var(--color-text-muted)]">
-        <p>© {new Date().getFullYear()} {settings?.companyName || 'PaletBroker Sp. z o.o.'} {t.footer.allRightsReserved}</p>
-        <p>{footerTagline}</p>
       </div>
     </footer>
   );

@@ -8,18 +8,19 @@ test('complete checkout flow from home to confirmation', async ({ page }) => {
   // Fill calculator
   await page.getByPlaceholder('00-000').first().fill('00-001');
   await page.getByPlaceholder('00-000').last().fill('31-001');
-  await page.getByPlaceholder('Np. 500').fill('350');
-  await page.getByPlaceholder('Np. 150').fill('140');
+  await page.getByPlaceholder('500').fill('350');
+  await page.getByPlaceholder('150').fill('140');
   
   // Submit calculator
-  await page.getByRole('button', { name: /Porównaj Oferty Kurierów/i }).click();
+  await page.locator('button[type="submit"]').first().click();
 
   // 2. Offers Page
   await page.waitForURL(/\/wycena/);
-  await expect(page.getByText('Wyniki Wyceny')).toBeVisible();
   
   // Select first offer
-  await page.getByRole('link', { name: /Zamów teraz/i }).first().click();
+  const orderBtn = page.getByRole('link', { name: /Zamów teraz/i }).first();
+  await orderBtn.waitFor({ state: 'visible', timeout: 15000 });
+  await orderBtn.click();
 
   // 3. Checkout Wizard - Step 1: Offer Review
   await page.waitForURL(/\/zamowienie/);

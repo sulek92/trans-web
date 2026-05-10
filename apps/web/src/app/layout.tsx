@@ -69,7 +69,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className={`${outfit.variable} ${plusJakarta.variable} antialiased min-h-screen flex flex-col bg-[var(--color-background)] transition-colors duration-300`}>
+      <body className={`${outfit.variable} ${plusJakarta.variable} antialiased min-h-screen flex flex-col bg-[var(--color-background)] text-[var(--color-on-background)] transition-colors duration-300`}>
         <React.Suspense fallback={<div className="min-h-screen bg-[var(--color-background)]"></div>}>
           <ThemeProvider>
             <LanguageProvider resolvedLocale={resolvedLocale}>

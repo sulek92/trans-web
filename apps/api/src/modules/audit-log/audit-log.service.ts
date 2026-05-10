@@ -90,8 +90,9 @@ export class AuditLogService {
     return Object.keys(changes).length > 0 ? changes : null;
   }
 
-  async listRecent(limit = 50) {
-    const safeLimit = Math.max(1, Math.min(limit, 200));
+  async listRecent(limit?: number) {
+    const requestedLimit = typeof limit === 'number' ? limit : 50;
+    const safeLimit = Math.max(1, Math.min(requestedLimit, 200));
     try {
       return await db
         .select()

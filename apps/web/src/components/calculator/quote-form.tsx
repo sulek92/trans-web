@@ -8,6 +8,7 @@ import { QuoteSchema, QuoteFormInput } from '@/lib/validators/quote';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PalletPreview } from './pallet-preview';
 import { useTranslation } from '@/lib/i18n/i18n-context';
+import { cn } from '@/lib/utils';
 
 const palletTypes = ['euro', 'semi_euro', 'industrial', 'semi_industrial', 'custom'] as const;
 const countries = [
@@ -142,6 +143,21 @@ export function QuoteForm() {
     }, 200);
   };
 
+  // Helper for Polish postal code formatting
+  const formatPostalCode = (value: string) => {
+    const cleaned = value.replace(/\D/g, '');
+    if (cleaned.length > 2) {
+      return `${cleaned.slice(0, 2)}-${cleaned.slice(2, 5)}`;
+    }
+    return cleaned;
+  };
+
+  // 1. Calculate Volumetric Weight (L*W*H / 4000)
+  const volWeight = (Number(watchedValues.length) * Number(watchedValues.width) * Number(watchedValues.height)) / 4000;
+  const actWeight = Number(watchedValues.weight) || 0;
+  const chargeableWeight = Math.max(actWeight, volWeight);
+  const isNonStandard = chargeableWeight > 1200 || Number(watchedValues.length) > 300 || Number(watchedValues.width) > 300 || Number(watchedValues.height) > 250 || watchedValues.palletType === 'custom';
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 w-full">
       {/* Pallet Type Selector */}
@@ -190,26 +206,42 @@ export function QuoteForm() {
             <div className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-faint)]">{t.quote.sender.title}</div>
           </div>
           <div className="grid grid-cols-[1fr_auto] gap-4">
-            <div>
+            <div className="flex-1">
               <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.sender.postalCode}</label>
-              <input
-                {...register('senderPostalCode')}
-                className="w-full px-4 py-3 bg-[var(--color-surface-primary)] border border-[var(--color-divider)] rounded-xl font-mono text-base text-[var(--color-on-background)] focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10 outline-none transition-all placeholder:text-[var(--color-text-faint)]"
-                placeholder="00-000"
-                type="text"
-              />
-              {errors.senderPostalCode && <p className="text-[var(--color-error)] text-xs mt-2">{errors.senderPostalCode.message}</p>}
+              <div className="relative group">
+                <input
+                  {...register('senderPostalCode', {
+                    onChange: (e) => {
+                      if (watchedValues.senderCountry === 'PL') {
+                        e.target.value = formatPostalCode(e.target.value);
+                      }
+                    }
+                  })}
+                  className={cn(
+                    "w-full px-4 py-3 bg-[var(--color-surface-primary)] border border-[var(--color-divider)] rounded-xl font-mono text-base text-[var(--color-on-background)] focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10 outline-none transition-all placeholder:text-[var(--color-text-faint)]",
+                    errors.senderPostalCode && "border-[var(--color-error)] focus:ring-[var(--color-error)]/10"
+                  )}
+                  placeholder="00-000"
+                  type="text"
+                  maxLength={watchedValues.senderCountry === 'PL' ? 6 : 10}
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[var(--color-text-faint)] group-focus-within:text-[var(--color-primary)] transition-colors">PL</span>
+              </div>
+              {errors.senderPostalCode && <p className="text-[var(--color-error)] text-[10px] font-bold mt-1.5 ml-1 animate-in fade-in slide-in-from-left-1">{errors.senderPostalCode.message}</p>}
             </div>
             <div className="w-32">
               <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.sender.country}</label>
-              <select
-                {...register('senderCountry')}
-                className="w-full py-3 px-4 bg-[var(--color-surface-primary)] border border-[var(--color-divider)] rounded-xl text-sm font-bold text-[var(--color-on-background)] focus:border-[var(--color-primary)] outline-none cursor-pointer"
-              >
-                {countries.map((country) => (
-                  <option key={country.value} value={country.value}>{country.label}</option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  {...register('senderCountry')}
+                  className="w-full py-3 pl-4 pr-10 bg-[var(--color-surface-primary)] border border-[var(--color-divider)] rounded-xl text-sm font-bold text-[var(--color-on-background)] focus:border-[var(--color-primary)] outline-none cursor-pointer appearance-none"
+                >
+                  {countries.map((country) => (
+                    <option key={country.value} value={country.value}>{country.label}</option>
+                  ))}
+                </select>
+                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] pointer-events-none">expand_more</span>
+              </div>
             </div>
           </div>
         </div>
@@ -222,26 +254,42 @@ export function QuoteForm() {
             <div className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-faint)]">{t.quote.recipient.title}</div>
           </div>
           <div className="grid grid-cols-[1fr_auto] gap-4">
-            <div>
+            <div className="flex-1">
               <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.recipient.postalCode}</label>
-              <input
-                {...register('recipientPostalCode')}
-                className="w-full px-4 py-3 bg-[var(--color-surface-primary)] border border-[var(--color-divider)] rounded-xl font-mono text-base text-[var(--color-on-background)] focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10 outline-none transition-all placeholder:text-[var(--color-text-faint)]"
-                placeholder="00-000"
-                type="text"
-              />
-              {errors.recipientPostalCode && <p className="text-[var(--color-error)] text-xs mt-2">{errors.recipientPostalCode.message}</p>}
+              <div className="relative group">
+                <input
+                  {...register('recipientPostalCode', {
+                    onChange: (e) => {
+                      if (watchedValues.recipientCountry === 'PL') {
+                        e.target.value = formatPostalCode(e.target.value);
+                      }
+                    }
+                  })}
+                  className={cn(
+                    "w-full px-4 py-3 bg-[var(--color-surface-primary)] border border-[var(--color-divider)] rounded-xl font-mono text-base text-[var(--color-on-background)] focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10 outline-none transition-all placeholder:text-[var(--color-text-faint)]",
+                    errors.recipientPostalCode && "border-[var(--color-error)] focus:ring-[var(--color-error)]/10"
+                  )}
+                  placeholder="00-000"
+                  type="text"
+                  maxLength={watchedValues.recipientCountry === 'PL' ? 6 : 10}
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[var(--color-text-faint)] group-focus-within:text-[var(--color-primary)] transition-colors">PL</span>
+              </div>
+              {errors.recipientPostalCode && <p className="text-[var(--color-error)] text-[10px] font-bold mt-1.5 ml-1 animate-in fade-in slide-in-from-left-1">{errors.recipientPostalCode.message}</p>}
             </div>
             <div className="w-32">
               <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.recipient.country}</label>
-              <select
-                {...register('recipientCountry')}
-                className="w-full py-3 px-4 bg-[var(--color-surface-primary)] border border-[var(--color-divider)] rounded-xl text-sm font-bold text-[var(--color-on-background)] focus:border-[var(--color-primary)] outline-none cursor-pointer"
-              >
-                {countries.map((country) => (
-                  <option key={country.value} value={country.value}>{country.label}</option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  {...register('recipientCountry')}
+                  className="w-full py-3 pl-4 pr-10 bg-[var(--color-surface-primary)] border border-[var(--color-divider)] rounded-xl text-sm font-bold text-[var(--color-on-background)] focus:border-[var(--color-primary)] outline-none cursor-pointer appearance-none"
+                >
+                  {countries.map((country) => (
+                    <option key={country.value} value={country.value}>{country.label}</option>
+                  ))}
+                </select>
+                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] pointer-events-none">expand_more</span>
+              </div>
             </div>
           </div>
         </div>
@@ -251,44 +299,56 @@ export function QuoteForm() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div>
           <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.palletCount}</label>
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] text-lg">inventory_2</span>
+          <div className="relative group">
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] text-lg group-focus-within:text-[var(--color-primary)] transition-colors">inventory_2</span>
             <input
               {...register('palletCount', { valueAsNumber: true })}
-              className="w-full pl-12 pr-4 py-3 bg-[var(--color-surface-container)] border border-[var(--color-divider)] rounded-xl font-mono text-base text-[var(--color-on-background)] focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-all"
+              className={cn(
+                "w-full pl-12 pr-12 py-3 bg-[var(--color-surface-container)] border border-[var(--color-divider)] rounded-xl font-mono text-base text-[var(--color-on-background)] focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-all",
+                errors.palletCount && "border-[var(--color-error)]"
+              )}
               placeholder="1"
               type="number"
               min={1}
               max={33}
             />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[var(--color-text-faint)]">szt.</span>
           </div>
-          {errors.palletCount && <p className="text-[var(--color-error)] text-xs mt-2">{errors.palletCount.message}</p>}
+          {errors.palletCount && <p className="text-[var(--color-error)] text-[10px] font-bold mt-1.5 ml-1">{errors.palletCount.message}</p>}
         </div>
         <div>
           <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.weight}</label>
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] text-lg">scale</span>
+          <div className="relative group">
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] text-lg group-focus-within:text-[var(--color-primary)] transition-colors">scale</span>
             <input
               {...register('weight', { valueAsNumber: true })}
-              className="w-full pl-12 pr-4 py-3 bg-[var(--color-surface-container)] border border-[var(--color-divider)] rounded-xl font-mono text-base text-[var(--color-on-background)] focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-all" 
-              placeholder="500"
+              className={cn(
+                "w-full pl-12 pr-12 py-3 bg-[var(--color-surface-container)] border border-[var(--color-divider)] rounded-xl font-mono text-base text-[var(--color-on-background)] focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-all",
+                errors.weight && "border-[var(--color-error)]"
+              )} 
+              placeholder="350"
               type="number"
             />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[var(--color-text-faint)]">kg</span>
           </div>
-          {errors.weight && <p className="text-[var(--color-error)] text-xs mt-2">{errors.weight.message}</p>}
+          {errors.weight && <p className="text-[var(--color-error)] text-[10px] font-bold mt-1.5 ml-1">{errors.weight.message}</p>}
         </div>
         <div>
           <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.height}</label>
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] text-lg">height</span>
+          <div className="relative group">
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] text-lg group-focus-within:text-[var(--color-primary)] transition-colors">height</span>
             <input
               {...register('height', { valueAsNumber: true })}
-              className="w-full pl-12 pr-4 py-3 bg-[var(--color-surface-container)] border border-[var(--color-divider)] rounded-xl font-mono text-base text-[var(--color-on-background)] focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-all" 
-              placeholder="150"
+              className={cn(
+                "w-full pl-12 pr-12 py-3 bg-[var(--color-surface-container)] border border-[var(--color-divider)] rounded-xl font-mono text-base text-[var(--color-on-background)] focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-all",
+                errors.height && "border-[var(--color-error)]"
+              )} 
+              placeholder="140"
               type="number"
             />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[var(--color-text-faint)]">cm</span>
           </div>
-          {errors.height && <p className="text-[var(--color-error)] text-xs mt-2">{errors.height.message}</p>}
+          {errors.height && <p className="text-[var(--color-error)] text-[10px] font-bold mt-1.5 ml-1">{errors.height.message}</p>}
         </div>
       </div>
 
@@ -296,39 +356,45 @@ export function QuoteForm() {
       <div className="grid grid-cols-2 gap-6">
         <div>
           <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.length}</label>
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] text-lg">straighten</span>
+          <div className="relative group">
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] text-lg group-focus-within:text-[var(--color-primary)] transition-colors">straighten</span>
             <input
               {...register('length', { valueAsNumber: true })}
-              className={`w-full pl-12 pr-4 py-3 rounded-xl font-mono text-base outline-none transition-all ${
+              className={cn(
+                "w-full pl-12 pr-12 py-3 rounded-xl font-mono text-base outline-none transition-all",
                 watchedPalletType === 'custom' 
                   ? 'bg-[var(--color-surface-primary)] border border-[var(--color-divider)] text-[var(--color-on-background)] focus:border-[var(--color-primary)]' 
-                  : 'bg-[var(--color-surface-container)] border border-transparent text-[var(--color-text-faint)] cursor-not-allowed'
-              }`}
+                  : 'bg-[var(--color-surface-container)] border border-transparent text-[var(--color-text-faint)] cursor-not-allowed',
+                errors.length && "border-[var(--color-error)]"
+              )}
               placeholder="120"
               type="number"
               readOnly={watchedPalletType !== 'custom'}
             />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[var(--color-text-faint)]">cm</span>
           </div>
-          {errors.length && <p className="text-[var(--color-error)] text-xs mt-2">{errors.length.message}</p>}
+          {errors.length && <p className="text-[var(--color-error)] text-[10px] font-bold mt-1.5 ml-1">{errors.length.message}</p>}
         </div>
         <div>
           <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.width}</label>
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] text-lg">straighten</span>
+          <div className="relative group">
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] text-lg group-focus-within:text-[var(--color-primary)] transition-colors">straighten</span>
             <input
               {...register('width', { valueAsNumber: true })}
-              className={`w-full pl-12 pr-4 py-3 rounded-xl font-mono text-base outline-none transition-all ${
+              className={cn(
+                "w-full pl-12 pr-12 py-3 rounded-xl font-mono text-base outline-none transition-all",
                 watchedPalletType === 'custom' 
                   ? 'bg-[var(--color-surface-primary)] border border-[var(--color-divider)] text-[var(--color-on-background)] focus:border-[var(--color-primary)]' 
-                  : 'bg-[var(--color-surface-container)] border border-transparent text-[var(--color-text-faint)] cursor-not-allowed'
-              }`}
+                  : 'bg-[var(--color-surface-container)] border border-transparent text-[var(--color-text-faint)] cursor-not-allowed',
+                errors.width && "border-[var(--color-error)]"
+              )}
               placeholder="80"
               type="number"
               readOnly={watchedPalletType !== 'custom'}
             />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[var(--color-text-faint)]">cm</span>
           </div>
-          {errors.width && <p className="text-[var(--color-error)] text-xs mt-2">{errors.width.message}</p>}
+          {errors.width && <p className="text-[var(--color-error)] text-[10px] font-bold mt-1.5 ml-1">{errors.width.message}</p>}
         </div>
       </div>
 
@@ -370,13 +436,29 @@ export function QuoteForm() {
           <div className="flex-1 text-center sm:text-left min-w-0">
             <div className="text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-[0.2em] mb-2">{t.quote.estimatedCost}</div>
             <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--color-on-secondary)] mb-3 tracking-tighter whitespace-nowrap">
-              {Math.max(
-                120,
-                (Number(watchedValues.weight) || 0) * (Number(watchedValues.palletCount) || 1) * 0.2 +
-                  (Number(watchedValues.height) || 0) * 0.5
-              ).toFixed(2).replace('.', ',')} <span className="text-lg sm:text-xl opacity-40">{t.quote.currency}</span>
+              {isNonStandard ? (
+                <span className="text-2xl sm:text-3xl">Wycena indywidualna</span>
+              ) : (
+                <>
+                  {Math.max(
+                    120,
+                    chargeableWeight * (Number(watchedValues.palletCount) || 1) * 0.2 +
+                      (Number(watchedValues.height) || 0) * 0.5
+                  ).toFixed(2).replace('.', ',')} <span className="text-lg sm:text-xl opacity-40">{t.quote.currency}</span>
+                </>
+              )}
             </div>
-            <p className="text-xs sm:text-sm opacity-50 whitespace-normal break-words max-w-[280px] sm:max-w-none font-medium">{t.quote.estimatedCostNote}</p>
+            <p className="text-xs sm:text-sm opacity-50 whitespace-normal break-words max-w-[280px] sm:max-w-none font-medium">
+              {isNonStandard 
+                ? "Parametry wykraczają poza standard. Po przejściu dalej będziesz mógł wysłać zapytanie o wycenę indywidualną."
+                : t.quote.estimatedCostNote}
+            </p>
+            {volWeight > actWeight && !isNonStandard && (
+              <div className="mt-2 flex items-center gap-1.5 text-[10px] font-bold text-[var(--color-primary)] bg-white/10 w-fit px-2 py-1 rounded-full border border-white/10">
+                <span className="material-symbols-outlined text-[12px]">info</span>
+                <span>Wycena na podstawie wagi gabarytowej: {volWeight.toFixed(0)}kg</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

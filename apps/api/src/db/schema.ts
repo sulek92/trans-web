@@ -232,6 +232,7 @@ export const leads = pgTable(
     weight: varchar('weight', { length: 100 }),
     route: varchar('route', { length: 255 }),
     preferredDate: date('preferred_date'),
+    leadType: varchar('lead_type', { length: 50 }).default('general'),
     status: varchar('status', { length: 30 }).default('NEW'),
     assignedTo: uuid('assigned_to').references(() => users.id),
     notes: text('notes'),
@@ -302,6 +303,8 @@ export const pricingRules = pgTable(
     maxWeight: decimal('max_weight', { precision: 10, scale: 2 }).default(
       '1200',
     ),
+    senderCountry: varchar('sender_country', { length: 10 }).default('PL'),
+    recipientCountry: varchar('recipient_country', { length: 10 }).default('PL'),
     currency: varchar('currency', { length: 10 }).default('PLN'),
     isActive: boolean('is_active').default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),

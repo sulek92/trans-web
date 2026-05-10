@@ -7,6 +7,10 @@ import { NotificationsService } from '../notifications/notifications.service';
 @Injectable()
 export class NewsletterService {
   constructor(private readonly notificationsService: NotificationsService) {}
+  
+  async ping(): Promise<string> {
+    return 'Newsletter service is up and running';
+  }
 
   async subscribe(email: string) {
     const normalized = email.toLowerCase().trim();

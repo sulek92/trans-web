@@ -187,6 +187,31 @@
   animation: float-slow 8s ease-in-out infinite;
 }
 
+@utility bg-background {
+  background-color: var(--color-background);
+}
+@utility bg-surface-primary {
+  background-color: var(--color-surface-primary);
+}
+@utility bg-surface-secondary {
+  background-color: var(--color-surface-secondary);
+}
+@utility bg-surface-container {
+  background-color: var(--color-surface-container);
+}
+@utility bg-primary {
+  background-color: var(--color-primary);
+}
+@utility bg-primary-highlight {
+  background-color: var(--color-primary-highlight);
+}
+@utility bg-error {
+  background-color: var(--color-error);
+}
+@utility bg-success {
+  background-color: var(--color-success);
+}
+
 .glass {
   background: var(--glass-bg);
   backdrop-filter: blur(12px);

@@ -67,6 +67,11 @@ export class OrdersController {
     return this.ordersService.trackByOrderNumber(orderNumber);
   }
 
+  @Get('summary/:id')
+  async getOrderSummary(@Param('id') id: string) {
+    return this.ordersService.getOrderSummary(id);
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')

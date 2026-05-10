@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
+import { cn } from '@/lib/utils';
 import { Footer } from '@/components/layout/footer';
 import { Navbar } from '@/components/layout/navbar';
 import { SiteBanner } from '@/components/layout/site-banner';
@@ -51,6 +52,7 @@ export const AppShell = React.memo(function AppShell({ children }: { children: R
 
   const headerRef = React.useRef<HTMLDivElement>(null);
   const [headerHeight, setHeaderHeight] = React.useState(120); // Default safe value
+  const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
     if (!headerRef.current) return;
@@ -62,6 +64,7 @@ export const AppShell = React.memo(function AppShell({ children }: { children: R
     });
 
     resizeObserver.observe(headerRef.current);
+    setMounted(true);
     return () => resizeObserver.disconnect();
   }, []);
 
@@ -84,8 +87,12 @@ export const AppShell = React.memo(function AppShell({ children }: { children: R
         className="fixed top-0 left-0 w-full h-1 bg-[var(--color-primary)] origin-left scale-x-0 z-[100] transition-transform duration-100"
         id="scroll-progress"
       ></div>
-      {/* Dynamic spacer to push content down below fixed header */}
-      <div style={{ height: headerHeight }} className="shrink-0" />
+      {/* Dynamic spacer to push content down below fixed header - only on client after mount to avoid mismatch */}
+      <div 
+        style={{ height: mounted ? headerHeight : 120 }} 
+        className={cn("shrink-0 transition-all duration-300", !mounted && "h-32")}
+        suppressHydrationWarning
+      />
       
       <div className="flex-1 flex flex-col">{children}</div>
       <Footer />

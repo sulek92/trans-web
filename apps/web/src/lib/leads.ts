@@ -9,6 +9,7 @@ export interface CreateLeadPayload {
   weight?: string;
   route?: string;
   preferredDate?: string;
+  leadType?: string;
 }
 
 import { getApiBaseUrl } from '@/lib/api-url';

@@ -90,6 +90,21 @@ export function AddressBookModal({ isOpen, onClose, onSelect }: AddressBookModal
             <div className="space-y-4">
               {[1, 2, 3].map(i => <Skeleton key={i} className="h-24 w-full rounded-2xl" />)}
             </div>
+          ) : !getCookie('pb_auth_token') ? (
+            <div className="text-center py-12 px-6">
+              <div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-6 text-blue-600">
+                <span className="material-symbols-outlined text-4xl">lock</span>
+              </div>
+              <h3 className="text-xl font-bold text-[var(--color-on-background)] mb-2">Wymagane logowanie</h3>
+              <p className="text-[var(--color-text-muted)] font-medium mb-8 max-w-sm mx-auto">Zaloguj się, aby mieć dostęp do swojej bazy kontaktów i szybko uzupełniać formularze.</p>
+              <a 
+                href={`/logowanie?next=${encodeURIComponent(window.location.pathname)}`}
+                className="inline-flex items-center gap-3 px-8 py-4 bg-[var(--color-primary)] text-white font-bold rounded-2xl hover:bg-[var(--color-surface-tint)] transition-premium shadow-xl shadow-blue-500/20"
+              >
+                Zaloguj się teraz
+                <span className="material-symbols-outlined">login</span>
+              </a>
+            </div>
           ) : addresses.length > 0 ? (
             <div className="grid grid-cols-1 gap-4">
               {addresses.map((addr) => (

@@ -136,14 +136,14 @@ export function TestimonialsModule({ fallbackTestimonials }: TestimonialsModuleP
             >
               {testimonials.map((t, i) => (
                 <motion.div
-                  key={t.id}
+                  key={t.id || i}
                   initial={{ opacity: 0, scale: 0.9 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
                   viewport={{ once: true }}
                   className="w-full flex-shrink-0 px-4"
                 >
-                  <div className="bg-[var(--color-surface-secondary)] p-12 lg:p-24 rounded-[64px] border border-[var(--color-divider)] relative group overflow-hidden shadow-2xl text-left">
+                  <div className="bg-surface-secondary p-12 lg:p-24 rounded-[64px] border border-[var(--color-divider)] relative group overflow-hidden shadow-2xl text-left">
                     <div className="absolute top-0 right-0 p-16 text-[var(--color-primary)] opacity-[0.05] group-hover:scale-110 group-hover:rotate-12 transition-transform duration-1000">
                       <span className="material-symbols-outlined text-[240px]">format_quote</span>
                     </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import { createLead } from '@/lib/leads';
 import { useToastStore } from '@/lib/store/toast-store';
 
@@ -12,8 +12,13 @@ interface ContactData {
 
 export function ContactClient({ data: d }: { data: ContactData }) {
   const [isSending, setIsSending] = React.useState(false);
+  const [mounted, setMounted] = React.useState(false);
   const addToast = useToastStore((state) => state.addToast);
   const titleParts = d.title.split('\n');
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -51,7 +56,7 @@ export function ContactClient({ data: d }: { data: ContactData }) {
     }
   };
 
-  const container = {
+  const container: Variants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
@@ -62,13 +67,25 @@ export function ContactClient({ data: d }: { data: ContactData }) {
     }
   };
 
-  const item = {
+  const item: Variants = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0 }
   };
 
+  if (!mounted) {
+    return (
+      <main className="pb-32 bg-background min-h-screen">
+        <div className="max-w-[1280px] mx-auto px-8 pt-24 text-center">
+          <h1 className="font-display font-bold text-5xl md:text-7xl text-[var(--color-on-background)] mb-8 leading-[0.95] tracking-tight">
+            {titleParts[0]}
+          </h1>
+        </div>
+      </main>
+    );
+  }
+
   return (
-    <main className="pb-32 bg-[var(--color-background)] min-h-screen relative overflow-hidden transition-colors duration-500">
+    <main className="pb-32 bg-background min-h-screen relative overflow-hidden transition-colors duration-500">
       {/* Background Orbs */}
       <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[var(--color-primary)] opacity-[0.05] rounded-full blur-3xl -mr-96 -mt-96 pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-[var(--color-primary)] opacity-[0.02] rounded-full blur-3xl -ml-72 -mb-72 pointer-events-none"></div>
@@ -102,10 +119,10 @@ export function ContactClient({ data: d }: { data: ContactData }) {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.6, duration: 0.5 }}
-            className="bg-[var(--color-surface-primary)] p-8 sm:p-14 rounded-[60px] shadow-[var(--shadow-premium)] border border-[var(--color-divider)] relative overflow-hidden"
+            className="bg-surface-primary p-8 sm:p-14 rounded-[60px] shadow-[var(--shadow-premium)] border border-[var(--color-divider)] relative overflow-hidden"
           >
             {isSending && (
-              <div className="absolute inset-0 z-50 bg-[var(--color-surface-primary)]/60 backdrop-blur-[4px] flex items-center justify-center animate-fade-in">
+              <div className="absolute inset-0 z-50 bg-surface-primary/60 backdrop-blur-[4px] flex items-center justify-center animate-fade-in">
                 <div className="flex flex-col items-center gap-6">
                   <div className="w-16 h-16 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin shadow-2xl"></div>
                   <span className="text-xs font-bold text-[var(--color-primary)] uppercase tracking-widest">Wysyłanie zlecenia...</span>
@@ -124,14 +141,14 @@ export function ContactClient({ data: d }: { data: ContactData }) {
                   <label className="text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-widest px-2">Imię i Nazwisko</label>
                   <div className="relative group">
                     <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] group-focus-within:text-[var(--color-primary)] transition-colors">person</span>
-                    <input required name="name" className="w-full pl-16 pr-6 py-5 rounded-2xl bg-[var(--color-surface-container)]/50 border border-[var(--color-divider)] focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-premium font-bold text-[var(--color-on-background)] placeholder:text-[var(--color-text-faint)] shadow-inner" placeholder="Jan Kowalski" />
+                    <input required name="name" className="w-full pl-16 pr-6 py-5 rounded-2xl bg-surface-container/50 border border-[var(--color-divider)] focus:bg-surface-primary focus:border-[var(--color-primary)] outline-none transition-premium font-bold text-[var(--color-on-background)] placeholder:text-[var(--color-text-faint)] shadow-inner" placeholder="Jan Kowalski" />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-widest px-2">Nazwa Firmy</label>
                   <div className="relative group">
                     <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] group-focus-within:text-[var(--color-primary)] transition-colors">business</span>
-                    <input name="company" className="w-full pl-16 pr-6 py-5 rounded-2xl bg-[var(--color-surface-container)]/50 border border-[var(--color-divider)] focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-premium font-bold text-[var(--color-on-background)] placeholder:text-[var(--color-text-faint)] shadow-inner" placeholder="Twoja firma Sp. z o.o." />
+                    <input name="company" className="w-full pl-16 pr-6 py-5 rounded-2xl bg-surface-container/50 border border-[var(--color-divider)] focus:bg-surface-primary focus:border-[var(--color-primary)] outline-none transition-premium font-bold text-[var(--color-on-background)] placeholder:text-[var(--color-text-faint)] shadow-inner" placeholder="Twoja firma Sp. z o.o." />
                   </div>
                 </div>
               </div>
@@ -141,14 +158,14 @@ export function ContactClient({ data: d }: { data: ContactData }) {
                   <label className="text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-widest px-2">Adres E-mail</label>
                   <div className="relative group">
                     <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] group-focus-within:text-[var(--color-primary)] transition-colors">alternate_email</span>
-                    <input required name="email" type="email" className="w-full pl-16 pr-6 py-5 rounded-2xl bg-[var(--color-surface-container)]/50 border border-[var(--color-divider)] focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-premium font-bold text-[var(--color-on-background)] placeholder:text-[var(--color-text-faint)] shadow-inner" placeholder="kontakt@domena.pl" />
+                    <input required name="email" type="email" className="w-full pl-16 pr-6 py-5 rounded-2xl bg-surface-container/50 border border-[var(--color-divider)] focus:bg-surface-primary focus:border-[var(--color-primary)] outline-none transition-premium font-bold text-[var(--color-on-background)] placeholder:text-[var(--color-text-faint)] shadow-inner" placeholder="kontakt@domena.pl" />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-widest px-2">Numer Telefonu</label>
                   <div className="relative group">
                     <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] group-focus-within:text-[var(--color-primary)] transition-colors">call</span>
-                    <input name="phone" type="tel" className="w-full pl-16 pr-6 py-5 rounded-2xl bg-[var(--color-surface-container)]/50 border border-[var(--color-divider)] focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-premium font-bold text-[var(--color-on-background)] placeholder:text-[var(--color-text-faint)] shadow-inner" placeholder="+48 000 000 000" />
+                    <input name="phone" type="tel" className="w-full pl-16 pr-6 py-5 rounded-2xl bg-surface-container/50 border border-[var(--color-divider)] focus:bg-surface-primary focus:border-[var(--color-primary)] outline-none transition-premium font-bold text-[var(--color-on-background)] placeholder:text-[var(--color-text-faint)] shadow-inner" placeholder="+48 000 000 000" />
                   </div>
                 </div>
               </div>
@@ -157,7 +174,7 @@ export function ContactClient({ data: d }: { data: ContactData }) {
                 <label className="text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-widest px-2">Twoja Wiadomość</label>
                 <div className="relative group">
                   <span className="material-symbols-outlined absolute left-6 top-6 text-[var(--color-text-faint)] group-focus-within:text-[var(--color-primary)] transition-colors">chat</span>
-                  <textarea required name="message" className="w-full pl-16 pr-6 py-5 rounded-2xl bg-[var(--color-surface-container)]/50 border border-[var(--color-divider)] focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-premium font-bold text-[var(--color-on-background)] placeholder:text-[var(--color-text-faint)] shadow-inner min-h-[160px] resize-none" placeholder="W czym możemy pomóc? Napisz nam szczegóły swojego zapytania..."></textarea>
+                  <textarea required name="message" className="w-full pl-16 pr-6 py-5 rounded-2xl bg-surface-container/50 border border-[var(--color-divider)] focus:bg-surface-primary focus:border-[var(--color-primary)] outline-none transition-premium font-bold text-[var(--color-on-background)] placeholder:text-[var(--color-text-faint)] shadow-inner min-h-[160px] resize-none" placeholder="W czym możemy pomóc? Napisz nam szczegóły swojego zapytania..."></textarea>
                 </div>
               </div>
 
@@ -186,7 +203,7 @@ export function ContactClient({ data: d }: { data: ContactData }) {
           className="space-y-12"
         >
           <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-[var(--color-surface-primary)] p-10 rounded-[40px] border border-[var(--color-divider)] shadow-[var(--shadow-premium)] hover:shadow-2xl transition-premium group relative overflow-hidden">
+            <div className="bg-surface-primary p-10 rounded-[40px] border border-[var(--color-divider)] shadow-[var(--shadow-premium)] hover:shadow-2xl transition-premium group relative overflow-hidden">
               <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--color-primary)] opacity-[0.03] rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-700"></div>
               <div className="w-16 h-16 rounded-2xl bg-[var(--color-primary-highlight)] text-[var(--color-primary)] flex items-center justify-center mb-8 group-hover:scale-110 transition-premium shadow-inner">
                 <span className="material-symbols-outlined text-3xl">call</span>
@@ -196,7 +213,7 @@ export function ContactClient({ data: d }: { data: ContactData }) {
               <div className="text-[10px] text-[var(--color-text-faint)] font-black uppercase tracking-widest">{d.phoneHours}</div>
             </div>
 
-            <div className="bg-[var(--color-surface-primary)] p-10 rounded-[40px] border border-[var(--color-divider)] shadow-[var(--shadow-premium)] hover:shadow-2xl transition-premium group relative overflow-hidden">
+            <div className="bg-surface-primary p-10 rounded-[40px] border border-[var(--color-divider)] shadow-[var(--shadow-premium)] hover:shadow-2xl transition-premium group relative overflow-hidden">
               <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--color-primary)] opacity-[0.03] rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-700"></div>
               <div className="w-16 h-16 rounded-2xl bg-[var(--color-primary-highlight)] text-[var(--color-primary)] flex items-center justify-center mb-8 group-hover:scale-110 transition-premium shadow-inner">
                 <span className="material-symbols-outlined text-3xl">mail</span>

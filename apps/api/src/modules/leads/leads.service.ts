@@ -23,11 +23,14 @@ export class LeadsService {
 
     if (newLead) {
       // Notify Admin
+      const isCustomQuote = newLead.leadType === 'custom_quote';
       await this.notificationsService.sendMail({
         to: process.env.ADMIN_EMAIL || 'admin@paletbroker.pl',
-        subject: `Nowe zapytanie od: ${newLead.name}`,
+        subject: isCustomQuote 
+          ? `Zapytanie o wycenę indywidualną: ${newLead.name}`
+          : `Nowe zapytanie od: ${newLead.name}`,
         html: `
-          <h3>Otrzymano nowe zapytanie (Lead)</h3>
+          <h3>Otrzymano ${isCustomQuote ? 'zapytanie o wycenę' : 'nowego leada'}</h3>
           <p><strong>Od:</strong> ${newLead.name} (${newLead.email})</p>
           <p><strong>Firma:</strong> ${newLead.company || 'Brak'}</p>
           <p><strong>Opis:</strong> ${newLead.description}</p>

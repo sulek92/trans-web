@@ -119,6 +119,18 @@ export class OrdersService {
     return order;
   }
 
+  async getOrderSummary(id: string) {
+    const order = await this.getOrder(id);
+    return {
+      id: order.id,
+      orderNumber: order.orderNumber,
+      status: order.status,
+      createdAt: order.createdAt,
+      carrierCode: order.carrierCode,
+      priceBrutto: order.priceBrutto,
+    };
+  }
+
   async trackByOrderNumber(orderNumber: string) {
     const [order] = await db
       .select()

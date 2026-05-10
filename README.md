@@ -39,24 +39,55 @@ npm run dev
 
 ## Testy
 
+### Backend unit tests
 ```bash
-# Backend unit tests
 cd apps/api && npm test           # 5 testów
-
-# Backend e2e tests (wymaga PostgreSQL + Redis)
-cd apps/api && npm run test:e2e   # 21 testów
-
-# Frontend Playwright E2E
-cd apps/web && npm run test:e2e:docker  # 26 testów
 ```
+
+### Backend e2e tests (wymaga PostgreSQL + Redis)
+```bash
+cd apps/api && npm run test:e2e   # 21 testów
+```
+
+### Frontend Playwright E2E
+```bash
+cd apps/web && npm run test:e2e    # 26 tests (including admin panels)
+```
+
+## E2E Test Suite (Playwright)
+
+The full admin‑panel regression suite is located at `apps/web/tests/e2e/admin-panels.spec.ts`. It covers Leads, Orders, Newsletter, and Users panels and uses JWT authentication.
+
+Run locally:
+```bash
+cd apps/web
+npm run test:e2e
+```
+
+## CI Pipeline
+A GitHub Actions workflow runs the full Playwright suite against the production Docker stack.
+
+- Workflow file: `.github/workflows/ci-e2e.yml`
+- Triggers on pushes and pull‑requests to `main`.
+- Builds Docker images, starts services, waits for health checks, then executes `npm run test:e2e`.
+
+## Port Verification
+The production Docker compose maps:
+- Web server → **port 3000**
+- API server → **port 4000**
+
+You can verify the mapping with:
+```bash
+docker ps
+```
+Ensure you see `0.0.0.0:3000->3000/tcp` and `0.0.0.0:4000->4000/tcp` among the containers.
 
 ## Wdrożenie produkcyjne
 
 Szczegółowe instrukcje: [docs/PRODUCTION.md](docs/PRODUCTION.md)
 
-Status projektu i znane problemy: [TASK.md](TASK.md)
-
-Wymagane zmienne środowiskowe: [.env.example](.env.example)
+## Status projektu i znane problemy
+[TODO] Update with current status.
 
 ## Bezpieczeństwo i Autentykacja (v1.2.0+)
 

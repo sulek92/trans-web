@@ -1,0 +1,66 @@
+name: CI - Playwright E2E
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies (api & web)
+        run: |
+          npm ci
+          cd apps/api && npm ci && cd ../../apps/web && npm ci
+
+      - name: Build Docker images
+        run: |
+          docker compose -f docker-compose.prod.yml build
+
+      - name: Start Docker services (Production Stack)
+        run: |
+          docker compose -f docker-compose.prod.yml up -d
+        timeout-minutes: 5
+
+      - name: Wait for services to be ready
+        run: |
+          echo "Waiting for API (port 4000)..."
+          for i in {1..30}; do
+            curl -s http://localhost:4000/health || true
+            if [ $? -eq 0 ]; then break; fi
+            sleep 3
+          done
+          echo "Waiting for Web (port 3000)..."
+          for i in {1..30}; do
+            curl -s http://localhost:3000 || true
+            if [ $? -eq 0 ]; then break; fi
+            sleep 3
+          done
+
+      - name: Run Playwright E2E tests
+        working-directory: apps/web
+        env:
+          BASE_URL: http://localhost:3000
+          JWT_SECRET: local-secret
+        run: |
+          npx playwright install --with-deps
+          npm run test:e2e
+
+      - name: Shut down Docker containers
+        if: always()
+        run: |
+          docker compose -f docker-compose.prod.yml down

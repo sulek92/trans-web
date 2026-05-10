@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  output: 'standalone',
+  transpilePackages: ['framer-motion'],
   compress: true,
   poweredByHeader: false,
   allowedDevOrigins: ['127.0.0.1', 'localhost'],
@@ -42,12 +44,12 @@ const nextConfig: NextConfig = {
       { source: '/icons/icon-512x512.png', destination: '/next.svg' },
       {
         source: '/api/backend/:path*',
-        destination: `${process.env.INTERNAL_API_URL || 'http://localhost:4000'}/:path*`,
+        destination: `${process.env.API_URL_INTERNAL || 'http://localhost:4000'}/:path*`,
       },
     ];
   },
   experimental: {
-    optimizePackageImports: ['lucide-react', 'framer-motion'],
+    optimizePackageImports: ['lucide-react'],
   },
 };
 

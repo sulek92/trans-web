@@ -5,14 +5,20 @@ import { useSearchParams } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { getApiBaseUrl } from '@/lib/api-url';
+import { getCookie } from '@/lib/utils';
 
 function SuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
   const [order, setOrder] = React.useState<any>(null);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
 
   const API_URL = getApiBaseUrl();
+  
+  React.useEffect(() => {
+    setIsLoggedIn(!!getCookie('pb_auth_token'));
+  }, []);
 
   React.useEffect(() => {
     if (!orderId) {
@@ -21,7 +27,7 @@ function SuccessContent() {
     }
     const fetchOrder = async () => {
       try {
-        const res = await fetch(`${API_URL}/orders/${orderId}`);
+        const res = await fetch(`${API_URL}/orders/summary/${orderId}`);
         if (res.ok) {
           const data = await res.json();
           setOrder(data);
@@ -79,9 +85,15 @@ function SuccessContent() {
         </div>
 
          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/zamowienia" className="flex-1 py-4 bg-[var(--color-on-background)] text-[var(--color-background)] rounded-2xl font-bold hover:bg-[var(--color-primary)] hover:text-white transition-all shadow-xl">
-            Moje Zamówienia
-          </Link>
+          {isLoggedIn ? (
+            <Link href="/zamowienia" className="flex-1 py-4 bg-[var(--color-on-background)] text-[var(--color-background)] rounded-2xl font-bold hover:bg-[var(--color-primary)] hover:text-white transition-all shadow-xl">
+              Moje Zamówienia
+            </Link>
+          ) : (
+            <Link href="/sledzenie" className="flex-1 py-4 bg-[var(--color-on-background)] text-[var(--color-background)] rounded-2xl font-bold hover:bg-[var(--color-primary)] hover:text-white transition-all shadow-xl">
+              Śledź przesyłkę
+            </Link>
+          )}
           <Link href="/" className="flex-1 py-4 bg-[var(--color-surface-primary)] border border-[var(--color-divider)] text-[var(--color-on-background)] rounded-2xl font-bold hover:bg-[var(--color-surface-container)] transition-all">
             Wróć do strony głównej
           </Link>
