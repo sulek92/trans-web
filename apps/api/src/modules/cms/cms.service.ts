@@ -6,7 +6,7 @@ import {
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { db } from '../../db';
-import { cmsPages, cmsArticles } from '../../db/schema';
+import { cmsPages, cmsArticles, cmsTestimonials } from '../../db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { UpdateCmsPageDto } from './dto/update-cms-page.dto';
 type CmsPageInput = {
@@ -18,6 +18,7 @@ type CmsPageInput = {
   isPublished?: boolean;
 };
 import { AuditLogService } from '../audit-log/audit-log.service';
+import { RedisService } from '../redis/redis.service';
 
 type ActorContext = {
   userId?: string;
@@ -42,24 +43,77 @@ const ALLOWED_IMAGE_MIME_TYPES = new Map<string, string>([
 
 @Injectable()
 export class CmsService {
-  private readonly mediaDirectory = path.resolve(
-    process.cwd(),
-    'apps/web/public/images/uploads',
-  );
+  private readonly mediaDirectory = process.env.UPLOAD_DIR 
+    ? path.resolve(process.env.UPLOAD_DIR)
+    : path.resolve(process.cwd(), 'apps/web/public/images/uploads');
 
-  constructor(private readonly auditLogService: AuditLogService) {}
+  constructor(
+    private readonly auditLogService: AuditLogService,
+    private readonly redisService: RedisService,
+  ) {}
 
   async getPages() {
-    return db.select().from(cmsPages);
+    const cacheKey = 'cms:pages';
+    const cached = await this.redisService.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
+    const result = await db.select().from(cmsPages);
+    await this.redisService.set(cacheKey, JSON.stringify(result), 1800);
+    return result;
   }
 
   async getPageBySlug(slug: string) {
+    const cacheKey = `cms:page:${slug}`;
+    const cached = await this.redisService.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
     const [page] = await db
       .select()
       .from(cmsPages)
       .where(eq(cmsPages.slug, slug));
     if (!page) throw new NotFoundException(`Page with slug ${slug} not found`);
+
+    await this.redisService.set(cacheKey, JSON.stringify(page), 1800);
     return page;
+  }
+
+  async getArticles(onlyPublished = false) {
+    const cacheKey = `cms:articles:${onlyPublished ? 'published' : 'all'}`;
+    const cached = await this.redisService.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
+    let result;
+    if (onlyPublished) {
+      result = await db
+        .select()
+        .from(cmsArticles)
+        .where(eq(cmsArticles.isPublished, true))
+        .orderBy(desc(cmsArticles.publishedAt));
+    } else {
+      result = await db
+        .select()
+        .from(cmsArticles)
+        .orderBy(desc(cmsArticles.updatedAt));
+    }
+
+    await this.redisService.set(cacheKey, JSON.stringify(result), 1800);
+    return result;
+  }
+
+  async getArticleBySlug(slug: string) {
+    const cacheKey = `cms:article:${slug}`;
+    const cached = await this.redisService.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
+    const [article] = await db
+      .select()
+      .from(cmsArticles)
+      .where(eq(cmsArticles.slug, slug));
+    if (!article)
+      throw new NotFoundException(`Article with slug ${slug} not found`);
+
+    await this.redisService.set(cacheKey, JSON.stringify(article), 1800);
+    return article;
   }
 
   async updatePage(slug: string, data: UpdateCmsPageDto, actor?: ActorContext) {
@@ -84,6 +138,7 @@ export class CmsService {
         },
       });
 
+      await this.invalidateCmsCache(slug);
       return updated;
     }
 
@@ -118,6 +173,7 @@ export class CmsService {
         },
       });
 
+      await this.invalidateCmsCache(slug);
       return created;
     } catch {
       const [afterConflict] = await db
@@ -143,32 +199,9 @@ export class CmsService {
         },
       });
 
+      await this.invalidateCmsCache(slug);
       return afterConflict;
     }
-  }
-
-  async getArticles(onlyPublished = false) {
-    if (onlyPublished) {
-      return db
-        .select()
-        .from(cmsArticles)
-        .where(eq(cmsArticles.isPublished, true))
-        .orderBy(desc(cmsArticles.publishedAt));
-    }
-
-    return db
-      .select()
-      .from(cmsArticles)
-      .orderBy(desc(cmsArticles.updatedAt));
-  }
-
-  async getArticleBySlug(slug: string) {
-    const [article] = await db
-      .select()
-      .from(cmsArticles)
-      .where(eq(cmsArticles.slug, slug));
-    if (!article) throw new NotFoundException(`Article with slug ${slug} not found`);
-    return article;
   }
 
   async updateArticle(slug: string, data: any, actor?: ActorContext) {
@@ -225,7 +258,8 @@ export class CmsService {
       .select()
       .from(cmsArticles)
       .where(eq(cmsArticles.slug, slug));
-    if (!existing) throw new NotFoundException(`Article with slug ${slug} not found`);
+    if (!existing)
+      throw new NotFoundException(`Article with slug ${slug} not found`);
 
     await db.delete(cmsArticles).where(eq(cmsArticles.slug, slug));
 
@@ -363,7 +397,14 @@ export class CmsService {
       if (existing && existing.length > 0) {
         const [updated] = await db
           .update(cmsPages)
-          .set({ title: p.title, content: p.content ?? null, metaTitle: p.metaTitle ?? null, metaDescription: p.metaDescription ?? null, isPublished: p.isPublished ?? true, updatedAt: now })
+          .set({
+            title: p.title,
+            content: p.content ?? null,
+            metaTitle: p.metaTitle ?? null,
+            metaDescription: p.metaDescription ?? null,
+            isPublished: p.isPublished ?? true,
+            updatedAt: now,
+          })
           .where(eq(cmsPages.slug, p.slug))
           .returning();
         if (updated) {
@@ -373,14 +414,26 @@ export class CmsService {
             action: 'cms.page_updated',
             entityType: 'cms_page',
             entityId: updated.id,
-            metadata: { slug: p.slug, title: p.title, isPublished: p.isPublished },
+            metadata: {
+              slug: p.slug,
+              title: p.title,
+              isPublished: p.isPublished,
+            },
           });
           results.push(updated);
         }
       } else {
         const [created] = await db
           .insert(cmsPages)
-          .values({ slug: p.slug, title: p.title, content: p.content ?? null, metaTitle: p.metaTitle ?? null, metaDescription: p.metaDescription ?? null, isPublished: p.isPublished ?? true, updatedAt: now })
+          .values({
+            slug: p.slug,
+            title: p.title,
+            content: p.content ?? null,
+            metaTitle: p.metaTitle ?? null,
+            metaDescription: p.metaDescription ?? null,
+            isPublished: p.isPublished ?? true,
+            updatedAt: now,
+          })
           .returning();
         if (created) {
           await this.auditLogService.record({
@@ -389,7 +442,11 @@ export class CmsService {
             action: 'cms.page_created',
             entityType: 'cms_page',
             entityId: created.id,
-            metadata: { slug: p.slug, title: p.title, isPublished: p.isPublished },
+            metadata: {
+              slug: p.slug,
+              title: p.title,
+              isPublished: p.isPublished,
+            },
           });
           results.push(created);
         }
@@ -453,7 +510,15 @@ export class CmsService {
 
   async exportPages(): Promise<any[]> {
     const rows = await db.select().from(cmsPages);
-    return rows.map((r) => ({ slug: r.slug, title: r.title, content: r.content, metaTitle: r.metaTitle, metaDescription: r.metaDescription, isPublished: r.isPublished, updatedAt: r.updatedAt }));
+    return rows.map((r) => ({
+      slug: r.slug,
+      title: r.title,
+      content: r.content,
+      metaTitle: r.metaTitle,
+      metaDescription: r.metaDescription,
+      isPublished: r.isPublished,
+      updatedAt: r.updatedAt,
+    }));
   }
 
   private async ensureMediaDirectory(): Promise<void> {
@@ -473,19 +538,17 @@ export class CmsService {
     const oldPath = path.join(this.mediaDirectory, oldName);
     const newPath = path.join(this.mediaDirectory, newName);
 
-    // Validate old file exists
     try {
       await fs.access(oldPath);
     } catch {
       throw new NotFoundException(`File not found: ${oldName}`);
     }
 
-    // Validate destination does not exist
     try {
       await fs.access(newPath);
       throw new BadRequestException('Target file already exists.');
     } catch {
-      // If not exists, proceed
+      /* File doesn't exist yet, which is expected */
     }
 
     await fs.rename(oldPath, newPath);
@@ -500,5 +563,185 @@ export class CmsService {
     });
 
     return { oldName, newName, success: true };
+  }
+
+  async getTestimonials() {
+    const cacheKey = 'cms:testimonials';
+    const cached = await this.redisService.get(cacheKey);
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch {
+        /* ignore, refetch */
+      }
+    }
+
+    const rows = await db
+      .select()
+      .from(cmsTestimonials)
+      .where(eq(cmsTestimonials.isActive, true))
+      .orderBy(cmsTestimonials.sortOrder);
+
+    const result = rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      role: r.role,
+      text: r.text,
+      avatar: r.avatar,
+      avatarImage: r.avatarImage,
+      isActive: r.isActive,
+      sortOrder: r.sortOrder,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    }));
+
+    await this.redisService.set(cacheKey, JSON.stringify(result), 1800);
+    return result;
+  }
+
+  async getAllTestimonials() {
+    const rows = await db
+      .select()
+      .from(cmsTestimonials)
+      .orderBy(cmsTestimonials.sortOrder);
+
+    return rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      role: r.role,
+      text: r.text,
+      avatar: r.avatar,
+      avatarImage: r.avatarImage,
+      isActive: r.isActive,
+      sortOrder: r.sortOrder,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    }));
+  }
+
+  async createTestimonial(
+    payload: {
+      name: string;
+      role: string;
+      text: string;
+      avatar?: string;
+      avatarImage?: string;
+      sortOrder?: number;
+    },
+    actor?: ActorContext,
+  ) {
+    const [created] = await db
+      .insert(cmsTestimonials)
+      .values({
+        name: payload.name,
+        role: payload.role,
+        text: payload.text,
+        avatar: payload.avatar || 'person',
+        avatarImage: payload.avatarImage || '',
+        sortOrder: payload.sortOrder ?? 0,
+      })
+      .returning();
+
+    await this.redisService.del('cms:testimonials');
+
+    await this.auditLogService.record({
+      actorUserId: actor?.userId,
+      actorEmail: actor?.email,
+      action: 'cms.testimonial_created',
+      entityType: 'cms_testimonial',
+      entityId: created.id,
+      metadata: { name: created.name },
+    });
+
+    return created;
+  }
+
+  async updateTestimonial(
+    id: string,
+    payload: {
+      name?: string;
+      role?: string;
+      text?: string;
+      avatar?: string;
+      avatarImage?: string;
+      isActive?: boolean;
+      sortOrder?: number;
+    },
+    actor?: ActorContext,
+  ) {
+    const existing = await db
+      .select()
+      .from(cmsTestimonials)
+      .where(eq(cmsTestimonials.id, id));
+
+    if (existing.length === 0) {
+      throw new NotFoundException('Opinia nie znaleziona.');
+    }
+
+    const [updated] = await db
+      .update(cmsTestimonials)
+      .set({
+        ...(payload.name !== undefined && { name: payload.name }),
+        ...(payload.role !== undefined && { role: payload.role }),
+        ...(payload.text !== undefined && { text: payload.text }),
+        ...(payload.avatar !== undefined && { avatar: payload.avatar }),
+        ...(payload.avatarImage !== undefined && {
+          avatarImage: payload.avatarImage,
+        }),
+        ...(payload.isActive !== undefined && { isActive: payload.isActive }),
+        ...(payload.sortOrder !== undefined && {
+          sortOrder: payload.sortOrder,
+        }),
+        updatedAt: new Date(),
+      })
+      .where(eq(cmsTestimonials.id, id))
+      .returning();
+
+    await this.redisService.del('cms:testimonials');
+
+    await this.auditLogService.record({
+      actorUserId: actor?.userId,
+      actorEmail: actor?.email,
+      action: 'cms.testimonial_updated',
+      entityType: 'cms_testimonial',
+      entityId: id,
+      metadata: { changes: payload },
+    });
+
+    return updated;
+  }
+
+  async deleteTestimonial(id: string, actor?: ActorContext) {
+    const existing = await db
+      .select()
+      .from(cmsTestimonials)
+      .where(eq(cmsTestimonials.id, id));
+
+    if (existing.length === 0) {
+      throw new NotFoundException('Opinia nie znaleziona.');
+    }
+
+    await db.delete(cmsTestimonials).where(eq(cmsTestimonials.id, id));
+    await this.redisService.del('cms:testimonials');
+
+    await this.auditLogService.record({
+      actorUserId: actor?.userId,
+      actorEmail: actor?.email,
+      action: 'cms.testimonial_deleted',
+      entityType: 'cms_testimonial',
+      entityId: id,
+    });
+
+    return { success: true, deleted: id };
+  }
+
+  private async invalidateCmsCache(slug?: string) {
+    await Promise.all([
+      this.redisService.del('cms:pages'),
+      this.redisService.del('cms:articles:published'),
+      this.redisService.del('cms:articles:all'),
+      slug ? this.redisService.del(`cms:page:${slug}`) : Promise.resolve(),
+      slug ? this.redisService.del(`cms:article:${slug}`) : Promise.resolve(),
+    ]);
   }
 }

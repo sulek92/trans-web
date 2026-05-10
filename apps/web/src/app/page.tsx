@@ -1,19 +1,20 @@
 import * as React from 'react';
+import { cache } from 'react';
 import { HomePageClient } from './home-client';
 import { Metadata } from 'next';
 import { getApiBaseUrl } from '@/lib/api-url';
 
-async function getCmsData() {
+const getCmsData = cache(async () => {
   const apiUrl = getApiBaseUrl();
   try {
-    const res = await fetch(`${apiUrl}/cms/pages/home`, { cache: 'no-store' });
+    const res = await fetch(`${apiUrl}/cms/pages/home`, { next: { revalidate: 60 } });
     if (!res.ok) return null;
     const data = await res.json();
     return typeof data.content === 'string' ? JSON.parse(data.content) : data.content;
   } catch {
     return null;
   }
-}
+});
 
 export async function generateMetadata(): Promise<Metadata> {
   const cmsData = await getCmsData();

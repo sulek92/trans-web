@@ -1,8 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { getCookie } from '@/lib/utils';
-import { getApiBaseUrl } from '@/lib/api-url';
+import { apiFetch, getApiBaseUrl } from '@/lib/api-url';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 
@@ -55,11 +54,10 @@ export default function AdminDashboard() {
 
   React.useEffect(() => {
     const fetchDashboard = async () => {
-      const token = getCookie('pb_auth_token');
       try {
         const [statsRes, analyticsRes] = await Promise.all([
-          fetch(`${API_URL}/admin/stats`, { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch(`${API_URL}/admin/analytics`, { headers: { 'Authorization': `Bearer ${token}` } })
+          apiFetch('/admin/stats'),
+          apiFetch('/admin/analytics')
         ]);
 
         if (statsRes.ok) setData(await statsRes.json());
@@ -107,7 +105,7 @@ export default function AdminDashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {data?.stats.map((s, i: number) => (
-          <div key={i} className="bg-white p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm hover:shadow-xl transition-premium group">
+          <div key={i} className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm hover:shadow-xl transition-premium group">
             <div className="flex items-center justify-between mb-6">
               <div className={`w-14 h-14 rounded-2xl ${s.color} flex items-center justify-center transition-premium group-hover:scale-110 shadow-sm`}>
                 <span className="material-symbols-outlined text-3xl">{s.icon}</span>
@@ -116,7 +114,7 @@ export default function AdminDashboard() {
                 {s.trend}
               </div>
             </div>
-            <div className="text-sm text-slate-400 font-bold uppercase tracking-widest mb-1">{s.label}</div>
+            <div className="text-sm text-[var(--color-text-faint)] font-bold uppercase tracking-widest mb-1">{s.label}</div>
             <div className="text-3xl font-bold text-[var(--color-on-background)]">{s.value}</div>
           </div>
         ))}
@@ -124,15 +122,15 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         {/* Revenue Chart Widget */}
-        <div className="lg:col-span-8 bg-white rounded-[40px] border border-[var(--color-divider)] shadow-sm overflow-hidden flex flex-col p-10">
+        <div className="lg:col-span-8 bg-[var(--color-surface-primary)] rounded-[40px] border border-[var(--color-divider)] shadow-sm overflow-hidden flex flex-col p-10">
           <div className="flex justify-between items-start mb-10">
             <div>
               <h2 className="text-2xl font-bold text-[var(--color-on-background)]">Trend Przychodów</h2>
-              <p className="text-sm text-slate-400 font-bold">Ostatnie 30 dni • Kwoty Brutto</p>
+              <p className="text-sm text-[var(--color-text-faint)] font-bold">Ostatnie 30 dni • Kwoty Brutto</p>
             </div>
             <div className="text-right">
               <div className="text-3xl font-bold text-emerald-600">+{totalRevenue.toLocaleString('pl-PL')} PLN</div>
-              <div className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Suma z 30 dni</div>
+              <div className="text-[10px] uppercase font-bold text-[var(--color-text-faint)] tracking-widest">Suma z 30 dni</div>
             </div>
           </div>
 
@@ -142,22 +140,22 @@ export default function AdminDashboard() {
                 const maxVal = Math.max(...analytics.chartData.map(cd => cd.value));
                 const height = (d.value / maxVal) * 100;
                 return (
-                  <div key={i} className="flex-1 bg-slate-50 relative group/bar rounded-t-lg transition-all hover:bg-[var(--color-primary)]/10" style={{ height: '100%' }}>
+                  <div key={i} className="flex-1 bg-[var(--color-surface-container)] relative group/bar rounded-t-lg transition-all hover:bg-[var(--color-primary)]/10" style={{ height: '100%' }}>
                     <div 
                       className="absolute bottom-0 left-0 right-0 bg-[var(--color-primary)] rounded-t-lg transition-all duration-700 ease-out group-hover:opacity-80"
                       style={{ height: `${height}%` }}
                     />
-                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-2 py-1 rounded text-[10px] font-bold opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap z-10">
+                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[var(--color-on-background)] text-[var(--color-background)] px-2 py-1 rounded text-[10px] font-bold opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap z-10">
                       {d.value} zł • {new Date(d.date).toLocaleDateString('pl-PL')}
                     </div>
                   </div>
                 );
               })
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-slate-300 font-bold italic">Brak danych historycznych do wykresu.</div>
+              <div className="w-full h-full flex items-center justify-center text-[var(--color-text-faint)] font-bold italic">Brak danych historycznych do wykresu.</div>
             )}
           </div>
-          <div className="flex justify-between mt-6 text-[10px] font-bold text-slate-300 uppercase tracking-widest">
+          <div className="flex justify-between mt-6 text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-widest">
             <span>30 dni temu</span>
             <span>Dzisiaj</span>
           </div>
@@ -165,23 +163,23 @@ export default function AdminDashboard() {
 
         {/* Activity Feed Widget */}
         <div className="lg:col-span-4 flex flex-col gap-8">
-          <div className="bg-white rounded-[40px] border border-[var(--color-divider)] shadow-sm p-10 flex flex-col">
+          <div className="bg-[var(--color-surface-primary)] rounded-[40px] border border-[var(--color-divider)] shadow-sm p-10 flex flex-col">
             <h2 className="text-xl font-bold mb-6">Przychody per Waluta</h2>
             <div className="space-y-4">
               {analytics?.revenueByCurrency && analytics.revenueByCurrency.map((c, i) => (
-                <div key={i} className="flex justify-between items-center p-3 bg-slate-50 rounded-2xl border border-slate-100">
-                  <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">{c.currency}</span>
+                <div key={i} className="flex justify-between items-center p-3 bg-[var(--color-surface-container)] rounded-2xl border border-[var(--color-divider)]">
+                  <span className="text-sm font-bold text-[var(--color-text-faint)] uppercase tracking-widest">{c.currency}</span>
                   <span className="text-lg font-bold text-[var(--color-on-background)]">{Number(c.total).toLocaleString()} {c.currency}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="bg-white rounded-[40px] border border-[var(--color-divider)] shadow-sm p-10 flex flex-col">
+          <div className="bg-[var(--color-surface-primary)] rounded-[40px] border border-[var(--color-divider)] shadow-sm p-10 flex flex-col">
             <h2 className="text-xl font-bold mb-6">Top Klienci</h2>
             <div className="space-y-4">
               {analytics?.topCustomers && analytics.topCustomers.map((u, i) => (
-                <div key={i} className="flex justify-between items-center group cursor-pointer hover:bg-slate-50 p-2 rounded-xl transition-colors">
+                <div key={i} className="flex justify-between items-center group cursor-pointer hover:bg-[var(--color-surface-container)] p-2 rounded-xl transition-colors">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">
                       {i + 1}
@@ -190,14 +188,14 @@ export default function AdminDashboard() {
                   </div>
                   <div className="text-right">
                     <div className="text-xs font-bold text-emerald-600">{Number(u.totalSpend).toLocaleString()} zł</div>
-                    <div className="text-[9px] text-slate-400 uppercase font-bold">{u.orderCount} zleceń</div>
+                    <div className="text-[9px] text-[var(--color-text-faint)] uppercase font-bold">{u.orderCount} zleceń</div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="bg-white rounded-[40px] border border-[var(--color-divider)] shadow-sm p-10 flex flex-col">
+          <div className="bg-[var(--color-surface-primary)] rounded-[40px] border border-[var(--color-divider)] shadow-sm p-10 flex flex-col">
             <h2 className="text-xl font-bold mb-6">Przewoźnicy</h2>
             <div className="space-y-4">
               {analytics?.carrierStats && Object.entries(analytics.carrierStats).map(([carrier, count], i) => {
@@ -205,11 +203,11 @@ export default function AdminDashboard() {
                 const percent = Math.round((count / total) * 100);
                 return (
                   <div key={i} className="space-y-1.5">
-                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-faint)]">
                       <span>{carrier}</span>
                       <span>{count} ({percent}%)</span>
                     </div>
-                    <div className="h-2 w-full bg-slate-50 rounded-full overflow-hidden">
+                    <div className="h-2 w-full bg-[var(--color-surface-container)] rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-[var(--color-primary)] rounded-full transition-all duration-1000"
                         style={{ width: `${percent}%` }}
@@ -221,7 +219,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="flex-grow bg-[#1e293b] rounded-[40px] shadow-2xl text-white p-10 flex flex-col">
+          <div className="flex-grow bg-[#1e293b] rounded-[40px] shadow-2xl text-[var(--color-background)] p-10 flex flex-col">
             <div className="flex items-center gap-3 mb-8">
               <span className="material-symbols-outlined text-amber-400">history</span>
               <h2 className="font-bold text-xl">Ostatnia Aktywność</h2>
@@ -234,24 +232,24 @@ export default function AdminDashboard() {
                     <div className="relative">
                       <div className="w-2 h-2 rounded-full bg-[var(--color-primary)] mt-1.5 z-10 relative"></div>
                       {i !== analytics.recentActivity.length - 1 && (
-                        <div className="absolute top-3 left-[3.5px] bottom-0 w-[1px] bg-white/10 h-full"></div>
+                        <div className="absolute top-3 left-[3.5px] bottom-0 w-[1px] bg-[var(--color-surface-primary)]/10 h-full"></div>
                       )}
                     </div>
                     <div>
-                      <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">
+                      <div className="text-[10px] font-bold text-[var(--color-background)]/40 uppercase tracking-widest mb-1">
                         {new Date(log.createdAt).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
                       </div>
-                      <div className="text-sm font-bold text-white/90 group-hover:text-[var(--color-primary)] transition-colors">{log.action}</div>
-                      <div className="text-[11px] text-white/60 mt-1 italic">{log.actorEmail}</div>
+                      <div className="text-sm font-bold text-[var(--color-background)]/90 group-hover:text-[var(--color-primary)] transition-colors">{log.action}</div>
+                      <div className="text-[11px] text-[var(--color-background)]/60 mt-1 italic">{log.actorEmail}</div>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-white/30 italic text-sm">Brak zarejestrowanych działań.</div>
+                <div className="text-[var(--color-background)]/30 italic text-sm">Brak zarejestrowanych działań.</div>
               )}
             </div>
             
-            <Link href="/admin/logi-systemowe" className="mt-8 block w-full py-4 bg-white/5 hover:bg-white/10 rounded-2xl text-xs font-bold transition-all border border-white/10 uppercase tracking-widest text-center">
+            <Link href="/admin/logi-systemowe" className="mt-8 block w-full py-4 bg-[var(--color-surface-primary)]/5 hover:bg-[var(--color-surface-primary)]/10 rounded-2xl text-xs font-bold transition-all border border-white/10 uppercase tracking-widest text-center">
               Zobacz wszystkie logi
             </Link>
           </div>
@@ -267,12 +265,8 @@ function TunnelUrlWidget({ apiUrl }: { apiUrl: string }) {
   const [isLoading, setIsLoading] = React.useState(true);
 
   const fetchTunnel = React.useCallback(async () => {
-    const token = getCookie('pb_auth_token');
-    if (!token) return;
     try {
-      const res = await fetch(`${apiUrl}/admin/tunnel`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await apiFetch('/admin/tunnel');
       if (res.ok) {
         const data = await res.json();
         setUrl(data.url);
@@ -301,12 +295,12 @@ function TunnelUrlWidget({ apiUrl }: { apiUrl: string }) {
   if (isLoading) return <Skeleton className="h-24 w-full rounded-[32px] mb-8" />;
 
   return (
-    <div className="bg-gradient-to-r from-[#4f46e5] to-[#7c3aed] p-8 rounded-[40px] text-white shadow-2xl flex flex-col lg:flex-row items-center justify-between gap-8 overflow-hidden relative group mb-10">
-      <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -mr-48 -mt-48 blur-3xl group-hover:bg-white/20 transition-all duration-1000"></div>
+    <div className="bg-gradient-to-r from-[#4f46e5] to-[#7c3aed] p-8 rounded-[40px] text-[var(--color-background)] shadow-2xl flex flex-col lg:flex-row items-center justify-between gap-8 overflow-hidden relative group mb-10">
+      <div className="absolute top-0 right-0 w-96 h-96 bg-[var(--color-surface-primary)]/10 rounded-full -mr-48 -mt-48 blur-3xl group-hover:bg-[var(--color-surface-primary)]/20 transition-all duration-1000"></div>
       <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/20 rounded-full -ml-32 -mb-32 blur-2xl"></div>
       
       <div className="flex items-center gap-6 relative z-10">
-        <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-3xl flex items-center justify-center border border-white/30 shadow-inner">
+        <div className="w-16 h-16 bg-[var(--color-surface-primary)]/20 backdrop-blur-xl rounded-3xl flex items-center justify-center border border-white/30 shadow-inner">
           <span className="material-symbols-outlined text-4xl">rocket_launch</span>
         </div>
         <div>
@@ -318,7 +312,7 @@ function TunnelUrlWidget({ apiUrl }: { apiUrl: string }) {
       <div className="flex flex-col lg:flex-row items-center gap-4 w-full lg:w-auto relative z-10 flex-1 lg:ml-8">
         {url ? (
           <>
-            <div className="w-full lg:flex-1 bg-black/30 backdrop-blur-md border border-white/20 px-6 py-4 rounded-2xl font-mono text-sm tracking-tight shadow-inner flex items-center gap-4 group/url hover:bg-black/40 transition-all cursor-default min-w-0">
+            <div className="w-full lg:flex-1 bg-black/50 backdrop-blur-md border border-white/20 px-6 py-4 rounded-2xl font-mono text-sm tracking-tight shadow-inner flex items-center gap-4 group/url hover:bg-black/40 transition-all cursor-default min-w-0">
               <div className="relative flex-shrink-0">
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_rgba(52,211,153,0.8)]"></div>
                 <div className="absolute inset-0 w-2.5 h-2.5 rounded-full bg-emerald-400 blur-[2px] opacity-50"></div>
@@ -329,7 +323,7 @@ function TunnelUrlWidget({ apiUrl }: { apiUrl: string }) {
             </div>
             <button
               onClick={handleCopy}
-              className="w-full lg:w-auto px-8 py-4 bg-white text-indigo-600 rounded-2xl hover:bg-indigo-50 transition-premium shadow-xl flex items-center justify-center gap-3 font-bold text-sm group/btn active:scale-95 shrink-0 whitespace-nowrap"
+              className="w-full lg:w-auto px-8 py-4 bg-[var(--color-surface-primary)] text-indigo-600 rounded-2xl hover:bg-indigo-50 transition-premium shadow-xl flex items-center justify-center gap-3 font-bold text-sm group/btn active:scale-95 shrink-0 whitespace-nowrap"
             >
               <span className="material-symbols-outlined text-xl transition-transform group-hover/btn:scale-110">
                 {copied ? 'check_circle' : 'content_copy'}
@@ -338,7 +332,7 @@ function TunnelUrlWidget({ apiUrl }: { apiUrl: string }) {
             </button>
           </>
         ) : (
-          <div className="flex items-center gap-4 px-6 py-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10">
+          <div className="flex items-center gap-4 px-6 py-4 bg-[var(--color-surface-primary)]/10 backdrop-blur-md rounded-2xl border border-white/10">
             <div className="w-5 h-5 border-2 border-indigo-300 border-t-white rounded-full animate-spin"></div>
             <span className="text-indigo-100 font-medium text-sm">Inicjalizacja tunelu Cloudflare...</span>
           </div>

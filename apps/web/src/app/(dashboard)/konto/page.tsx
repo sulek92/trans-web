@@ -30,11 +30,10 @@ export default function DashboardOverviewPage() {
   const { addToast } = useToastStore();
 
   const fetchDashboardData = React.useCallback(async () => {
-    const token = getCookie('pb_auth_token');
     try {
       const [userRes, ordersRes] = await Promise.all([
-        fetch(`${getApiBaseUrl()}/users/me`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`${getApiBaseUrl()}/orders/my`, { headers: { 'Authorization': `Bearer ${token}` } })
+        fetch(`${getApiBaseUrl()}/users/me`, { credentials: 'include' }),
+        fetch(`${getApiBaseUrl()}/orders/my`, { credentials: 'include' })
       ]);
 
       if (userRes.ok) setUser(await userRes.json());
@@ -55,7 +54,7 @@ export default function DashboardOverviewPage() {
 
   if (isLoading) {
     return (
-      <div className="pt-24 pb-24 max-w-[1280px] mx-auto px-8 space-y-12">
+      <div className="pb-24 max-w-[1280px] mx-auto px-8 space-y-12">
         <Skeleton className="h-20 w-1/3 rounded-2xl" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[1,2,3].map(i => <Skeleton key={i} className="h-48 w-full rounded-[32px]" />)}
@@ -78,12 +77,12 @@ export default function DashboardOverviewPage() {
       case 'DELIVERED': case 'DORĘCZONE': return 'bg-emerald-100 text-emerald-700';
       case 'PENDING': case 'OCZEKIWANIE': return 'bg-amber-100 text-amber-700';
       case 'IN_TRANSIT': case 'W TRANSPORCIE': return 'bg-blue-100 text-blue-700';
-      default: return 'bg-slate-100 text-slate-700';
+      default: return 'bg-[var(--color-surface-container-high)] text-[var(--color-text-muted)]';
     }
   };
 
   return (
-    <main className="pt-24 pb-24 bg-[var(--color-background)] min-h-screen">
+    <main className="pb-24 bg-[var(--color-background)] min-h-screen">
       <div className="max-w-[1280px] mx-auto px-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12 animate-fade-in">
@@ -92,8 +91,8 @@ export default function DashboardOverviewPage() {
                <span className="text-[var(--color-primary)] font-bold tracking-widest uppercase text-[10px] bg-[var(--color-primary-highlight)] px-2 py-0.5 rounded">
                  {user?.role === 'admin' ? 'Administrator' : 'Partner Biznesowy'}
                </span>
-               <span className="text-slate-300">•</span>
-               <span className="text-slate-400 text-xs font-medium">{user?.email}</span>
+               <span className="text-[var(--color-text-faint)]">•</span>
+               <span className="text-[var(--color-text-faint)] text-xs font-medium">{user?.email}</span>
             </div>
             <h1 className="font-display-bold text-4xl font-bold text-[var(--color-on-background)] mb-1">
               Cześć, {user?.email.split('@')[0]} 👋
@@ -109,24 +108,24 @@ export default function DashboardOverviewPage() {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 animate-fade-in delay-100">
           {stats.map((s, i) => (
-            <div key={i} className="bg-white p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm hover:shadow-xl transition-premium group">
+            <div key={i} className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm hover:shadow-xl transition-premium group">
               <div className="flex items-center justify-between mb-6">
-                <div className={`w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center group-hover:bg-[var(--color-primary)] group-hover:text-white transition-premium ${s.color}`}>
+                <div className={`w-12 h-12 rounded-2xl bg-[var(--color-surface-container)] flex items-center justify-center group-hover:bg-[var(--color-primary)] group-hover:text-white transition-premium ${s.color}`}>
                   <span className="material-symbols-outlined text-2xl">{s.icon}</span>
                 </div>
               </div>
               <div className="text-4xl font-bold text-[var(--color-on-background)] mb-1 tracking-tight">{s.value}</div>
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{s.label}</div>
-              <div className="mt-4 pt-4 border-t border-slate-50 text-[10px] text-slate-400 font-medium">{s.sub}</div>
+              <div className="text-[10px] font-bold text-[var(--color-text-faint)] uppercase tracking-widest">{s.label}</div>
+              <div className="mt-4 pt-4 border-t border-slate-50 text-[10px] text-[var(--color-text-faint)] font-medium">{s.sub}</div>
             </div>
           ))}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-fade-in delay-200">
           {/* Recent Orders */}
-          <div className="lg:col-span-8 bg-white rounded-[40px] border border-[var(--color-divider)] shadow-sm overflow-hidden flex flex-col">
-            <div className="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
-               <h3 className="font-bold text-xl text-slate-900">Ostatnia aktywność</h3>
+          <div className="lg:col-span-8 bg-[var(--color-surface-primary)] rounded-[40px] border border-[var(--color-divider)] shadow-sm overflow-hidden flex flex-col">
+            <div className="p-8 border-b border-slate-50 flex justify-between items-center bg-[var(--color-surface-container)]/30">
+               <h3 className="font-bold text-xl text-[var(--color-on-background)]">Ostatnia aktywność</h3>
                <Link href="/zamowienia" className="text-xs font-bold text-[var(--color-primary)] uppercase tracking-widest hover:underline flex items-center gap-1">
                  Zobacz wszystko <span className="material-symbols-outlined text-xs">arrow_forward</span>
                </Link>
@@ -134,23 +133,23 @@ export default function DashboardOverviewPage() {
             
             <div className="p-8 space-y-4 flex-grow">
                {recentOrders.length === 0 ? (
-                 <div className="h-full flex flex-col items-center justify-center text-center p-12 text-slate-300">
+                 <div className="h-full flex flex-col items-center justify-center text-center p-12 text-[var(--color-text-faint)]">
                    <span className="material-symbols-outlined text-5xl mb-4 opacity-20">history</span>
                    <p className="font-medium italic">Brak niedawnej aktywności.</p>
                  </div>
                ) : (
                  recentOrders.map((order) => (
-                   <div key={order.id} className="flex items-center justify-between p-6 rounded-3xl bg-slate-50 hover:bg-slate-100/80 transition-premium cursor-pointer border border-transparent hover:border-slate-200 group">
+                   <div key={order.id} className="flex items-center justify-between p-6 rounded-3xl bg-[var(--color-surface-container)] hover:bg-[var(--color-surface-container-high)]/80 transition-premium cursor-pointer border border-transparent hover:border-[var(--color-divider)] group">
                       <div className="flex items-center gap-5">
-                         <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center font-bold text-[10px] text-[var(--color-primary)] shadow-sm group-hover:scale-110 transition-transform">
+                         <div className="w-12 h-12 rounded-2xl bg-[var(--color-surface-primary)] border border-[var(--color-divider)] flex items-center justify-center font-bold text-[10px] text-[var(--color-primary)] shadow-sm group-hover:scale-110 transition-transform">
                             {order.carrierCode}
                          </div>
                          <div>
-                            <div className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            <div className="text-sm font-bold text-[var(--color-on-background)] flex items-center gap-2">
                               {order.orderNumber} 
-                              <span className="text-slate-300 font-normal">• {order.senderAddress?.city || '---'} → {order.recipientAddress?.city || '---'}</span>
+                              <span className="text-[var(--color-text-faint)] font-normal">• {order.senderAddress?.city || '---'} → {order.recipientAddress?.city || '---'}</span>
                             </div>
-                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
+                            <div className="text-[10px] text-[var(--color-text-faint)] font-bold uppercase tracking-widest mt-1">
                               {new Date(order.createdAt).toLocaleDateString('pl-PL', { day: '2-digit', month: 'long' })}
                             </div>
                          </div>
@@ -173,7 +172,7 @@ export default function DashboardOverviewPage() {
                  Twoje Wsparcie
                </h3>
                <div className="flex items-center gap-4 mb-8 relative z-10">
-                  <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center font-bold text-2xl border border-white/10 shadow-inner">PB</div>
+                  <div className="w-16 h-16 rounded-2xl bg-[var(--color-surface-primary)]/10 backdrop-blur-md flex items-center justify-center font-bold text-2xl border border-white/10 shadow-inner">PB</div>
                   <div>
                      <div className="font-bold text-lg leading-tight">Dział Logistyki</div>
                      <div className="text-xs opacity-50 uppercase tracking-widest font-bold mt-1">Dostępny 24/7</div>
@@ -183,13 +182,13 @@ export default function DashboardOverviewPage() {
                   <a href="tel:+48221234567" className="w-full py-4 rounded-2xl bg-[var(--color-primary)] font-bold text-sm hover:scale-[1.02] transition-premium shadow-lg flex items-center justify-center gap-2">
                     <span className="material-symbols-outlined text-sm">call</span> Zadzwoń
                   </a>
-                  <Link href="/kontakt" className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 font-bold text-sm hover:bg-white/10 transition-premium flex items-center justify-center gap-2">
+                  <Link href="/kontakt" className="w-full py-4 rounded-2xl bg-[var(--color-surface-primary)]/5 border border-white/10 font-bold text-sm hover:bg-[var(--color-surface-primary)]/10 transition-premium flex items-center justify-center gap-2">
                     <span className="material-symbols-outlined text-sm">mail</span> Napisz wiadomość
                   </Link>
                </div>
             </div>
 
-            <div className="bg-white rounded-[40px] border border-[var(--color-divider)] p-8 shadow-sm">
+            <div className="bg-[var(--color-surface-primary)] rounded-[40px] border border-[var(--color-divider)] p-8 shadow-sm">
                <h3 className="font-bold text-lg mb-6">Szybki dostęp</h3>
                <div className="grid grid-cols-2 gap-4">
                   {[
@@ -198,7 +197,7 @@ export default function DashboardOverviewPage() {
                      { label: 'Zamówienia', icon: 'package_2', href: '/zamowienia' },
                      { label: 'Pomoc', icon: 'help_center', href: '/pomoc' },
                   ].map((tool, i) => (
-                     <Link key={i} href={tool.href} className="flex flex-col items-center justify-center p-6 rounded-3xl bg-slate-50 hover:bg-[var(--color-primary-highlight)] hover:text-[var(--color-primary)] transition-premium group border border-transparent hover:border-[var(--color-primary)]">
+                     <Link key={i} href={tool.href} className="flex flex-col items-center justify-center p-6 rounded-3xl bg-[var(--color-surface-container)] hover:bg-[var(--color-primary-highlight)] hover:text-[var(--color-primary)] transition-premium group border border-transparent hover:border-[var(--color-primary)]">
                         <span className="material-symbols-outlined text-2xl mb-2 group-hover:scale-110 transition-transform">{tool.icon}</span>
                         <span className="text-[10px] font-bold uppercase tracking-widest">{tool.label}</span>
                      </Link>

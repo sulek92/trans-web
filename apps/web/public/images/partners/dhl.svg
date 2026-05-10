@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" fill="none">
+  <rect x="10" y="10" width="180" height="24" rx="2" fill="#FC0"/>
+  <text x="100" y="28" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="16" fill="#D40511" letter-spacing="2">DHL</text>
+  <rect x="40" y="42" width="120" height="3" rx="1.5" fill="#D40511"/>
+  <text x="100" y="68" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="600" font-size="9" fill="#555" letter-spacing="1">FREIGHT</text>
+</svg>

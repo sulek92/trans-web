@@ -9,19 +9,22 @@ export interface CreateLeadPayload {
   weight?: string;
   route?: string;
   preferredDate?: string;
+  leadType?: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+import { getApiBaseUrl } from '@/lib/api-url';
+
+const API_URL = getApiBaseUrl();
 
 function normalizeErrorMessage(raw: unknown): string {
-  if (!raw || typeof raw !== 'object') return 'Nie udalo sie wyslac formularza.';
+  if (!raw || typeof raw !== 'object') return 'Form submission failed.';
   const message = (raw as { message?: unknown }).message;
   if (Array.isArray(message)) {
     const first = message.find((item) => typeof item === 'string');
     if (typeof first === 'string') return first;
   }
   if (typeof message === 'string') return message;
-  return 'Nie udalo sie wyslac formularza.';
+  return 'Form submission failed.';
 }
 
 export async function createLead(payload: CreateLeadPayload) {

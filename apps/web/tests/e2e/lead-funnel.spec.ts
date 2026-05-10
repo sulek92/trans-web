@@ -26,8 +26,8 @@ test('contact form lead is visible in admin leads panel', async ({ browser, page
 
   await page.goto('/kontakt');
   await page.getByPlaceholder('Jan Kowalski').fill('Test Kontakt');
-  await page.getByPlaceholder('Nazwa Twojej firmy').fill('Firma Testowa');
-  await page.getByPlaceholder('twoj@email.pl').fill(uniqueEmail);
+  await page.getByPlaceholder('Twoja firma Sp. z o.o.').fill('Firma Testowa');
+  await page.getByPlaceholder('kontakt@domena.pl').fill(uniqueEmail);
   await page.getByPlaceholder('+48 000 000 000').fill('+48 600 700 800');
   await page.getByPlaceholder('W czym możemy pomóc?').fill('Potrzebujemy oferty transportu palet na przyszly tydzien.');
   const leadResponsePromise = page.waitForResponse((response) => (
@@ -38,7 +38,7 @@ test('contact form lead is visible in admin leads panel', async ({ browser, page
   const leadResponse = await leadResponsePromise;
   expect(leadResponse.status()).toBe(201);
 
-  const resolvedBaseURL = baseURL || 'http://127.0.0.1:3000';
+  const resolvedBaseURL = baseURL || 'http://localhost:3000';
   const host = new URL(resolvedBaseURL).hostname;
   const adminContext = await browser.newContext();
   await adminContext.addCookies([

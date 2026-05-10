@@ -1,12 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { QuoteService } from './quote.service';
+import { RedisService } from '../redis/redis.service';
 
 describe('QuoteService', () => {
   let service: QuoteService;
+  const mockRedisService = {
+    get: jest.fn().mockResolvedValue(null),
+    set: jest.fn().mockResolvedValue('OK'),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [QuoteService],
+      providers: [
+        QuoteService,
+        { provide: RedisService, useValue: mockRedisService },
+      ],
     }).compile();
 
     service = module.get<QuoteService>(QuoteService);
@@ -34,7 +42,7 @@ describe('QuoteService', () => {
     const payload = {
       palletType: 'euro',
       dimensions: { length: 120, width: 80, height: 250 },
-      weight: 1200,
+      weight: 1201,
       sender: { postalCode: '00-001', country: 'PL' },
       recipient: { postalCode: '30-001', country: 'PL' },
     };

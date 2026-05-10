@@ -1,0 +1,65 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: palety-postgres-prod
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: palety_db
+    ports:
+      - '5434:5432'
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: palety-redis-prod
+    ports:
+      - '6380:6379'
+    volumes:
+      - redis_prod_data:/data
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: palety-api-prod
+    ports:
+      - '4000:4000'
+    environment:
+      - DATABASE_URL=postgresql://user:pass@postgres:5432/palety_db
+      - PORT=4000
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=production
+      - JWT_SECRET=local-secret
+      - UPLOAD_DIR=/app/uploads
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: palety-web-prod
+    ports:
+      - '3000:3000'
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:4000
+      - API_URL_INTERNAL=http://api:4000
+      - NODE_ENV=production
+    volumes:
+      - uploads_data:/app/apps/web/public/images/uploads
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  postgres_prod_data:
+  redis_prod_data:
+  uploads_data:

@@ -1,5 +1,6 @@
+import { Metadata } from 'next';
 import { BusinessClient } from './business-client';
-import { getCmsContent } from '@/lib/cms';
+import { getCmsContent, getCmsPageRecord } from '@/lib/cms';
 
 const FALLBACK = {
   heroBadge: 'Program Partnerski B2B',
@@ -15,6 +16,19 @@ const FALLBACK = {
   ],
   integrations: ['SAP', 'Oracle', 'PrestaShop', 'WooCommerce', 'Allegro', 'Magento'],
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getCmsPageRecord('dla-firm');
+  return {
+    title: page?.metaTitle || 'Oferta B2B – Transport palet dla firm | PaletyBroker',
+    description: page?.metaDescription || 'Faktura zbiorcza, dedykowane API, opiekun konta i ceny negocjowane. Zoptymalizuj logistykę paletową w swojej firmie z programem partnerskim PaletyBroker.',
+    openGraph: {
+      title: page?.metaTitle || 'Oferta B2B – Transport palet dla firm | PaletyBroker',
+      description: page?.metaDescription || 'Program partnerski B2B: faktura zbiorcza, API, opiekun konta, ceny negocjowane.',
+      images: ['/og-image.png'],
+    },
+  };
+}
 
 export default async function ForBusinessPage() {
   const cms = await getCmsContent<typeof FALLBACK>('dla-firm');

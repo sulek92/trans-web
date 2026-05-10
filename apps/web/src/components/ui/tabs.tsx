@@ -78,8 +78,8 @@ export function TabsTrigger({
       className={cn(
         'px-6 py-2.5 rounded-xl text-sm font-bold transition-premium relative whitespace-nowrap',
         isActive
-          ? 'bg-white dark:bg-slate-800 text-[var(--color-primary)] shadow-md'
-          : 'text-slate-500 hover:text-[var(--color-on-background)] hover:bg-white/50 dark:hover:bg-slate-700/50',
+          ? 'bg-[var(--color-surface-primary)] dark:bg-slate-800 text-[var(--color-primary)] shadow-md'
+          : 'text-[var(--color-text-muted)] hover:text-[var(--color-on-background)] hover:bg-[var(--color-surface-primary)]/50 dark:hover:bg-slate-700/50',
         className,
       )}
     >

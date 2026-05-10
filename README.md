@@ -1,36 +1,116 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PaletBroker — Platforma logistyki paletowej B2B
 
-## Getting Started
+Profesjonalna platforma do wyceny, zamawiania i śledzenia transportu paletowego. Porównuje oferty DHL, DPD, FedEx i innych przewoźników w czasie rzeczywistym.
 
-First, run the development server:
+## Tech stack
+
+| Warstwa | Technologia |
+|---------|-------------|
+| Frontend | Next.js 16, React 18, Tailwind CSS v4, Zustand, Framer Motion |
+| Backend | NestJS 11, Drizzle ORM, PostgreSQL, Redis |
+| Auth | JWT (access + refresh), Passport (Google, Azure AD) |
+| Płatności | Stripe |
+| Monitoring | Sentry |
+| CI/CD | GitHub Actions + Docker Compose |
+
+## Szybki start (lokalnie)
 
 ```bash
+# 1. Sklonuj i zainstaluj
+git clone <repo-url> && cd Strona-transport-wizytowka
+npm ci
+
+# 2. Skonfiguruj środowisko
+cp .env.example .env
+# Edytuj .env — ustaw SUPERADMIN_PASSWORD, ADMIN_PASSWORD, JWT_SECRET
+
+# 3. Uruchom infrastrukturę (PostgreSQL, Redis)
+docker compose up -d postgres redis
+
+# 4. Zainicjalizuj bazę danych
+npm run db:push
+npm run db:seed
+
+# 5. Uruchom aplikację
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# 6. Otwórz http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Testy
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Backend unit tests
+```bash
+cd apps/api && npm test           # 5 testów
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Backend e2e tests (wymaga PostgreSQL + Redis)
+```bash
+cd apps/api && npm run test:e2e   # 21 testów
+```
 
-## Learn More
+### Frontend Playwright E2E
+```bash
+cd apps/web && npm run test:e2e    # 26 tests (including admin panels)
+```
 
-To learn more about Next.js, take a look at the following resources:
+## E2E Test Suite (Playwright)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The full admin‑panel regression suite is located at `apps/web/tests/e2e/admin-panels.spec.ts`. It covers Leads, Orders, Newsletter, and Users panels and uses JWT authentication.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Run locally:
+```bash
+cd apps/web
+npm run test:e2e
+```
 
-## Deploy on Vercel
+## CI Pipeline
+A GitHub Actions workflow runs the full Playwright suite against the production Docker stack.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Workflow file: `.github/workflows/ci-e2e.yml`
+- Triggers on pushes and pull‑requests to `main`.
+- Builds Docker images, starts services, waits for health checks, then executes `npm run test:e2e`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Port Verification
+The production Docker compose maps:
+- Web server → **port 3000**
+- API server → **port 4000**
+
+You can verify the mapping with:
+```bash
+docker ps
+```
+Ensure you see `0.0.0.0:3000->3000/tcp` and `0.0.0.0:4000->4000/tcp` among the containers.
+
+## Wdrożenie produkcyjne
+
+Szczegółowe instrukcje: [docs/PRODUCTION.md](docs/PRODUCTION.md)
+
+## Status projektu i znane problemy
+[TODO] Update with current status.
+
+## Bezpieczeństwo i Autentykacja (v1.2.0+)
+
+W wersji 1.2.0 wprowadzono utwardzone mechanizmy sesji i modernizację UI:
+- **HttpOnly Cookies**: Tokeny `pb_auth_token` i `pb_refresh_token` są teraz przechowywane w bezpiecznych ciasteczkach, niedostępnych dla JavaScript, co drastycznie zwiększa odporność na ataki XSS.
+- **Metadata Cookies**: Stan interfejsu (rola, imię) jest synchronizowany przez ciasteczko `pb_user_meta` (dostępne dla JS), co pozwala na płynną nawigację przy zachowaniu pełnego bezpieczeństwa.
+- **Standard apiFetch**: Frontend korzysta z centralnego wrappera `apiFetch`, który zapewnia spójne przesyłanie poświadczeń (`credentials: include`) i upraszcza komunikację z API.
+- **Premium Dark Mode**: Cały system przeszedł audyt wizualny pod kątem dostępności i estetyki w trybie ciemnym (Dark Mode), z użyciem semantycznych zmiennych projektowych.
+
+## Struktura projektu
+
+```
+├── apps/
+│   ├── api/          # NestJS backend (port 4000)
+│   │   └── src/modules/  # 27 modułów biznesowych
+│   └── web/          # Next.js frontend (port 3000)
+│       ├── src/app/  # App Router (14+ stron)
+│       └── tests/e2e/ # Testy Playwright
+├── packages/shared/  # Współdzielone typy TypeScript
+├── docs/             # Dokumentacja i audyty
+└── docker-compose.yml
+```
+
+## Licencja
+
+Proprietary — All rights reserved.

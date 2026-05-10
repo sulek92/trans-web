@@ -1,35 +1,93 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
+import { Resend } from 'resend';
+
+interface OrderConfirmationData {
+  orderNumber: string;
+  status: string;
+  priceBrutto: string | number;
+}
 
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
-  private transporter: nodemailer.Transporter;
+  private transporter: nodemailer.Transporter | null = null;
+  private resend: Resend | null = null;
+  private fromEmail =
+    process.env.EMAIL_FROM ||
+    (process.env.RESEND_API_KEY
+      ? 'onboarding@resend.dev'
+      : 'PaletBroker <no-reply@paletbroker.pl>');
 
   constructor() {
-    // Configure transporter (using Ethereal for dev if no SMTP provided)
-    const host = process.env.SMTP_HOST;
-    const port = parseInt(process.env.SMTP_PORT || '587');
-    const user = process.env.SMTP_USER;
-    const pass = process.env.SMTP_PASS;
-
-    if (host && user && pass) {
-      this.transporter = nodemailer.createTransport({
-        host,
-        port,
-        secure: port === 465,
-        auth: { user, pass },
-      });
-      this.logger.log(`SMTP Notifications configured: ${host}`);
+    const resendApiKey = process.env.RESEND_API_KEY;
+    if (resendApiKey) {
+      this.resend = new Resend(resendApiKey);
+      this.logger.log('Resend Notifications configured');
     } else {
-      // Mock / Dev transporter
-      this.transporter = nodemailer.createTransport({
-        jsonTransport: true, // Logs emails as JSON to console
-      });
-      this.logger.warn(
-        'SMTP NOT CONFIGURED. Emails will be logged to console in JSON format.',
-      );
+      const host = process.env.SMTP_HOST;
+      const port = parseInt(process.env.SMTP_PORT || '587');
+      const user = process.env.SMTP_USER;
+      const pass = process.env.SMTP_PASS;
+
+      if (host && user && pass) {
+        this.transporter = nodemailer.createTransport({
+          host,
+          port,
+          secure: port === 465,
+          auth: { user, pass },
+        });
+        this.logger.log(`SMTP Notifications configured: ${host}`);
+      } else {
+        this.transporter = nodemailer.createTransport({
+          jsonTransport: true,
+        });
+        this.logger.warn(
+          'EMAIL SERVICE NOT CONFIGURED. Emails will be logged to console.',
+        );
+      }
     }
+  }
+
+  async sendMail(options: {
+    to: string;
+    subject: string;
+    html: string;
+    text?: string;
+  }) {
+    if (this.resend) {
+      try {
+        await this.resend.emails.send({
+          from: this.fromEmail,
+          to: options.to,
+          subject: options.subject,
+          html: options.html,
+          text: options.text,
+        });
+        return true;
+      } catch (error) {
+        this.logger.error(`Resend failed to send to ${options.to}:`, error);
+        return false;
+      }
+    }
+
+    if (this.transporter) {
+      try {
+        await this.transporter.sendMail({
+          from: this.fromEmail,
+          to: options.to,
+          subject: options.subject,
+          html: options.html,
+          text: options.text,
+        });
+        return true;
+      } catch (error) {
+        this.logger.error(`SMTP failed to send to ${options.to}:`, error);
+        return false;
+      }
+    }
+
+    return false;
   }
 
   private getEmailTemplate(title: string, content: string): string {
@@ -66,7 +124,7 @@ export class NotificationsService {
     `;
   }
 
-  async sendOrderConfirmation(to: string, orderData: any) {
+  async sendOrderConfirmation(to: string, orderData: OrderConfirmationData) {
     const title = 'Potwierdzenie zamówienia';
     const content = `
       <p>Witaj!</p>
@@ -77,17 +135,12 @@ export class NotificationsService {
       <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/panel/orders" class="button">Zobacz szczegóły</a>
     `;
 
-    try {
-      await this.transporter.sendMail({
-        from: '"PaletBroker" <no-reply@paletbroker.pl>',
-        to,
-        subject: `PaletBroker: Potwierdzenie zamówienia ${orderData.orderNumber}`,
-        html: this.getEmailTemplate(title, content),
-      });
-      this.logger.log(`Order confirmation email sent to ${to}`);
-    } catch (error) {
-      this.logger.error(`Failed to send email to ${to}:`, error);
-    }
+    await this.sendMail({
+      to,
+      subject: `PaletBroker: Potwierdzenie zamówienia ${orderData.orderNumber}`,
+      html: this.getEmailTemplate(title, content),
+    });
+    this.logger.log(`Order confirmation email sent to ${to}`);
   }
 
   async sendStatusUpdate(to: string, orderNumber: string, newStatus: string) {
@@ -99,19 +152,14 @@ export class NotificationsService {
       <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/panel/orders" class="button">Przejdź do panelu</a>
     `;
 
-    try {
-      await this.transporter.sendMail({
-        from: '"PaletBroker" <no-reply@paletbroker.pl>',
-        to,
-        subject: `PaletBroker: Status zamówienia ${orderNumber} - ${newStatus}`,
-        html: this.getEmailTemplate(title, content),
-      });
-      this.logger.log(
-        `Status update email sent to ${to} for order ${orderNumber}`,
-      );
-    } catch (error) {
-      this.logger.error(`Failed to send status email to ${to}:`, error);
-    }
+    await this.sendMail({
+      to,
+      subject: `PaletBroker: Status zamówienia ${orderNumber} - ${newStatus}`,
+      html: this.getEmailTemplate(title, content),
+    });
+    this.logger.log(
+      `Status update email sent to ${to} for order ${orderNumber}`,
+    );
   }
 
   async sendPaymentConfirmation(
@@ -127,18 +175,13 @@ export class NotificationsService {
       <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/panel/orders" class="button">Pobierz potwierdzenie</a>
     `;
 
-    try {
-      await this.transporter.sendMail({
-        from: '"PaletBroker" <no-reply@paletbroker.pl>',
-        to,
-        subject: `PaletBroker: Płatność za zamówienie ${orderNumber} została zaksięgowana`,
-        html: this.getEmailTemplate(title, content),
-      });
-      this.logger.log(
-        `Payment confirmation email sent to ${to} for order ${orderNumber}`,
-      );
-    } catch (error) {
-      this.logger.error(`Failed to send payment email to ${to}:`, error);
-    }
+    await this.sendMail({
+      to,
+      subject: `PaletBroker: Płatność za zamówienie ${orderNumber} została zaksięgowana`,
+      html: this.getEmailTemplate(title, content),
+    });
+    this.logger.log(
+      `Payment confirmation email sent to ${to} for order ${orderNumber}`,
+    );
   }
 }

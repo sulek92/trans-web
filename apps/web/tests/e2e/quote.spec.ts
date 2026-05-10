@@ -27,7 +27,7 @@ test('quick quote form accepts key shipment data and navigates to results', asyn
   await page.locator('input[name="height"]').fill('165');
   await page.locator('input[name="senderIsPrivate"]').check();
 
-  await page.getByRole('button', { name: /Sprawdź dostępne opcje/i }).click();
+  await page.getByRole('button', { name: /Porównaj Oferty Kurierów/i }).click();
   await expect(page).toHaveURL(/\/wycena\?/);
   await expect(page.getByRole('heading', { name: /Wyniki Wyceny/i })).toBeVisible();
   await expect(page.getByText('00-001 → 30-001')).toBeVisible();
@@ -54,7 +54,7 @@ test('quote section stays responsive and visible across target desktop/mobile vi
 
     await expect(page.getByText('Podgląd ładunku')).toBeVisible();
     await expect(page.getByText(/120 × 80 × 150 cm/)).toBeVisible();
-    await expect(page.getByRole('button', { name: /Sprawdź dostępne opcje/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Porównaj Oferty Kurierów/i })).toBeVisible();
 
     const horizontalOverflow = await page.evaluate(() => (
       document.documentElement.scrollWidth - document.documentElement.clientWidth

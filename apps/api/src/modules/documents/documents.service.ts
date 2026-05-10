@@ -1,10 +1,25 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import * as PDFDocument from 'pdfkit';
-import { OrdersService } from '../orders/orders.service';
+import {
+  Injectable,
+  NotFoundException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
+import PDFDocument from 'pdfkit';
+import type { OrdersService } from '../orders/orders.service';
+
+const ordersServiceProvider = () => {
+  const { OrdersService: svc } = require('../orders/orders.service') as {
+    OrdersService: typeof OrdersService;
+  };
+  return svc;
+};
 
 @Injectable()
 export class DocumentsService {
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(
+    @Inject(forwardRef(ordersServiceProvider))
+    private readonly ordersService: OrdersService,
+  ) {}
 
   async generateOrderLabel(orderId: string): Promise<Buffer> {
     const order = await this.ordersService.getOrder(orderId);
@@ -14,9 +29,9 @@ export class DocumentsService {
       const doc = new PDFDocument({ size: 'A6', margin: 20 });
       const chunks: Buffer[] = [];
 
-      doc.on('data', (chunk) => chunks.push(chunk));
+      doc.on('data', (chunk: Buffer) => chunks.push(chunk));
       doc.on('end', () => resolve(Buffer.concat(chunks)));
-      doc.on('error', (err) => reject(err));
+      doc.on('error', (err: Error) => reject(err));
 
       // Draw Label Content
       doc.rect(0, 0, doc.page.width, doc.page.height).stroke();
@@ -154,14 +169,14 @@ export class DocumentsService {
   }
 
   async generateInvoicePdf(invoiceId: string): Promise<Buffer> {
-    const { invoices, companies } = await import('../../db/schema');
-    const { eq } = await import('drizzle-orm');
-    const { db } = await import('../../db');
+    const { invoices, companies } = await import('../../db/schema.js');
+    const { sql } = await import('drizzle-orm');
+    const { db } = await import('../../db/index.js');
 
     const [invoice] = await db
       .select()
       .from(invoices)
-      .where(eq(invoices.id, invoiceId));
+      .where(sql`${invoices.id} = ${invoiceId}` as any);
     if (!invoice) throw new NotFoundException('Invoice not found');
 
     let buyer: any = null;
@@ -169,7 +184,7 @@ export class DocumentsService {
       [buyer] = await db
         .select()
         .from(companies)
-        .where(eq(companies.id, invoice.companyId));
+        .where(sql`${companies.id} = ${invoice.companyId}` as any);
     }
 
     return new Promise((resolve, reject) => {

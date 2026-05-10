@@ -1,9 +1,12 @@
+import * as React from "react";
 import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import "./globals.css";
 import { AppShell } from "@/components/layout/app-shell";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { LanguageProvider } from "@/lib/i18n/i18n-context";
+import { parseAcceptLanguage } from "@/lib/i18n/geolocation";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -31,34 +34,49 @@ export const metadata: Metadata = {
     siteName: 'PaletBroker',
     title: 'PaletyBroker - Logistyka B2B',
     description: 'Najtańszy transport paletowy w Polsce i Europie.',
-    images: [{ url: '/og-image.jpg', width: 1200, height: 630 }]
+    images: [{ url: '/og-image.png', width: 1200, height: 630 }]
   },
   manifest: '/manifest.json',
   twitter: {
     card: 'summary_large_image',
     title: 'PaletyBroker - Tanie palety',
     description: 'Porównaj ceny kurierów w jednym miejscu.',
-    images: ['/og-image.jpg'],
+    images: ['/og-image.png'],
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#123456',
+  themeColor: '#005258', // PaletBroker Primary
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = await headers();
+  const acceptLanguage = headersList.get('accept-language');
+  const resolvedLocale = parseAcceptLanguage(acceptLanguage);
+
   return (
-    <html lang="pl" suppressHydrationWarning>
-      <body className={`${outfit.variable} ${plusJakarta.variable} antialiased min-h-screen flex flex-col`}>
-        <ThemeProvider>
-          <LanguageProvider>
-            <AppShell>{children}</AppShell>
-          </LanguageProvider>
-        </ThemeProvider>
+    <html lang={resolvedLocale} suppressHydrationWarning>
+      <head>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+        <script
+          id="theme-flash"
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})();`,
+          }}
+        />
+      </head>
+      <body className={`${outfit.variable} ${plusJakarta.variable} antialiased min-h-screen flex flex-col bg-[var(--color-background)] text-[var(--color-on-background)] transition-colors duration-300`}>
+        <React.Suspense fallback={<div className="min-h-screen bg-[var(--color-background)]"></div>}>
+          <ThemeProvider>
+            <LanguageProvider resolvedLocale={resolvedLocale}>
+              <AppShell>{children}</AppShell>
+            </LanguageProvider>
+          </ThemeProvider>
+        </React.Suspense>
       </body>
     </html>
   );

@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { Box, Layers, Package } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/i18n-context';
 
 export type PalletType = 'euro' | 'semi_euro' | 'industrial' | 'semi_industrial' | 'custom';
 
@@ -12,14 +13,16 @@ interface PalletTypeSelectorProps {
   error?: string;
 }
 
-const PALLET_OPTIONS = [
-  { id: 'euro', label: 'Paleta Euro', desc: '120x80 cm', icon: Package },
-  { id: 'semi_euro', label: 'Półpaleta', desc: '80x60 cm', icon: Box },
-  { id: 'industrial', label: 'Przemysłowa', desc: '120x100 cm', icon: Layers },
-  { id: 'custom', label: 'Niestandard.', desc: 'Inne wymiary', icon: Package },
-] as const;
-
 export function PalletTypeSelector({ value, onChange, error }: PalletTypeSelectorProps) {
+  const { t } = useTranslation();
+
+  const PALLET_OPTIONS = [
+    { id: 'euro', label: t.quote.selector.euro, desc: '120x80 cm', icon: Package },
+    { id: 'semi_euro', label: t.quote.selector.semi_euro, desc: '80x60 cm', icon: Box },
+    { id: 'industrial', label: t.quote.selector.industrial, desc: '120x100 cm', icon: Layers },
+    { id: 'custom', label: t.quote.selector.custom, desc: t.quote.selector.customDesc, icon: Package },
+  ] as const;
+
   return (
     <div className="w-full">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">

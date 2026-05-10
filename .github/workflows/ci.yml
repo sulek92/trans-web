@@ -2,25 +2,66 @@ name: CI
 
 on:
   push:
-    branches: [ main, master, '**' ]
+    branches: [main, master, '**']
   pull_request:
-    branches: [ '**' ]
+    branches: ['**']
 
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: pass
+          POSTGRES_DB: palety_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     strategy:
       fail-fast: false
       matrix:
         node-version: [18.x]
 
+    env:
+      DATABASE_URL: postgresql://user:pass@localhost:5432/palety_db
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: ci-test-secret-do-not-use-in-production
+      NEXTAUTH_SECRET: ci-test-secret-do-not-use-in-production
+      NODE_ENV: test
+      ADMIN_EMAIL: admin@paletbroker.pl
+      ADMIN_PASSWORD: admin123
+      SUPERADMIN_PASSWORD: superadmin123
+      DEMO_USER_EMAIL: user@paletbroker.pl
+      DEMO_USER_PASSWORD: user123
+      LEGACY_AUTH_FALLBACK_ENABLED: true
+      CORS_ORIGIN: http://localhost:3000
+      AUTH_REDIS_PREFIX: auth
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
@@ -31,26 +72,43 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: TypeScript check
-        run: npm run --silent --if-present build &>/dev/null || true
-
       - name: Build app (turbo)
         run: npm run build
 
-      - name: Run unit tests (optional)
-        if: ${{ always() }}
-        run: npm test --silent || true
+      - name: Run Drizzle migrations
+        run: cd apps/api && npx drizzle-kit push
+        continue-on-error: true
+
+      - name: Seed database
+        run: cd apps/api && npx ts-node src/db/seed.ts
+        continue-on-error: true
+
+      - name: Run API unit tests
+        run: cd apps/api && npm test
+        timeout-minutes: 5
+
+      - name: Run API e2e tests
+        run: cd apps/api && npm run test:e2e
+        timeout-minutes: 5
 
       - name: Install Playwright Browsers
-        run: npx playwright install
+        run: npx playwright install chromium
 
-      - name: Run end-to-end tests
-        if: ${{ always() }}
-        run: npm run test:e2e --silent || true
+      - name: Start web app for E2E tests
+        run: |
+          cd apps/web
+          npx next start --port 3101 &
+          sleep 10
 
-      - name: Upload artifacts (optional)
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v3
+      - name: Run Playwright E2E tests
+        run: cd apps/web && PLAYWRIGHT_BASE_URL=http://127.0.0.1:3101 npx playwright test
+        timeout-minutes: 15
+        continue-on-error: true
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: build-output
-          path: dist/ || echo 'no dist'
+          name: playwright-report
+          path: apps/web/playwright-report/
+          retention-days: 7

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function TrackingPage() {
   return (
-    <main className="flex-grow pt-32 pb-24 min-h-screen bg-[var(--color-background)]">
+    <main className="flex-grow pb-24 min-h-screen bg-[var(--color-background)]">
       <TrackingClient />
     </main>
   );

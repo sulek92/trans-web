@@ -27,6 +27,7 @@ export default tseslint.config(
   {
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/prefer-promise-reject-errors': 'warn',
       '@typescript-eslint/no-unsafe-enum-comparison': 'warn',

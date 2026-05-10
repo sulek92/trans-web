@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useTranslation } from '@/lib/i18n/i18n-context';
 
 interface PalletPreviewProps {
   width: number;
@@ -13,17 +14,17 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-const palletTypeLabels: Record<string, string> = {
-  euro: 'Euro 120x80',
-  semi_euro: 'Półpaleta 80x60',
-  industrial: 'Przemysłowa 120x100',
-  semi_industrial: 'Półprzemysłowa 120x100',
-  custom: 'Niestandardowa',
-};
-
 export function PalletPreview({ width, length, height, type }: PalletPreviewProps) {
-  // Responsywna normalizacja podglądu, aby obiekt był czytelny
-  // i zawsze dobrze wykorzystywał dostępną przestrzeń.
+  const { t } = useTranslation();
+
+  const palletTypeLabels: Record<string, string> = {
+    euro: t.quote.preview.euro,
+    semi_euro: t.quote.preview.semi_euro,
+    industrial: t.quote.preview.industrial,
+    semi_industrial: t.quote.preview.semi_industrial,
+    custom: t.quote.preview.custom,
+  };
+
   const l = clamp((length / 300) * 360, 210, 360);
   const w = clamp((width / 300) * 240, 130, 240);
   const h = clamp((height / 250) * 220, 135, 220);
@@ -32,9 +33,9 @@ export function PalletPreview({ width, length, height, type }: PalletPreviewProp
   const palletLabel = palletTypeLabels[type] || type;
 
   return (
-    <div className="relative h-[240px] sm:h-[280px] lg:h-[320px] w-full rounded-xl border border-slate-200 overflow-hidden bg-gradient-to-b from-slate-50 to-slate-100">
-      <div className="absolute top-3 left-3 text-[11px] font-bold text-slate-500 uppercase tracking-[0.2em] z-10">
-        Podgląd ładunku
+    <div className="relative h-[240px] sm:h-[280px] lg:h-[320px] w-full rounded-xl border border-[var(--color-divider)] overflow-hidden bg-gradient-to-b from-slate-50 to-slate-100">
+      <div className="absolute top-3 left-3 text-[11px] font-bold text-[var(--color-text-muted)] uppercase tracking-[0.2em] z-10">
+        {t.quote.preview.title}
       </div>
 
       <div
@@ -112,12 +113,12 @@ export function PalletPreview({ width, length, height, type }: PalletPreviewProp
         </div>
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 border-t border-slate-200 bg-white/85 backdrop-blur-sm">
+      <div className="absolute inset-x-0 bottom-0 border-t border-[var(--color-divider)] bg-[var(--color-surface-primary)]/85 backdrop-blur-sm">
         <div className="flex flex-wrap items-center gap-2 px-3 py-2 text-[11px] sm:text-xs">
-          <span className="rounded-full border border-slate-200 bg-white px-2 py-1 font-semibold text-slate-600">
+          <span className="rounded-full border border-[var(--color-divider)] bg-[var(--color-surface-primary)] px-2 py-1 font-semibold text-[var(--color-text-muted)]">
             {palletLabel}
           </span>
-          <span className="rounded-full border border-slate-200 bg-white px-2 py-1 font-data-mono text-[var(--color-primary)]">
+          <span className="rounded-full border border-[var(--color-divider)] bg-[var(--color-surface-primary)] px-2 py-1 font-data-mono text-[var(--color-primary)]">
             {length} × {width} × {height} cm
           </span>
         </div>

@@ -19,10 +19,13 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import type { Request } from 'express';
 import { AuditLogService } from '../audit-log/audit-log.service';
+import { AuthService } from '../auth/auth.service';
 import { CreateAddressDto, UpdateAddressDto } from './dto/address.dto';
+import { UpdateUserDto, BulkUpdateUserStatusDto } from './dto/user.dto';
+import { sql } from 'drizzle-orm';
 
 type AuthenticatedRequest = Request & {
-  user?: { sub?: string; email?: string };
+  user?: { sub?: string; email?: string; role?: string };
 };
 
 type UpdateUserStatusPayload = {
@@ -31,7 +34,10 @@ type UpdateUserStatusPayload = {
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly auditLogService: AuditLogService) {}
+  constructor(
+    private readonly auditLogService: AuditLogService,
+    private readonly authService: AuthService,
+  ) {}
 
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -46,6 +52,8 @@ export class UsersController {
           isVerified: users.isVerified,
           companyName: companies.name,
           nip: companies.nip,
+          firstName: users.firstName,
+          lastName: users.lastName,
         })
         .from(users)
         .leftJoin(companies, eq(users.companyId, companies.id))
@@ -57,6 +65,8 @@ export class UsersController {
         role: row.role,
         companyName: row.companyName,
         nip: row.nip,
+        firstName: row.firstName,
+        lastName: row.lastName,
         status: row.isVerified ? 'ACTIVE' : 'PENDING',
       }));
     } catch {
@@ -94,6 +104,15 @@ export class UsersController {
     }
 
     const isVerified = body.status === 'ACTIVE';
+    const [targetUser] = await db.select().from(users).where(eq(users.id, id));
+
+    if (!targetUser) throw new BadRequestException('User not found');
+
+    // Protect superadmin from standard admin
+    if (targetUser.role === 'superadmin' && req.user?.role !== 'superadmin') {
+      throw new BadRequestException('Cannot modify superadmin account');
+    }
+
     let updated:
       | {
           id: string;
@@ -146,10 +165,64 @@ export class UsersController {
     };
   }
 
+  @Post('bulk-status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async bulkUpdateStatus(
+    @Body() body: BulkUpdateUserStatusDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const isVerified = body.status === 'ACTIVE';
+
+    const targetUsers = await db
+      .select({ id: users.id, role: users.role })
+      .from(users)
+      .where(sql`${users.id} = ANY(${body.ids})`);
+
+    if (
+      targetUsers.some((u) => u.role === 'superadmin') &&
+      req.user?.role !== 'superadmin'
+    ) {
+      throw new BadRequestException(
+        'Cannot modify superadmin accounts via bulk action',
+      );
+    }
+
+    const updated = await db
+      .update(users)
+      .set({
+        isVerified,
+        updatedAt: new Date(),
+      })
+      .where(sql`${users.id} = ANY(${body.ids})` as any)
+      .returning({
+        id: users.id,
+        email: users.email,
+      });
+
+    await this.auditLogService.record({
+      actorUserId: req.user?.sub,
+      actorEmail: req.user?.email,
+      action: 'user.bulk_status_updated',
+      entityType: 'user',
+      entityId: 'multiple',
+      metadata: {
+        ids: body.ids,
+        status: body.status,
+        count: updated.length,
+      },
+    });
+
+    return {
+      count: updated.length,
+      status: body.status,
+    };
+  }
+
   @Get('me/addresses')
   @UseGuards(JwtAuthGuard)
   async getMyAddresses(@Req() req: AuthenticatedRequest) {
-    const userId = req.user?.sub;
+    const userId = req.user?.sub || (req.user as any)?.id;
     if (!userId) {
       return [];
     }
@@ -159,18 +232,36 @@ export class UsersController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async getMe(@Req() req: AuthenticatedRequest) {
-    const userId = req.user?.sub;
-    if (!userId) {
+    const userPayload = req.user;
+    if (!userPayload) {
       return null;
     }
-    const [user] = await db.select().from(users).where(eq(users.id, userId));
-    return user;
+
+    const identity = this.authService.me(userPayload);
+    if (!identity) return null;
+
+    try {
+      const [dbUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, identity.id));
+      if (dbUser) return dbUser;
+    } catch {
+      // Ignore DB errors in fallback mode
+    }
+
+    return {
+      id: identity.id,
+      email: identity.email,
+      role: identity.role,
+      isVerified: true,
+    };
   }
 
   @Get('me/company')
   @UseGuards(JwtAuthGuard)
   async getMyCompany(@Req() req: AuthenticatedRequest) {
-    const userId = req.user?.sub;
+    const userId = req.user?.sub || (req.user as any)?.id;
     if (!userId) {
       return null;
     }
@@ -193,7 +284,7 @@ export class UsersController {
     @Body() dto: CreateAddressDto,
     @Req() req: AuthenticatedRequest,
   ) {
-    const userId = req.user?.sub;
+    const userId = req.user?.sub || (req.user as any)?.id;
     if (!userId) throw new BadRequestException();
 
     if (dto.isDefaultSender) {
@@ -226,7 +317,7 @@ export class UsersController {
     @Body() dto: UpdateAddressDto,
     @Req() req: AuthenticatedRequest,
   ) {
-    const userId = req.user?.sub;
+    const userId = req.user?.sub || (req.user as any)?.id;
     if (!userId) throw new BadRequestException();
 
     if (dto.isDefaultSender) {
@@ -258,7 +349,7 @@ export class UsersController {
     @Param('id') id: string,
     @Req() req: AuthenticatedRequest,
   ) {
-    const userId = req.user?.sub;
+    const userId = req.user?.sub || (req.user as any)?.id;
     if (!userId) throw new BadRequestException();
 
     const [deleted] = await db
@@ -273,7 +364,7 @@ export class UsersController {
   @Put('me/company')
   @UseGuards(JwtAuthGuard)
   async updateMyCompany(@Body() dto: any, @Req() req: AuthenticatedRequest) {
-    const userId = req.user?.sub;
+    const userId = req.user?.sub || (req.user as any)?.id;
     if (!userId) throw new BadRequestException();
 
     const [user] = await db.select().from(users).where(eq(users.id, userId));
@@ -294,16 +385,35 @@ export class UsersController {
   @Roles('admin')
   async updateUser(
     @Param('id') id: string,
-    @Body() dto: any,
+    @Body() dto: UpdateUserDto,
     @Req() req: AuthenticatedRequest,
   ) {
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
+
+    if (dto.email) updateData.email = dto.email;
+    if (dto.role) updateData.role = dto.role;
+    if (dto.firstName) updateData.firstName = dto.firstName;
+    if (dto.lastName) updateData.lastName = dto.lastName;
+    if (dto.password) {
+      updateData.passwordHash = await this.authService.hashPassword(
+        dto.password,
+      );
+    }
+
+    const [targetUser] = await db.select().from(users).where(eq(users.id, id));
+
+    if (!targetUser) throw new BadRequestException('User not found');
+
+    // Protect superadmin from standard admin
+    if (targetUser.role === 'superadmin' && req.user?.role !== 'superadmin') {
+      throw new BadRequestException('Cannot modify superadmin account');
+    }
+
     const [updated] = await db
       .update(users)
-      .set({
-        email: dto.email,
-        role: dto.role,
-        updatedAt: new Date(),
-      })
+      .set(updateData)
       .where(eq(users.id, id))
       .returning();
 
@@ -316,8 +426,8 @@ export class UsersController {
       entityType: 'user',
       entityId: updated.id,
       metadata: {
-        newEmail: updated.email,
-        newRole: updated.role,
+        updatedFields: Object.keys(dto),
+        newRole: dto.role,
       },
     });
 

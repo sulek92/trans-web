@@ -8,6 +8,7 @@ import {
   jsonb,
   timestamp,
   date,
+  integer,
   index,
 } from 'drizzle-orm/pg-core';
 
@@ -36,6 +37,8 @@ export const users = pgTable(
     isVerified: boolean('is_verified').default(false),
     authProvider: varchar('auth_provider', { length: 50 }).default('local'),
     externalId: varchar('external_id', { length: 255 }),
+    firstName: varchar('first_name', { length: 100 }),
+    lastName: varchar('last_name', { length: 100 }),
     companyId: uuid('company_id').references(() => companies.id),
     apiKey: varchar('api_key', { length: 255 }).unique(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
@@ -229,6 +232,7 @@ export const leads = pgTable(
     weight: varchar('weight', { length: 100 }),
     route: varchar('route', { length: 255 }),
     preferredDate: date('preferred_date'),
+    leadType: varchar('lead_type', { length: 50 }).default('general'),
     status: varchar('status', { length: 30 }).default('NEW'),
     assignedTo: uuid('assigned_to').references(() => users.id),
     notes: text('notes'),
@@ -270,6 +274,19 @@ export const cmsArticles = pgTable('cms_articles', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });
 
+export const cmsTestimonials = pgTable('cms_testimonials', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  role: varchar('role', { length: 255 }).notNull(),
+  text: text('text').notNull(),
+  avatar: varchar('avatar', { length: 100 }).default('person'),
+  avatarImage: varchar('avatar_image', { length: 500 }).default(''),
+  isActive: boolean('is_active').default(true),
+  sortOrder: integer('sort_order').default(0),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+});
+
 export const pricingRules = pgTable(
   'pricing_rules',
   {
@@ -286,6 +303,8 @@ export const pricingRules = pgTable(
     maxWeight: decimal('max_weight', { precision: 10, scale: 2 }).default(
       '1200',
     ),
+    senderCountry: varchar('sender_country', { length: 10 }).default('PL'),
+    recipientCountry: varchar('recipient_country', { length: 10 }).default('PL'),
     currency: varchar('currency', { length: 10 }).default('PLN'),
     isActive: boolean('is_active').default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),

@@ -6,6 +6,7 @@ import { getCookie } from '@/lib/utils';
 import { useToastStore } from '@/lib/store/toast-store';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getApiBaseUrl } from '@/lib/api-url';
+import { AuthGuard } from '@/components/auth/auth-guard';
 
 interface Order {
   id: string;
@@ -27,10 +28,9 @@ export default function OrdersPage() {
   const { addToast } = useToastStore();
 
   const fetchOrders = React.useCallback(async () => {
-    const token = getCookie('pb_auth_token');
     try {
       const res = await fetch(`${getApiBaseUrl()}/orders/my`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       });
       if (res.ok) {
         const data = await res.json();
@@ -52,9 +52,9 @@ export default function OrdersPage() {
       case 'DELIVERED': case 'DORĘCZONE': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
       case 'PENDING': case 'OCZEKIWANIE': return 'bg-amber-100 text-amber-800 border-amber-200';
       case 'IN_TRANSIT': case 'W TRANSPORCIE': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'CANCELLED': case 'ANULOWANE': return 'bg-slate-100 text-slate-500 border-slate-200';
+      case 'CANCELLED': case 'ANULOWANE': return 'bg-[var(--color-surface-container-high)] text-[var(--color-text-muted)] border-[var(--color-divider)]';
       case 'ERROR': case 'BŁĄD': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-slate-100 text-slate-800 border-slate-200';
+      default: return 'bg-[var(--color-surface-container-high)] text-[var(--color-on-background)] border-[var(--color-divider)]';
     }
   };
 
@@ -75,10 +75,9 @@ export default function OrdersPage() {
   };
 
   const downloadInvoice = async (orderId: string) => {
-    const token = getCookie('pb_auth_token');
     try {
       const res = await fetch(`${getApiBaseUrl()}/orders/my/${orderId}/invoice`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       });
       if (!res.ok) throw new Error();
       const blob = await res.blob();
@@ -95,7 +94,8 @@ export default function OrdersPage() {
   };
 
   return (
-    <main className="pt-24 pb-24 min-h-screen bg-[var(--color-background)]">
+    <AuthGuard>
+    <main className="pb-24 min-h-screen bg-[var(--color-background)]">
       <div className="max-w-[1280px] mx-auto px-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12 animate-fade-in">
           <div>
@@ -114,12 +114,12 @@ export default function OrdersPage() {
             {[1,2,3].map(i => <Skeleton key={i} className="h-32 w-full rounded-3xl" />)}
           </div>
         ) : orders.length === 0 ? (
-          <div className="bg-white rounded-[40px] border border-dashed border-slate-200 p-20 text-center animate-fade-in">
-            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span className="material-symbols-outlined text-4xl text-slate-300">inventory_2</span>
+          <div className="bg-[var(--color-surface-primary)] rounded-[40px] border border-dashed border-[var(--color-divider)] p-20 text-center animate-fade-in">
+            <div className="w-20 h-20 bg-[var(--color-surface-container)] rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="material-symbols-outlined text-4xl text-[var(--color-text-faint)]">inventory_2</span>
             </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">Brak zamówień</h3>
-            <p className="text-slate-500 mb-8 max-w-sm mx-auto">Wygląda na to, że nie złożyłeś jeszcze żadnego zamówienia. Nadaj swoją pierwszą paletę już dziś!</p>
+            <h3 className="text-xl font-bold text-[var(--color-on-background)] mb-2">Brak zamówień</h3>
+            <p className="text-[var(--color-text-muted)] mb-8 max-w-sm mx-auto">Wygląda na to, że nie złożyłeś jeszcze żadnego zamówienia. Nadaj swoją pierwszą paletę już dziś!</p>
             <Link href="/" className="inline-flex items-center gap-2 text-[var(--color-primary)] font-bold hover:underline">
               Zacznij tutaj <span className="material-symbols-outlined text-sm">arrow_forward</span>
             </Link>
@@ -127,40 +127,40 @@ export default function OrdersPage() {
         ) : (
           <div className="grid grid-cols-1 gap-6 animate-fade-in">
             {orders.map((order) => (
-              <div key={order.id} className="bg-white p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm hover:shadow-xl transition-premium group relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-bl-[100px] -z-10 group-hover:bg-[var(--color-primary-highlight)] transition-colors opacity-50" />
+              <div key={order.id} className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm hover:shadow-xl transition-premium group relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-surface-container)] rounded-bl-[100px] -z-10 group-hover:bg-[var(--color-primary-highlight)] transition-colors opacity-50" />
                 
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
                   <div className="flex items-center gap-6">
-                    <div className="w-16 h-16 rounded-2xl bg-white border border-slate-100 shadow-sm flex items-center justify-center font-bold text-xs text-[var(--color-primary)] group-hover:scale-110 transition-transform">
+                    <div className="w-16 h-16 rounded-2xl bg-[var(--color-surface-primary)] border border-[var(--color-divider)] shadow-sm flex items-center justify-center font-bold text-xs text-[var(--color-primary)] group-hover:scale-110 transition-transform">
                       {order.carrierCode}
                     </div>
                     <div>
                       <div className="flex items-center gap-3 mb-1">
-                        <span className="font-bold text-xl text-slate-900">{order.orderNumber}</span>
+                        <span className="font-bold text-xl text-[var(--color-on-background)]">{order.orderNumber}</span>
                         <span className={`text-[10px] font-bold px-3 py-1 rounded-full border ${getStatusStyle(order.status)}`}>
                           {getStatusLabel(order.status)}
                         </span>
                       </div>
-                      <div className="text-sm text-slate-500 font-medium">
+                      <div className="text-sm text-[var(--color-text-muted)] font-medium">
                         {order.senderAddress?.city || '---'} → {order.recipientAddress?.city || '---'}
-                        <span className="mx-2 text-slate-300">•</span>
+                        <span className="mx-2 text-[var(--color-text-faint)]">•</span>
                         {new Date(order.createdAt).toLocaleDateString('pl-PL', { day: '2-digit', month: 'long', year: 'numeric' })}
                       </div>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-4">
-                    <div className="pr-8 border-r border-slate-100 text-right hidden sm:block">
-                      <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Kwota</div>
-                      <div className="text-xl font-bold text-slate-900">{order.priceBrutto} PLN</div>
+                    <div className="pr-8 border-r border-[var(--color-divider)] text-right hidden sm:block">
+                      <div className="text-[10px] text-[var(--color-text-faint)] font-bold uppercase tracking-widest mb-1">Kwota</div>
+                      <div className="text-xl font-bold text-[var(--color-on-background)]">{order.priceBrutto} PLN</div>
                     </div>
                     
                     <div className="flex gap-2">
                       {order.invoiceId && (
                         <button 
                           onClick={() => downloadInvoice(order.id)}
-                          className="flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-50 text-slate-700 font-bold text-sm hover:bg-slate-100 transition-premium"
+                          className="flex items-center gap-2 px-5 py-3 rounded-xl bg-[var(--color-surface-container)] text-[var(--color-text-muted)] font-bold text-sm hover:bg-[var(--color-surface-container-high)] transition-premium"
                         >
                           <span className="material-symbols-outlined text-sm">description</span>
                           Faktura
@@ -193,5 +193,6 @@ export default function OrdersPage() {
         )}
       </div>
     </main>
+    </AuthGuard>
   );
 }

@@ -14,7 +14,7 @@ Scope: This document captures the current state of the trans-web app within the 
 - Backend services and seeds under apps/api (e.g., apps/api/src/db/seed.ts).
 
 2) Key tech stack observed
-- Frontend: Next.js (Next 16.x), React (observed 19.x in package.json; verify compatibility with Next.js 16.x), TypeScript 5.x.
+- Frontend: Next.js (Next 16.x), React (18.2.0; note: @types/react is 19.x), TypeScript 5.x.
 - Styling: Tailwind CSS (tailwindconfig implied by dependencies such as tailwindcss, postcss).
 - State management: Zustand (as observed in dependencies).
 - i18n: Custom i18n setup in apps/web (i18n-context.tsx, dictionaries/pl.ts, dictionaries/en.ts).
@@ -29,7 +29,7 @@ Scope: This document captures the current state of the trans-web app within the 
 - next.config.ts in repo root (placeholder) and a Next app in apps/web.
 
 4) Immediate findings (risk areas / opportunities)
-- React version mismatch: Next.js 16.x typically targets React 18.x. The observed React version in apps/web/package.json is 19.x, which is non-standard and may cause runtime/build issues. Action: align to a supported React version (e.g., 18.x) that is compatible with Next.js 16.x.
+- React version alignment: Next.js 16.x targets React 18.x. The runtime React version in apps/web/package.json is 18.2.0, which is correct. However, devDependencies still use @types/react ^19. Action: monitor for type-related build warnings and consider pinning types to v18 for stricter consistency.
 - Next.js config is minimal (next.config.ts with an empty config). Consider enabling common optimizations (SWC, images, rewrites, i18n routing) once requirements are defined.
 - i18n is implemented but ensure all translations exist for both pl and en and that keys are consistently used across code paths (privacy/terms content loaded via CMS hooks).
 - Admin panel: existing code references to an admin panel in translations and routes. Ensure RBAC is robust and that access control is enforced server-side where needed.

@@ -62,6 +62,16 @@ export class OrdersController {
     return this.ordersService.getAllOrders();
   }
 
+  @Get('track/:orderNumber')
+  async trackOrder(@Param('orderNumber') orderNumber: string) {
+    return this.ordersService.trackByOrderNumber(orderNumber);
+  }
+
+  @Get('summary/:id')
+  async getOrderSummary(@Param('id') id: string) {
+    return this.ordersService.getOrderSummary(id);
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
@@ -89,7 +99,7 @@ export class OrdersController {
         return [
           o.id,
           o.orderNumber,
-          new Date(o.createdAt).toISOString(),
+          new Date(o.createdAt ?? '').toISOString(),
           escapeCsv(sender.name),
           escapeCsv(sender.companyName),
           o.carrierCode,
@@ -108,8 +118,12 @@ export class OrdersController {
   @Put(':id/status')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async updateStatus(@Param('id') id: string, @Body('status') status: string) {
-    return this.ordersService.updateStatus(id, status);
+  async updateStatus(
+    @Param('id') id: string,
+    @Body('status') status: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.ordersService.updateStatus(id, status, req.user);
   }
 
   @Post(':id/generate-label')
@@ -131,14 +145,20 @@ export class OrdersController {
 
     const pdf = await this.ordersService.getOrderInvoicePdf(id, userId);
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=faktura-${id}.pdf`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=faktura-${id}.pdf`,
+    );
     return res.send(pdf);
   }
 
   @Post('bulk-status')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async bulkUpdateStatus(@Body() data: { ids: string[]; status: string }) {
-    return this.ordersService.bulkUpdateStatus(data.ids, data.status);
+  async bulkUpdateStatus(
+    @Body() data: { ids: string[]; status: string },
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.ordersService.bulkUpdateStatus(data.ids, data.status, req.user);
   }
 }

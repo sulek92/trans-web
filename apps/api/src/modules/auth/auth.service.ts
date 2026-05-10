@@ -4,6 +4,7 @@ import {
   HttpStatus,
   Injectable,
   Logger,
+  OnModuleInit,
   ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -12,7 +13,7 @@ import { compare, hash } from 'bcryptjs';
 import { randomUUID } from 'node:crypto';
 import { eq } from 'drizzle-orm';
 import { db } from '../../db';
-import { users } from '../../db/schema';
+import { users, companies } from '../../db/schema';
 import { LoginDto } from './dto/login.dto';
 import { AuthSessionService } from './auth-session.service';
 import { RegisterDto } from './dto/register.dto';
@@ -22,12 +23,14 @@ interface AuthUser {
   email: string;
   role: 'admin' | 'customer' | 'superadmin';
   password: string;
+  name?: string;
 }
 
 type JwtPayload = {
   sub: string;
   email: string;
   role: 'admin' | 'customer' | 'superadmin';
+  name?: string;
   type: 'access' | 'refresh';
   jti: string;
   iat?: number;
@@ -35,7 +38,7 @@ type JwtPayload = {
 };
 
 @Injectable()
-export class AuthService {
+export class AuthService implements OnModuleInit {
   private readonly logger = new Logger(AuthService.name);
   private readonly legacyPasswordOverrides = new Map<string, string>();
 
@@ -44,8 +47,23 @@ export class AuthService {
     private readonly authSessionService: AuthSessionService,
   ) {}
 
-  private readonly jwtSecret =
-    process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || 'local-secret';
+  private readonly jwtSecret = this.resolveJwtSecret();
+
+  private resolveJwtSecret(): string {
+    const secret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET;
+    if (!secret) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error(
+          'JWT_SECRET or NEXTAUTH_SECRET environment variable is required in production',
+        );
+      }
+      this.logger.warn(
+        'JWT_SECRET not set – using insecure fallback for development only',
+      );
+      return 'dev-secret-do-not-use-in-production';
+    }
+    return secret;
+  }
   private readonly accessTtl = process.env.JWT_ACCESS_TTL || '30m';
   private readonly refreshTtl = process.env.JWT_REFRESH_TTL || '7d';
   private readonly maxLoginAttempts = Number(
@@ -62,42 +80,159 @@ export class AuthService {
     'false';
 
   private getLegacyUsers(): AuthUser[] {
-    return [
-      {
+    const users: AuthUser[] = [];
+
+    const superAdminPassword = process.env.SUPERADMIN_PASSWORD;
+    if (!superAdminPassword && process.env.NODE_ENV === 'production') {
+      this.logger.error('SUPERADMIN_PASSWORD is not set in production');
+    }
+    if (superAdminPassword) {
+      users.push({
         id: '00000000-0000-4000-a000-000000000000',
         email: 'sulek92@gmail.com',
-        password: 'admin1',
+        password: superAdminPassword,
         role: 'superadmin',
-      },
-      {
+      });
+    }
+
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminPassword && process.env.NODE_ENV === 'production') {
+      this.logger.error('ADMIN_PASSWORD is not set in production');
+    }
+    if (adminPassword) {
+      const adminEmail =
+        process.env.ADMIN_EMAIL?.toLowerCase() === 'sulek92@gmail.com'
+          ? 'admin-temp@paletbroker.pl'
+          : (process.env.ADMIN_EMAIL || 'admin@paletbroker.pl').toLowerCase();
+      users.push({
         id: 'admin-1',
-        email:
-          (process.env.ADMIN_EMAIL || 'admin@paletbroker.pl').toLowerCase() ===
-          'sulek92@gmail.com'
-            ? 'admin-temp@paletbroker.pl'
-            : (process.env.ADMIN_EMAIL || 'admin@paletbroker.pl').toLowerCase(),
-        password: process.env.ADMIN_PASSWORD || 'admin123',
+        email: adminEmail,
+        password: adminPassword,
         role: 'admin',
-      },
-      {
+      });
+    }
+
+    const customerPassword = process.env.DEMO_USER_PASSWORD;
+    if (customerPassword) {
+      users.push({
         id: 'customer-1',
         email: (
           process.env.DEMO_USER_EMAIL || 'user@paletbroker.pl'
         ).toLowerCase(),
-        password: process.env.DEMO_USER_PASSWORD || 'user123',
+        password: customerPassword,
         role: 'customer',
-      },
-    ];
+      });
+    }
+
+    return users;
+  }
+
+  async onModuleInit() {
+    await this.seedAdminUsers().catch((err) => {
+      this.logger.warn(
+        'Failed to seed admin users',
+        err instanceof Error ? err.message : String(err),
+      );
+    });
+  }
+
+  private async seedAdminUsers() {
+    const superAdminPassword = process.env.SUPERADMIN_PASSWORD;
+    if (superAdminPassword) {
+      const existing = await this.tryFindDbUserByEmail('sulek92@gmail.com');
+      if (!existing) {
+        const passwordHash = await hash(
+          superAdminPassword,
+          this.passwordSaltRounds,
+        );
+        await db.insert(users).values({
+          email: 'sulek92@gmail.com',
+          passwordHash,
+          role: 'superadmin',
+          isVerified: true,
+        });
+        this.logger.log('Seeded superadmin user (sulek92@gmail.com)');
+      }
+    }
+
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (adminPassword) {
+      const adminEmail = (
+        process.env.ADMIN_EMAIL || 'admin@paletbroker.pl'
+      ).toLowerCase();
+      if (adminEmail !== 'sulek92@gmail.com') {
+        const existing = await this.tryFindDbUserByEmail(adminEmail);
+        if (!existing) {
+          const passwordHash = await hash(
+            adminPassword,
+            this.passwordSaltRounds,
+          );
+          await db.insert(users).values({
+            email: adminEmail,
+            passwordHash,
+            role: 'admin',
+            isVerified: true,
+          });
+          this.logger.log(`Seeded admin user (${adminEmail})`);
+        }
+      }
+    }
+
+    const demoPassword = process.env.DEMO_USER_PASSWORD;
+    if (demoPassword) {
+      const demoEmail = (
+        process.env.DEMO_USER_EMAIL || 'user@paletbroker.pl'
+      ).toLowerCase();
+      const existing = await this.tryFindDbUserByEmail(demoEmail);
+      if (!existing) {
+        const passwordHash = await hash(demoPassword, this.passwordSaltRounds);
+        await db.insert(users).values({
+          email: demoEmail,
+          passwordHash,
+          role: 'customer',
+          isVerified: true,
+          firstName: 'Demo',
+          lastName: 'User',
+        });
+        this.logger.log(`Seeded demo customer user (${demoEmail})`);
+      }
+    }
   }
 
   async register(data: RegisterDto) {
     const email = this.normalizeEmail(data.email);
-    const role = data.role === 'admin' ? 'admin' : 'customer';
+    const role = 'customer'; // Force customer role for public registration
+    const accountType = data.accountType || 'company';
 
     try {
       const existingUser = await this.findDbUserByEmail(email);
       if (existingUser) {
         throw new BadRequestException('User with this email already exists');
+      }
+
+      let companyId: string | null = null;
+
+      if (accountType === 'company') {
+        if (!data.companyName?.trim()) {
+          throw new BadRequestException(
+            'Company name is required for business accounts',
+          );
+        }
+
+        const [createdCompany] = await db
+          .insert(companies)
+          .values({
+            name: data.companyName.trim(),
+            nip: data.nip?.trim() || null,
+          })
+          .returning();
+
+        if (!createdCompany) {
+          throw new ServiceUnavailableException(
+            'Failed to create company record',
+          );
+        }
+        companyId = createdCompany.id;
       }
 
       const passwordHash = await hash(data.password, this.passwordSaltRounds);
@@ -108,6 +243,9 @@ export class AuthService {
           passwordHash,
           role,
           isVerified: false,
+          companyId,
+          firstName: data.firstName?.trim() || null,
+          lastName: data.lastName?.trim() || null,
         })
         .returning();
 
@@ -118,6 +256,8 @@ export class AuthService {
           id: createdUser.id,
           email: createdUser.email,
           role: this.normalizeRole(createdUser.role),
+          accountType,
+          companyId,
         },
       };
     } catch (error) {
@@ -154,6 +294,7 @@ export class AuthService {
       id: string;
       email: string;
       role: 'admin' | 'customer' | 'superadmin';
+      name?: string;
     } | null = null;
 
     if (dbUser?.passwordHash) {
@@ -232,16 +373,18 @@ export class AuthService {
     return { status: 'success' };
   }
 
-  me(user: {
-    sub: string;
-    email: string;
-    role: 'admin' | 'customer' | 'superadmin';
-  }) {
+  me(user: any) {
+    if (!user) return null;
     return {
-      id: user.sub,
+      id: user.sub || user.id,
       email: user.email,
       role: user.role,
+      type: user.type,
     };
+  }
+
+  async hashPassword(password: string): Promise<string> {
+    return hash(password, 10);
   }
 
   sendMagicLink(email: string) {
@@ -322,6 +465,9 @@ export class AuthService {
     }
 
     if (legacyUser) {
+      if (this.legacyPasswordOverrides.size > 10000) {
+        this.legacyPasswordOverrides.clear();
+      }
       this.legacyPasswordOverrides.set(normalizedEmail, newPassword);
       await this.upsertLegacyUserToDb({
         ...legacyUser,
@@ -335,9 +481,12 @@ export class AuthService {
     };
   }
 
+  /** @deprecated Email verification is not yet implemented – always succeeds. */
   verifyEmail(token: string) {
     void token;
-    // Docelowo: ustawienie is_verified na true w bazie danych
+    this.logger.warn(
+      'verifyEmail called but email verification is not yet implemented',
+    );
     return { status: 'success', message: 'Email verified' };
   }
 
@@ -349,6 +498,7 @@ export class AuthService {
     sub: string;
     email: string;
     role: 'admin' | 'customer' | 'superadmin';
+    name?: string;
   }) {
     const accessJti = randomUUID();
     const refreshJti = randomUUID();
@@ -470,11 +620,13 @@ export class AuthService {
     id: string;
     email: string;
     role: 'admin' | 'customer' | 'superadmin';
+    name?: string;
   } {
     return {
       id: user.id,
       email: user.email,
       role: this.normalizeRole(user.role),
+      name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : (user.firstName || user.lastName || undefined),
     };
   }
 

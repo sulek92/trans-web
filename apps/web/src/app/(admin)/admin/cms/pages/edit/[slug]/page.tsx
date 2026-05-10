@@ -12,6 +12,10 @@ import { CareersEditor } from '../careers-editor';
 import { PalletsEditor } from '../pallets-editor';
 import { LegalEditor } from '../legal-editor';
 import { GlobalSettingsEditor } from '../global-settings-editor';
+import { CennikEditor } from '../cennik-editor';
+import { PomocEditor } from '../pomoc-editor';
+import { BlogEditor } from '../blog-editor';
+import { ThemeEditor } from '../theme-editor';
 import ReactMarkdown from 'react-markdown';
 import { TextField, SectionHeader, ToggleSwitch } from '../../../components';
 
@@ -97,7 +101,7 @@ export default function CmsPageEditor() {
     return (
       <div className="p-12 flex flex-col items-center justify-center space-y-4">
         <div className="w-12 h-12 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
-        <p className="text-slate-500 font-bold">Wczytywanie edytora...</p>
+        <p className="text-[var(--color-text-muted)] font-bold">Wczytywanie edytora...</p>
       </div>
     );
   }
@@ -116,7 +120,7 @@ export default function CmsPageEditor() {
             {isHomepage ? 'Strona Główna' : title || slug}
           </h1>
         </div>
-        <div className="text-xs font-mono bg-slate-100 px-3 py-1.5 rounded-lg text-slate-500">
+        <div className="text-xs font-mono bg-[var(--color-surface-container-high)] px-3 py-1.5 rounded-lg text-[var(--color-text-muted)]">
           slug: {slug}
         </div>
       </header>
@@ -131,7 +135,7 @@ export default function CmsPageEditor() {
       {/* Main Form Area */}
       <div className="space-y-8">
         {/* Basic Info & SEO */}
-        <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+        <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
           <SectionHeader title="Podstawowe informacje i SEO" icon="settings" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <TextField label="Tytuł strony (Admin)" value={title} onChange={setTitle} />
@@ -174,10 +178,22 @@ export default function CmsPageEditor() {
         {slug === 'global-settings' && (
           <GlobalSettingsEditor initialContent={content} onSave={(json) => onSave(json)} saving={saving} />
         )}
+        {slug === 'cennik' && (
+          <CennikEditor initialContent={content} onSave={(json) => onSave(json)} saving={saving} />
+        )}
+        {slug === 'pomoc' && (
+          <PomocEditor initialContent={content} onSave={(json) => onSave(json)} saving={saving} />
+        )}
+        {slug === 'blog' && (
+          <BlogEditor initialContent={content} onSave={(json) => onSave(json)} saving={saving} />
+        )}
+        {slug === 'theme' && (
+          <ThemeEditor initialContent={content} onSave={(json) => onSave(json)} saving={saving} />
+        )}
 
-        {!['home', 'faq', 'kontakt', 'o-nas', 'dla-firm', 'kariera', 'typy-palet', 'regulamin', 'polityka-prywatnosci', 'global-settings'].includes(slug) && (
+        {!['home', 'faq', 'kontakt', 'o-nas', 'dla-firm', 'kariera', 'typy-palet', 'regulamin', 'polityka-prywatnosci', 'global-settings', 'cennik', 'pomoc', 'blog', 'theme'].includes(slug) && (
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-            <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+            <section className="bg-[var(--color-surface-primary)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
               <SectionHeader title="Edytor treści" icon="edit_note" />
               <TextField 
                 label="Treść (Markdown / HTML)" 
@@ -190,22 +206,22 @@ export default function CmsPageEditor() {
                 <button 
                   onClick={() => onSave()} 
                   disabled={saving}
-                  className="bg-[var(--color-primary)] text-white px-8 py-4 rounded-2xl font-bold hover:scale-105 transition-all disabled:opacity-50"
+                  className="bg-[var(--color-primary)] text-[var(--color-background)] px-8 py-4 rounded-2xl font-bold hover:scale-105 transition-all disabled:opacity-50"
                 >
                   {saving ? 'Zapisuję...' : 'Zapisz stronę'}
                 </button>
                 <button 
                   onClick={() => router.push('/admin/cms/pages')}
-                  className="border border-slate-200 px-8 py-4 rounded-2xl font-bold hover:bg-slate-50 transition-all"
+                  className="border border-[var(--color-divider)] px-8 py-4 rounded-2xl font-bold hover:bg-[var(--color-surface-container)] transition-all"
                 >
                   Anuluj
                 </button>
               </div>
             </section>
 
-            <section className="bg-[var(--color-surface-container-low)] p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+            <section className="bg-[var(--color-surface-container-low)] p-8 rounded-[32px] border border-[var(--color-divider)] shadow-sm space-y-6">
               <SectionHeader title="Podgląd Live" icon="visibility" />
-              <div className="prose prose-slate max-w-none bg-white p-8 rounded-2xl border border-slate-100 min-h-[500px]">
+              <div className="prose prose-slate max-w-none bg-[var(--color-surface-primary)] p-8 rounded-2xl border border-[var(--color-divider)] min-h-[500px]">
                 <ReactMarkdown>{content}</ReactMarkdown>
               </div>
             </section>

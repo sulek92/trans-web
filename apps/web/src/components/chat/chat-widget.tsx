@@ -14,35 +14,47 @@ export function ChatWidget() {
     { id: 1, text: 'Witaj w PaletBroker! W czym mogę Ci dzisiaj pomóc?', sender: 'agent', time: '10:00' }
   ]);
   const [inputValue, setInputValue] = React.useState('');
+  const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   const handleSend = () => {
     if (!inputValue.trim()) return;
-    
+
     const newMsg = {
       id: Date.now(),
       text: inputValue,
       sender: 'user',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
-    
-    setMessages(prev => [...prev, newMsg]);
+
+    setMessages((prev) => {
+      const updated = [...prev, newMsg];
+      return updated.length > 200 ? updated.slice(-200) : updated;
+    });
     setInputValue('');
-    
-    // Simulate agent response
-    setTimeout(() => {
-      setMessages(prev => [...prev, {
-        id: Date.now() + 1,
-        text: 'Dziękujemy za wiadomość. Nasz konsultant odezwie się w ciągu kilku minut.',
-        sender: 'agent',
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }]);
+
+    timerRef.current = setTimeout(() => {
+      setMessages((prev) => {
+        const updated = [...prev, {
+          id: Date.now() + 1,
+          text: 'Dziękujemy za wiadomość. Nasz konsultant odezwie się w ciągu kilku minut.',
+          sender: 'agent',
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }];
+        return updated.length > 200 ? updated.slice(-200) : updated;
+      });
     }, 1500);
   };
 
   return (
     <div className="fixed bottom-8 right-8 z-[1000] flex flex-col items-end">
       {isOpen && (
-        <div className="w-[380px] h-[550px] bg-white rounded-[32px] shadow-2xl border border-slate-100 flex flex-col overflow-hidden mb-4 animate-in slide-in-from-bottom-10 duration-300">
+        <div className="w-[380px] h-[550px] bg-[var(--color-surface-primary)] rounded-[32px] shadow-2xl border border-[var(--color-divider)] flex flex-col overflow-hidden mb-4 animate-in slide-in-from-bottom-10 duration-300">
           {/* Header */}
           <div className="bg-[#1e293b] p-6 text-white flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -55,33 +67,33 @@ export function ChatWidget() {
                 </div>
               </div>
             </div>
-            <button onClick={() => setIsOpen(false)} className="material-symbols-outlined hover:bg-white/10 p-2 rounded-full transition-colors">close</button>
+            <button onClick={() => setIsOpen(false)} className="material-symbols-outlined hover:bg-[var(--color-surface-primary)]/10 p-2 rounded-full transition-colors">close</button>
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/50">
+          <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-[var(--color-surface-container)]/50">
             {messages.map((m) => (
               <div key={m.id} className={cn("flex flex-col", m.sender === 'user' ? "items-end" : "items-start")}>
                 <div className={cn(
                   "max-w-[80%] p-4 rounded-2xl text-sm font-medium shadow-sm",
-                  m.sender === 'user' ? "bg-[var(--color-primary)] text-white rounded-tr-none" : "bg-white text-slate-700 rounded-tl-none"
+                  m.sender === 'user' ? "bg-[var(--color-primary)] text-white rounded-tr-none" : "bg-[var(--color-surface-primary)] text-[var(--color-text-muted)] rounded-tl-none"
                 )}>
                   {m.text}
                 </div>
-                <span className="text-[10px] text-slate-400 mt-1 font-bold">{m.time}</span>
+                <span className="text-[10px] text-[var(--color-text-faint)] mt-1 font-bold">{m.time}</span>
               </div>
             ))}
           </div>
 
           {/* Input */}
-          <div className="p-4 bg-white border-t border-slate-100 flex gap-2 items-center">
+          <div className="p-4 bg-[var(--color-surface-primary)] border-t border-[var(--color-divider)] flex gap-2 items-center">
             <input 
               type="text" 
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Napisz wiadomość..."
-              className="flex-1 bg-slate-50 border-none rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+              className="flex-1 bg-[var(--color-surface-container)] border-none rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
             />
             <button 
               onClick={handleSend}

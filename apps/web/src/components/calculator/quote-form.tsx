@@ -7,11 +7,17 @@ import { useForm as useReactHookForm, useWatch } from 'react-hook-form';
 import { QuoteSchema, QuoteFormInput } from '@/lib/validators/quote';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PalletPreview } from './pallet-preview';
+import { useTranslation } from '@/lib/i18n/i18n-context';
+import { cn } from '@/lib/utils';
 
 const palletTypes = ['euro', 'semi_euro', 'industrial', 'semi_industrial', 'custom'] as const;
 const countries = [
   { value: 'PL', label: 'Polska' },
   { value: 'DE', label: 'Niemcy' },
+  { value: 'FR', label: 'Francja' },
+  { value: 'IT', label: 'Włochy' },
+  { value: 'NL', label: 'Holandia' },
+  { value: 'ES', label: 'Hiszpania' },
 ] as const;
 
 const palletPresets: Record<Exclude<QuoteFormInput['palletType'], 'custom'>, { length: number; width: number }> = {
@@ -44,6 +50,7 @@ function getPresetDimensions(palletType: QuoteFormInput['palletType']) {
 }
 
 export function QuoteForm() {
+  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialPalletType = parsePalletType(searchParams.get('palletType'));
@@ -136,22 +143,37 @@ export function QuoteForm() {
     }, 200);
   };
 
+  // Helper for Polish postal code formatting
+  const formatPostalCode = (value: string) => {
+    const cleaned = value.replace(/\D/g, '');
+    if (cleaned.length > 2) {
+      return `${cleaned.slice(0, 2)}-${cleaned.slice(2, 5)}`;
+    }
+    return cleaned;
+  };
+
+  // 1. Calculate Volumetric Weight (L*W*H / 4000)
+  const volWeight = (Number(watchedValues.length) * Number(watchedValues.width) * Number(watchedValues.height)) / 4000;
+  const actWeight = Number(watchedValues.weight) || 0;
+  const chargeableWeight = Math.max(actWeight, volWeight);
+  const isNonStandard = chargeableWeight > 1200 || Number(watchedValues.length) > 300 || Number(watchedValues.width) > 300 || Number(watchedValues.height) > 250 || watchedValues.palletType === 'custom';
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 w-full">
       {/* Pallet Type Selector */}
       <div>
-        <label className="text-xs font-bold uppercase tracking-widest text-slate-400 block mb-4">Wybierz typ palety</label>
+        <label className="text-xs font-bold uppercase tracking-widest text-[var(--color-text-faint)] block mb-4">{t.quote.selector.label}</label>
         <Controller
           name="palletType"
           control={control}
           render={({ field }) => (
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
               {[
-                { id: 'euro', label: 'Euro', dim: '120x80', icon: 'pallet' },
-                { id: 'semi_euro', label: 'Półpaleta', dim: '80x60', icon: 'inventory' },
-                { id: 'industrial', label: 'Przemysł.', dim: '120x100', icon: 'pallet' },
-                { id: 'semi_industrial', label: 'Półprzem.', dim: '120x100', icon: 'inventory_2' },
-                { id: 'custom', label: 'Inna', dim: 'Niestand.', icon: 'square_foot' },
+                { id: 'euro', label: t.quote.selector.euro, dim: '120x80', icon: 'pallet' },
+                { id: 'semi_euro', label: t.quote.selector.semi_euro, dim: '80x60', icon: 'inventory' },
+                { id: 'industrial', label: t.quote.selector.industrial, dim: '120x100', icon: 'pallet' },
+                { id: 'semi_industrial', label: t.quote.selector.semi_industrial, dim: '120x100', icon: 'inventory_2' },
+                { id: 'custom', label: t.quote.selector.custom, dim: t.quote.selector.customDesc, icon: 'square_foot' },
               ].map((p) => (
                 <button
                   key={p.id}
@@ -160,12 +182,12 @@ export function QuoteForm() {
                   className={`flex flex-col items-center justify-center p-4 border-2 rounded-[20px] transition-all duration-300 group ${
                     field.value === p.id 
                       ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5 shadow-inner' 
-                      : 'border-slate-100 bg-slate-50 hover:border-slate-200 hover:bg-white'
+                      : 'border-[var(--color-divider)] bg-[var(--color-surface-container)] hover:border-[var(--color-primary)]/20 hover:bg-[var(--color-surface-primary)]'
                   }`}
                 >
-                  <span className={`material-symbols-outlined mb-2 transition-transform duration-300 group-hover:scale-110 ${field.value === p.id ? 'text-[var(--color-primary)]' : 'text-slate-400'}`} style={{ fontSize: '24px' }}>{p.icon}</span>
-                  <span className={`text-[13px] font-bold text-center ${field.value === p.id ? 'text-[var(--color-primary)]' : 'text-slate-600'}`}>{p.label}</span>
-                  <span className={`text-[10px] font-medium uppercase tracking-tight ${field.value === p.id ? 'text-[var(--color-primary)]/60' : 'text-slate-400'}`}>{p.dim}</span>
+                  <span className={`material-symbols-outlined mb-2 transition-transform duration-300 group-hover:scale-110 ${field.value === p.id ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-faint)]'}`} style={{ fontSize: '24px' }}>{p.icon}</span>
+                  <span className={`text-[13px] font-bold text-center ${field.value === p.id ? 'text-[var(--color-primary)]' : 'text-[var(--color-on-background)]'}`}>{p.label}</span>
+                  <span className={`text-[10px] font-medium uppercase tracking-tight ${field.value === p.id ? 'text-[var(--color-primary)]/60' : 'text-[var(--color-text-faint)]'}`}>{p.dim}</span>
                 </button>
               ))}
             </div>
@@ -176,66 +198,98 @@ export function QuoteForm() {
 
       {/* Route and country */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-[24px] border border-slate-100 p-6 bg-slate-50/50">
+        <div className="rounded-[24px] border border-[var(--color-divider)] p-6 bg-[var(--color-surface-container)]/50">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
+            <div className="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
               <span className="material-symbols-outlined text-sm">location_on</span>
             </div>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Miejsce Nadania</div>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-faint)]">{t.quote.sender.title}</div>
           </div>
           <div className="grid grid-cols-[1fr_auto] gap-4">
-            <div>
-              <label className="text-xs font-bold text-slate-600 block mb-2">Kod pocztowy</label>
-              <input
-                {...register('senderPostalCode')}
-                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl font-data-mono text-base text-slate-900 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10 outline-none transition-all placeholder:text-slate-300"
-                placeholder="00-000"
-                type="text"
-              />
-              {errors.senderPostalCode && <p className="text-[var(--color-error)] text-xs mt-2">{errors.senderPostalCode.message}</p>}
+            <div className="flex-1">
+              <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.sender.postalCode}</label>
+              <div className="relative group">
+                <input
+                  {...register('senderPostalCode', {
+                    onChange: (e) => {
+                      if (watchedValues.senderCountry === 'PL') {
+                        e.target.value = formatPostalCode(e.target.value);
+                      }
+                    }
+                  })}
+                  className={cn(
+                    "w-full px-4 py-3 bg-[var(--color-surface-primary)] border border-[var(--color-divider)] rounded-xl font-mono text-base text-[var(--color-on-background)] focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10 outline-none transition-all placeholder:text-[var(--color-text-faint)]",
+                    errors.senderPostalCode && "border-[var(--color-error)] focus:ring-[var(--color-error)]/10"
+                  )}
+                  placeholder="00-000"
+                  type="text"
+                  maxLength={watchedValues.senderCountry === 'PL' ? 6 : 10}
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[var(--color-text-faint)] group-focus-within:text-[var(--color-primary)] transition-colors">PL</span>
+              </div>
+              {errors.senderPostalCode && <p className="text-[var(--color-error)] text-[10px] font-bold mt-1.5 ml-1 animate-in fade-in slide-in-from-left-1">{errors.senderPostalCode.message}</p>}
             </div>
             <div className="w-32">
-              <label className="text-xs font-bold text-slate-600 block mb-2">Kraj</label>
-              <select
-                {...register('senderCountry')}
-                className="w-full py-3 px-4 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:border-[var(--color-primary)] outline-none cursor-pointer"
-              >
-                {countries.map((country) => (
-                  <option key={country.value} value={country.value}>{country.label}</option>
-                ))}
-              </select>
+              <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.sender.country}</label>
+              <div className="relative">
+                <select
+                  {...register('senderCountry')}
+                  className="w-full py-3 pl-4 pr-10 bg-[var(--color-surface-primary)] border border-[var(--color-divider)] rounded-xl text-sm font-bold text-[var(--color-on-background)] focus:border-[var(--color-primary)] outline-none cursor-pointer appearance-none"
+                >
+                  {countries.map((country) => (
+                    <option key={country.value} value={country.value}>{country.label}</option>
+                  ))}
+                </select>
+                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] pointer-events-none">expand_more</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="rounded-[24px] border border-slate-100 p-6 bg-slate-50/50">
+        <div className="rounded-[24px] border border-[var(--color-divider)] p-6 bg-[var(--color-surface-container)]/50">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+            <div className="w-6 h-6 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center">
               <span className="material-symbols-outlined text-sm">flag</span>
             </div>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Miejsce Dostawy</div>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-faint)]">{t.quote.recipient.title}</div>
           </div>
           <div className="grid grid-cols-[1fr_auto] gap-4">
-            <div>
-              <label className="text-xs font-bold text-slate-600 block mb-2">Kod pocztowy</label>
-              <input
-                {...register('recipientPostalCode')}
-                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl font-data-mono text-base text-slate-900 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10 outline-none transition-all placeholder:text-slate-300"
-                placeholder="00-000"
-                type="text"
-              />
-              {errors.recipientPostalCode && <p className="text-[var(--color-error)] text-xs mt-2">{errors.recipientPostalCode.message}</p>}
+            <div className="flex-1">
+              <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.recipient.postalCode}</label>
+              <div className="relative group">
+                <input
+                  {...register('recipientPostalCode', {
+                    onChange: (e) => {
+                      if (watchedValues.recipientCountry === 'PL') {
+                        e.target.value = formatPostalCode(e.target.value);
+                      }
+                    }
+                  })}
+                  className={cn(
+                    "w-full px-4 py-3 bg-[var(--color-surface-primary)] border border-[var(--color-divider)] rounded-xl font-mono text-base text-[var(--color-on-background)] focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10 outline-none transition-all placeholder:text-[var(--color-text-faint)]",
+                    errors.recipientPostalCode && "border-[var(--color-error)] focus:ring-[var(--color-error)]/10"
+                  )}
+                  placeholder="00-000"
+                  type="text"
+                  maxLength={watchedValues.recipientCountry === 'PL' ? 6 : 10}
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[var(--color-text-faint)] group-focus-within:text-[var(--color-primary)] transition-colors">PL</span>
+              </div>
+              {errors.recipientPostalCode && <p className="text-[var(--color-error)] text-[10px] font-bold mt-1.5 ml-1 animate-in fade-in slide-in-from-left-1">{errors.recipientPostalCode.message}</p>}
             </div>
             <div className="w-32">
-              <label className="text-xs font-bold text-slate-600 block mb-2">Kraj</label>
-              <select
-                {...register('recipientCountry')}
-                className="w-full py-3 px-4 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:border-[var(--color-primary)] outline-none cursor-pointer"
-              >
-                {countries.map((country) => (
-                  <option key={country.value} value={country.value}>{country.label}</option>
-                ))}
-              </select>
+              <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.recipient.country}</label>
+              <div className="relative">
+                <select
+                  {...register('recipientCountry')}
+                  className="w-full py-3 pl-4 pr-10 bg-[var(--color-surface-primary)] border border-[var(--color-divider)] rounded-xl text-sm font-bold text-[var(--color-on-background)] focus:border-[var(--color-primary)] outline-none cursor-pointer appearance-none"
+                >
+                  {countries.map((country) => (
+                    <option key={country.value} value={country.value}>{country.label}</option>
+                  ))}
+                </select>
+                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] pointer-events-none">expand_more</span>
+              </div>
             </div>
           </div>
         </div>
@@ -244,115 +298,133 @@ export function QuoteForm() {
       {/* Routing */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div>
-          <label className="text-xs font-bold text-slate-600 block mb-2">Liczba palet</label>
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-lg">inventory_2</span>
+          <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.palletCount}</label>
+          <div className="relative group">
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] text-lg group-focus-within:text-[var(--color-primary)] transition-colors">inventory_2</span>
             <input
               {...register('palletCount', { valueAsNumber: true })}
-              className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl font-data-mono text-base text-slate-900 focus:bg-white focus:border-[var(--color-primary)] outline-none transition-all"
+              className={cn(
+                "w-full pl-12 pr-12 py-3 bg-[var(--color-surface-container)] border border-[var(--color-divider)] rounded-xl font-mono text-base text-[var(--color-on-background)] focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-all",
+                errors.palletCount && "border-[var(--color-error)]"
+              )}
               placeholder="1"
               type="number"
               min={1}
               max={33}
             />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[var(--color-text-faint)]">szt.</span>
           </div>
-          {errors.palletCount && <p className="text-[var(--color-error)] text-xs mt-2">{errors.palletCount.message}</p>}
+          {errors.palletCount && <p className="text-[var(--color-error)] text-[10px] font-bold mt-1.5 ml-1">{errors.palletCount.message}</p>}
         </div>
         <div>
-          <label className="text-xs font-bold text-slate-600 block mb-2">Waga (kg)</label>
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-lg">scale</span>
+          <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.weight}</label>
+          <div className="relative group">
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] text-lg group-focus-within:text-[var(--color-primary)] transition-colors">scale</span>
             <input
               {...register('weight', { valueAsNumber: true })}
-              className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl font-data-mono text-base text-slate-900 focus:bg-white focus:border-[var(--color-primary)] outline-none transition-all" 
-              placeholder="500"
+              className={cn(
+                "w-full pl-12 pr-12 py-3 bg-[var(--color-surface-container)] border border-[var(--color-divider)] rounded-xl font-mono text-base text-[var(--color-on-background)] focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-all",
+                errors.weight && "border-[var(--color-error)]"
+              )} 
+              placeholder="350"
               type="number"
             />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[var(--color-text-faint)]">kg</span>
           </div>
-          {errors.weight && <p className="text-[var(--color-error)] text-xs mt-2">{errors.weight.message}</p>}
+          {errors.weight && <p className="text-[var(--color-error)] text-[10px] font-bold mt-1.5 ml-1">{errors.weight.message}</p>}
         </div>
         <div>
-          <label className="text-xs font-bold text-slate-600 block mb-2">Wysokość (cm)</label>
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-lg">height</span>
+          <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.height}</label>
+          <div className="relative group">
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] text-lg group-focus-within:text-[var(--color-primary)] transition-colors">height</span>
             <input
               {...register('height', { valueAsNumber: true })}
-              className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl font-data-mono text-base text-slate-900 focus:bg-white focus:border-[var(--color-primary)] outline-none transition-all" 
-              placeholder="150"
+              className={cn(
+                "w-full pl-12 pr-12 py-3 bg-[var(--color-surface-container)] border border-[var(--color-divider)] rounded-xl font-mono text-base text-[var(--color-on-background)] focus:bg-[var(--color-surface-primary)] focus:border-[var(--color-primary)] outline-none transition-all",
+                errors.height && "border-[var(--color-error)]"
+              )} 
+              placeholder="140"
               type="number"
             />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[var(--color-text-faint)]">cm</span>
           </div>
-          {errors.height && <p className="text-[var(--color-error)] text-xs mt-2">{errors.height.message}</p>}
+          {errors.height && <p className="text-[var(--color-error)] text-[10px] font-bold mt-1.5 ml-1">{errors.height.message}</p>}
         </div>
       </div>
 
       {/* Dimensions */}
       <div className="grid grid-cols-2 gap-6">
         <div>
-          <label className="text-xs font-bold text-slate-600 block mb-2">Długość (cm)</label>
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-lg">straighten</span>
+          <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.length}</label>
+          <div className="relative group">
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] text-lg group-focus-within:text-[var(--color-primary)] transition-colors">straighten</span>
             <input
               {...register('length', { valueAsNumber: true })}
-              className={`w-full pl-12 pr-4 py-3 rounded-xl font-data-mono text-base outline-none transition-all ${
+              className={cn(
+                "w-full pl-12 pr-12 py-3 rounded-xl font-mono text-base outline-none transition-all",
                 watchedPalletType === 'custom' 
-                  ? 'bg-white border border-slate-200 text-slate-900 focus:border-[var(--color-primary)]' 
-                  : 'bg-slate-100 border border-transparent text-slate-400 cursor-not-allowed'
-              }`}
+                  ? 'bg-[var(--color-surface-primary)] border border-[var(--color-divider)] text-[var(--color-on-background)] focus:border-[var(--color-primary)]' 
+                  : 'bg-[var(--color-surface-container)] border border-transparent text-[var(--color-text-faint)] cursor-not-allowed',
+                errors.length && "border-[var(--color-error)]"
+              )}
               placeholder="120"
               type="number"
               readOnly={watchedPalletType !== 'custom'}
             />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[var(--color-text-faint)]">cm</span>
           </div>
-          {errors.length && <p className="text-[var(--color-error)] text-xs mt-2">{errors.length.message}</p>}
+          {errors.length && <p className="text-[var(--color-error)] text-[10px] font-bold mt-1.5 ml-1">{errors.length.message}</p>}
         </div>
         <div>
-          <label className="text-xs font-bold text-slate-600 block mb-2">Szerokość (cm)</label>
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-lg">straighten</span>
+          <label className="text-xs font-bold text-[var(--color-text-muted)] block mb-2">{t.quote.width}</label>
+          <div className="relative group">
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] text-lg group-focus-within:text-[var(--color-primary)] transition-colors">straighten</span>
             <input
               {...register('width', { valueAsNumber: true })}
-              className={`w-full pl-12 pr-4 py-3 rounded-xl font-data-mono text-base outline-none transition-all ${
+              className={cn(
+                "w-full pl-12 pr-12 py-3 rounded-xl font-mono text-base outline-none transition-all",
                 watchedPalletType === 'custom' 
-                  ? 'bg-white border border-slate-200 text-slate-900 focus:border-[var(--color-primary)]' 
-                  : 'bg-slate-100 border border-transparent text-slate-400 cursor-not-allowed'
-              }`}
+                  ? 'bg-[var(--color-surface-primary)] border border-[var(--color-divider)] text-[var(--color-on-background)] focus:border-[var(--color-primary)]' 
+                  : 'bg-[var(--color-surface-container)] border border-transparent text-[var(--color-text-faint)] cursor-not-allowed',
+                errors.width && "border-[var(--color-error)]"
+              )}
               placeholder="80"
               type="number"
               readOnly={watchedPalletType !== 'custom'}
             />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[var(--color-text-faint)]">cm</span>
           </div>
-          {errors.width && <p className="text-[var(--color-error)] text-xs mt-2">{errors.width.message}</p>}
+          {errors.width && <p className="text-[var(--color-error)] text-[10px] font-bold mt-1.5 ml-1">{errors.width.message}</p>}
         </div>
       </div>
 
       {/* Options */}
-      <div className="rounded-[24px] border border-slate-100 p-6 bg-slate-50/30">
-        <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-5">Dodatkowe Warunki</div>
+      <div className="rounded-[24px] border border-[var(--color-divider)] p-6 bg-[var(--color-surface-container)]/30">
+        <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--color-text-faint)] mb-5">{t.quote.conditions.title}</div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-4 gap-x-8">
           {[
-            { id: 'isStackable', label: 'Piętrowanie możliwe' },
-            { id: 'isFragile', label: 'Towar delikatny' },
-            { id: 'hasAdr', label: 'Materiał ADR' },
-            { id: 'senderIsPrivate', label: 'Nadawca prywatny' },
-            { id: 'recipientIsPrivate', label: 'Odbiorca prywatny' },
+            { id: 'isStackable', label: t.quote.conditions.stackable },
+            { id: 'isFragile', label: t.quote.conditions.fragile },
+            { id: 'hasAdr', label: t.quote.conditions.adr },
+            { id: 'senderIsPrivate', label: t.quote.conditions.privateSender },
+            { id: 'recipientIsPrivate', label: t.quote.conditions.privateRecipient },
           ].map((opt) => (
             <label key={opt.id} className="flex items-center gap-3 cursor-pointer group">
               <input 
                 type="checkbox" 
                 {...register(opt.id as any)} 
-                className="w-5 h-5 rounded-lg border-2 border-slate-200 text-[var(--color-primary)] focus:ring-0 cursor-pointer transition-all checked:bg-[var(--color-primary)]" 
+                className="w-5 h-5 rounded-lg border-2 border-[var(--color-divider)] text-[var(--color-primary)] focus:ring-0 cursor-pointer transition-all checked:bg-[var(--color-primary)]" 
               />
-              <span className="text-sm font-medium text-slate-600 group-hover:text-slate-900 transition-colors">{opt.label}</span>
+              <span className="text-sm font-medium text-[var(--color-text-muted)] group-hover:text-[var(--color-on-background)] transition-colors">{opt.label}</span>
             </label>
           ))}
         </div>
       </div>
 
       {/* Visual Preview */}
-      <div className="bg-slate-900 rounded-[32px] p-8 overflow-hidden relative group">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-transparent opacity-50" />
-        <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
+      <div className="bg-[var(--color-secondary)] rounded-[32px] p-8 overflow-hidden relative group border border-white/5 shadow-2xl">
+        <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-primary)]/20 to-transparent opacity-50" />
+        <div className="relative z-10 flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
           <div className="flex-shrink-0">
             <PalletPreview 
               width={Number(watchedValues.width) || 80}
@@ -361,16 +433,32 @@ export function QuoteForm() {
               type={watchedValues.palletType || 'euro'}
             />
           </div>
-          <div className="flex-grow text-center md:text-left">
-            <div className="text-[10px] font-bold text-teal-400 uppercase tracking-widest mb-2">Szacowany Koszt</div>
-            <div className="text-4xl lg:text-5xl font-bold text-white mb-2 font-display-bold">
-              {Math.max(
-                120,
-                (Number(watchedValues.weight) || 0) * (Number(watchedValues.palletCount) || 1) * 0.2 +
-                  (Number(watchedValues.height) || 0) * 0.5
-              ).toFixed(2).replace('.', ',')} <span className="text-xl text-white/40">PLN netto</span>
+          <div className="flex-1 text-center sm:text-left min-w-0">
+            <div className="text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-[0.2em] mb-2">{t.quote.estimatedCost}</div>
+            <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--color-on-secondary)] mb-3 tracking-tighter whitespace-nowrap">
+              {isNonStandard ? (
+                <span className="text-2xl sm:text-3xl">Wycena indywidualna</span>
+              ) : (
+                <>
+                  {Math.max(
+                    120,
+                    chargeableWeight * (Number(watchedValues.palletCount) || 1) * 0.2 +
+                      (Number(watchedValues.height) || 0) * 0.5
+                  ).toFixed(2).replace('.', ',')} <span className="text-lg sm:text-xl opacity-40">{t.quote.currency}</span>
+                </>
+              )}
             </div>
-            <p className="text-sm text-white/40 max-w-sm">Ostateczna cena zależy od wybranego przewoźnika i aktualnych dopłat paliwowych.</p>
+            <p className="text-xs sm:text-sm opacity-50 whitespace-normal break-words max-w-[280px] sm:max-w-none font-medium">
+              {isNonStandard 
+                ? "Parametry wykraczają poza standard. Po przejściu dalej będziesz mógł wysłać zapytanie o wycenę indywidualną."
+                : t.quote.estimatedCostNote}
+            </p>
+            {volWeight > actWeight && !isNonStandard && (
+              <div className="mt-2 flex items-center gap-1.5 text-[10px] font-bold text-[var(--color-primary)] bg-white/10 w-fit px-2 py-1 rounded-full border border-white/10">
+                <span className="material-symbols-outlined text-[12px]">info</span>
+                <span>Wycena na podstawie wagi gabarytowej: {volWeight.toFixed(0)}kg</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -378,9 +466,9 @@ export function QuoteForm() {
       <button 
         type="submit" 
         disabled={isSubmitting}
-        className="w-full bg-[var(--color-primary)] text-white font-bold text-lg py-5 rounded-2xl shadow-2xl shadow-[var(--color-primary)]/30 hover:scale-[1.01] transition-premium flex justify-center items-center gap-3 disabled:opacity-70 active:scale-95"
+        className="w-full bg-[var(--color-primary)] text-white font-bold text-lg py-5 rounded-2xl shadow-2xl shadow-[var(--color-primary)]/30 hover:shadow-[var(--color-primary)]/50 transition-premium flex justify-center items-center gap-3 disabled:opacity-70 active:scale-95"
       >
-        <span>{isSubmitting ? 'Przeliczam oferty...' : 'Porównaj Oferty Kurierów'}</span>
+        <span>{isSubmitting ? t.quote.submitting : t.quote.submit}</span>
         {!isSubmitting && <span className="material-symbols-outlined">arrow_forward</span>}
       </button>
 

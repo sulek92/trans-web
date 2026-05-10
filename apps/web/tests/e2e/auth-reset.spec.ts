@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const API_BASE_URL = process.env.PLAYWRIGHT_API_URL || 'http://127.0.0.1:4000';
+const API_BASE_URL = process.env.PLAYWRIGHT_API_URL || 'http://localhost:4000';
 
 test('password reset flow works from request to login with new password', async ({ page, request }) => {
   const randomId = Date.now().toString(36);

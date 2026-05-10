@@ -9,3 +9,5 @@ package-lock.json
 test-results
 playwright-report
 lint_output.txt
+playwright-report/
+test-results/

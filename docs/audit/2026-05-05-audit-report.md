@@ -303,3 +303,22 @@ Stan na 2026-05-06:
 ### Weryfikacja
 - `npm run test:e2e:docker --workspace apps/web -- tests/e2e/quote.spec.ts` => `3/3` pass.
 - `npm run test:e2e:docker --workspace apps/web -- tests/e2e/admin-navigation.spec.ts` => `2/2` pass (potwierdzony przeplyw admin -> frontend).
+
+## 19) Aktualizacja 2026-05-07 (Security hardening + Dynamic sitemap + CI stability)
+### Wdrozone poprawki
+- **Security**:
+  - Wdrożono integrację z `helmet` w API dla nagłówków bezpieczeństwa.
+  - Aktywowano `trust proxy` dla poprawnego wykrywania IP za Load Balancerem.
+- **SEO & CMS**:
+  - Wdrożono dynamiczne generowanie `sitemap.xml` integrujące statyczne trasy oraz dynamiczne slug-i z CMS (strony + artykuły).
+  - Dodano index stron CMS w panelu administratora (`/admin/cms/pages`) z możliwością eksportu danych.
+- **CI/CD**:
+  - Stabilizacja pipeline GitHub Actions: dodano krok instalacji przeglądarek Playwright i uruchamianie pełnego zestawu testów E2E w kontenerach.
+- **RBAC**:
+  - Ujednolicenie `RolesGuard` i `Proxy guards` dla tras `/admin` oraz `/account`.
+
+### Weryfikacja
+- `sitemap.xml`: zawiera poprawne URL-e bazowe i dynamiczne.
+- API Security: nagłówki `X-Powered-By` usunięte, `Content-Security-Policy` aktywne.
+- E2E Playwright: 100% pass na Docker-dev.
+

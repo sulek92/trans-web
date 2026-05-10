@@ -4,6 +4,7 @@ import * as React from 'react';
 import { getCookie } from '@/lib/utils';
 import { useToastStore } from '@/lib/store/toast-store';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getApiBaseUrl } from '@/lib/api-url';
 
 interface Address {
   id: string;
@@ -28,13 +29,12 @@ export default function ClientAddressesPage() {
   const [isSaving, setIsSaving] = React.useState(false);
   const addToast = useToastStore(state => state.addToast);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const API_URL = getApiBaseUrl();
 
   const fetchAddresses = React.useCallback(async () => {
-    const token = getCookie('pb_auth_token');
     try {
       const response = await fetch(`${API_URL}/users/me/addresses`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       });
       if (response.ok) {
         const data = await response.json();
@@ -55,14 +55,14 @@ export default function ClientAddressesPage() {
     e.preventDefault();
     if (!editingAddress) return;
     setIsSaving(true);
-    const token = getCookie('pb_auth_token');
     const method = editingAddress.id ? 'PUT' : 'POST';
     const url = editingAddress.id ? `${API_URL}/users/me/addresses/${editingAddress.id}` : `${API_URL}/users/me/addresses`;
 
     try {
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(editingAddress),
       });
       if (res.ok) {
@@ -86,11 +86,10 @@ export default function ClientAddressesPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Czy na pewno chcesz usunąć ten adres?')) return;
-    const token = getCookie('pb_auth_token');
     try {
       const res = await fetch(`${API_URL}/users/me/addresses/${id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'include',
       });
       if (res.ok) {
         await fetchAddresses();
@@ -131,7 +130,7 @@ export default function ClientAddressesPage() {
         {isLoading ? (
           <>
             {[1,2,3,4].map(i => (
-              <div key={i} className="bg-white rounded-3xl border border-slate-100 p-6 space-y-4">
+              <div key={i} className="bg-[var(--color-surface-primary)] rounded-3xl border border-[var(--color-divider)] p-6 space-y-4">
                 <div className="space-y-2">
                   <Skeleton className="h-3 w-16" />
                   <Skeleton className="h-6 w-48" />
@@ -145,40 +144,40 @@ export default function ClientAddressesPage() {
           </>
         ) : addresses.length > 0 ? (
           addresses.map((address) => (
-            <div key={address.id} className="bg-white rounded-3xl border border-[var(--color-divider)] p-6 shadow-sm hover:shadow-md transition-shadow relative group">
+            <div key={address.id} className="bg-[var(--color-surface-primary)] rounded-3xl border border-[var(--color-divider)] p-6 shadow-sm hover:shadow-md transition-shadow relative group">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <div className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-1">{address.label || 'Adres'}</div>
+                  <div className="text-[10px] uppercase tracking-widest font-bold text-[var(--color-text-faint)] mb-1">{address.label || 'Adres'}</div>
                   <div className="text-lg font-bold text-[var(--color-on-background)]">{address.name}</div>
-                  {address.companyName && <div className="text-sm text-slate-500 font-medium">{address.companyName}</div>}
+                  {address.companyName && <div className="text-sm text-[var(--color-text-muted)] font-medium">{address.companyName}</div>}
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button 
                     onClick={() => { setEditingAddress(address); setIsModalOpen(true); }}
-                    className="p-2 text-slate-400 hover:text-[var(--color-primary)] hover:bg-slate-50 rounded-lg transition-colors"
+                    className="p-2 text-[var(--color-text-faint)] hover:text-[var(--color-primary)] hover:bg-[var(--color-surface-container)] rounded-lg transition-colors"
                   >
                     <span className="material-symbols-outlined text-xl">edit</span>
                   </button>
                   <button 
                     onClick={() => handleDelete(address.id)}
-                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    className="p-2 text-[var(--color-text-faint)] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                   >
                     <span className="material-symbols-outlined text-xl">delete</span>
                   </button>
                 </div>
               </div>
 
-              <div className="space-y-2 text-sm text-slate-600">
+              <div className="space-y-2 text-sm text-[var(--color-text-muted)]">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-slate-300 text-lg">location_on</span>
+                  <span className="material-symbols-outlined text-[var(--color-text-faint)] text-lg">location_on</span>
                   {address.addressLine}, {address.postalCode} {address.city}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-slate-300 text-lg">call</span>
+                  <span className="material-symbols-outlined text-[var(--color-text-faint)] text-lg">call</span>
                   {address.phone}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-slate-300 text-lg">mail</span>
+                  <span className="material-symbols-outlined text-[var(--color-text-faint)] text-lg">mail</span>
                   {address.email}
                 </div>
               </div>
@@ -194,7 +193,7 @@ export default function ClientAddressesPage() {
             </div>
           ))
         ) : (
-          <div className="col-span-full p-20 text-center text-slate-300 font-bold bg-white rounded-[40px] border border-[var(--color-divider)]">
+          <div className="col-span-full p-20 text-center text-[var(--color-text-faint)] font-bold bg-[var(--color-surface-primary)] rounded-[40px] border border-[var(--color-divider)]">
             <span className="material-symbols-outlined text-6xl mb-4 block opacity-20">map</span>
             Nie masz jeszcze zapisanych żadnych adresów.
           </div>
@@ -208,12 +207,12 @@ export default function ClientAddressesPage() {
           onClick={() => setIsModalOpen(false)}
         >
           <div 
-            className="bg-white rounded-[32px] shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto"
+            className="bg-[var(--color-surface-primary)] rounded-[32px] shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto"
             onClick={e => e.stopPropagation()}
           >
-            <div className="p-8 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10">
+            <div className="p-8 border-b border-[var(--color-divider)] flex justify-between items-center sticky top-0 bg-[var(--color-surface-primary)] z-10">
               <h2 className="text-xl font-bold">{editingAddress?.id ? 'Edytuj adres' : 'Nowy adres'}</h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setIsModalOpen(false)} className="text-[var(--color-text-faint)] hover:text-[var(--color-text-muted)]">
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
@@ -221,48 +220,48 @@ export default function ClientAddressesPage() {
             <form onSubmit={handleSave} className="p-8 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Etykieta (np. Magazyn)</label>
-                  <input required className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-[var(--color-primary)] transition-colors" value={editingAddress?.label || ''} onChange={e => setEditingAddress({...editingAddress, label: e.target.value})} />
+                  <label className="text-[10px] uppercase font-bold text-[var(--color-text-faint)] tracking-widest">Etykieta (np. Magazyn)</label>
+                  <input required className="w-full px-4 py-3 rounded-xl border border-[var(--color-divider)] text-sm outline-none focus:border-[var(--color-primary)] transition-colors" value={editingAddress?.label || ''} onChange={e => setEditingAddress({...editingAddress, label: e.target.value})} />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Imię i Nazwisko / Kontakt</label>
-                  <input required className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-[var(--color-primary)] transition-colors" value={editingAddress?.name || ''} onChange={e => setEditingAddress({...editingAddress, name: e.target.value})} />
+                  <label className="text-[10px] uppercase font-bold text-[var(--color-text-faint)] tracking-widest">Imię i Nazwisko / Kontakt</label>
+                  <input required className="w-full px-4 py-3 rounded-xl border border-[var(--color-divider)] text-sm outline-none focus:border-[var(--color-primary)] transition-colors" value={editingAddress?.name || ''} onChange={e => setEditingAddress({...editingAddress, name: e.target.value})} />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Nazwa firmy (opcjonalnie)</label>
-                <input className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-[var(--color-primary)] transition-colors" value={editingAddress?.companyName || ''} onChange={e => setEditingAddress({...editingAddress, companyName: e.target.value})} />
+                <label className="text-[10px] uppercase font-bold text-[var(--color-text-faint)] tracking-widest">Nazwa firmy (opcjonalnie)</label>
+                <input className="w-full px-4 py-3 rounded-xl border border-[var(--color-divider)] text-sm outline-none focus:border-[var(--color-primary)] transition-colors" value={editingAddress?.companyName || ''} onChange={e => setEditingAddress({...editingAddress, companyName: e.target.value})} />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Telefon</label>
-                  <input required className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-[var(--color-primary)] transition-colors" value={editingAddress?.phone || ''} onChange={e => setEditingAddress({...editingAddress, phone: e.target.value})} />
+                  <label className="text-[10px] uppercase font-bold text-[var(--color-text-faint)] tracking-widest">Telefon</label>
+                  <input required className="w-full px-4 py-3 rounded-xl border border-[var(--color-divider)] text-sm outline-none focus:border-[var(--color-primary)] transition-colors" value={editingAddress?.phone || ''} onChange={e => setEditingAddress({...editingAddress, phone: e.target.value})} />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">E-mail</label>
-                  <input required type="email" className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-[var(--color-primary)] transition-colors" value={editingAddress?.email || ''} onChange={e => setEditingAddress({...editingAddress, email: e.target.value})} />
+                  <label className="text-[10px] uppercase font-bold text-[var(--color-text-faint)] tracking-widest">E-mail</label>
+                  <input required type="email" className="w-full px-4 py-3 rounded-xl border border-[var(--color-divider)] text-sm outline-none focus:border-[var(--color-primary)] transition-colors" value={editingAddress?.email || ''} onChange={e => setEditingAddress({...editingAddress, email: e.target.value})} />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Ulica i numer</label>
-                <input required className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-[var(--color-primary)] transition-colors" value={editingAddress?.addressLine || ''} onChange={e => setEditingAddress({...editingAddress, addressLine: e.target.value})} />
+                <label className="text-[10px] uppercase font-bold text-[var(--color-text-faint)] tracking-widest">Ulica i numer</label>
+                <input required className="w-full px-4 py-3 rounded-xl border border-[var(--color-divider)] text-sm outline-none focus:border-[var(--color-primary)] transition-colors" value={editingAddress?.addressLine || ''} onChange={e => setEditingAddress({...editingAddress, addressLine: e.target.value})} />
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Kod pocztowy</label>
-                  <input required className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-[var(--color-primary)] transition-colors" value={editingAddress?.postalCode || ''} onChange={e => setEditingAddress({...editingAddress, postalCode: e.target.value})} />
+                  <label className="text-[10px] uppercase font-bold text-[var(--color-text-faint)] tracking-widest">Kod pocztowy</label>
+                  <input required className="w-full px-4 py-3 rounded-xl border border-[var(--color-divider)] text-sm outline-none focus:border-[var(--color-primary)] transition-colors" value={editingAddress?.postalCode || ''} onChange={e => setEditingAddress({...editingAddress, postalCode: e.target.value})} />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Miasto</label>
-                  <input required className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-[var(--color-primary)] transition-colors" value={editingAddress?.city || ''} onChange={e => setEditingAddress({...editingAddress, city: e.target.value})} />
+                  <label className="text-[10px] uppercase font-bold text-[var(--color-text-faint)] tracking-widest">Miasto</label>
+                  <input required className="w-full px-4 py-3 rounded-xl border border-[var(--color-divider)] text-sm outline-none focus:border-[var(--color-primary)] transition-colors" value={editingAddress?.city || ''} onChange={e => setEditingAddress({...editingAddress, city: e.target.value})} />
                 </div>
                 <div className="space-y-2 md:col-span-1 col-span-2">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Kraj</label>
-                  <select className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-[var(--color-primary)] transition-colors bg-white" value={editingAddress?.country || 'PL'} onChange={e => setEditingAddress({...editingAddress, country: e.target.value})}>
+                  <label className="text-[10px] uppercase font-bold text-[var(--color-text-faint)] tracking-widest">Kraj</label>
+                  <select className="w-full px-4 py-3 rounded-xl border border-[var(--color-divider)] text-sm outline-none focus:border-[var(--color-primary)] transition-colors bg-[var(--color-surface-primary)]" value={editingAddress?.country || 'PL'} onChange={e => setEditingAddress({...editingAddress, country: e.target.value})}>
                     <option value="PL">Polska</option>
                     <option value="DE">Niemcy</option>
                     <option value="CZ">Czechy</option>
@@ -271,7 +270,7 @@ export default function ClientAddressesPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+              <div className="flex flex-col gap-3 p-4 bg-[var(--color-surface-container)] rounded-2xl border border-[var(--color-divider)]">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]" checked={editingAddress?.isDefaultSender || false} onChange={e => setEditingAddress({...editingAddress, isDefaultSender: e.target.checked})} />
                   <span className="text-sm font-medium text-slate-700">Ustaw jako domyślny nadawca</span>
@@ -282,8 +281,8 @@ export default function ClientAddressesPage() {
                 </label>
               </div>
 
-              <div className="flex gap-4 pt-4 sticky bottom-0 bg-white py-4 border-t border-slate-100">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-6 py-4 rounded-2xl font-bold text-slate-500 hover:bg-slate-50 transition-colors">Anuluj</button>
+              <div className="flex gap-4 pt-4 sticky bottom-0 bg-[var(--color-surface-primary)] py-4 border-t border-[var(--color-divider)]">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-6 py-4 rounded-2xl font-bold text-[var(--color-text-muted)] hover:bg-[var(--color-surface-container)] transition-colors">Anuluj</button>
                 <button type="submit" disabled={isSaving} className="flex-1 px-6 py-4 rounded-2xl bg-[var(--color-primary)] text-white font-bold shadow-lg hover:brightness-110 transition-all disabled:opacity-50">
                   {isSaving ? 'Zapisywanie...' : 'Zapisz adres'}
                 </button>

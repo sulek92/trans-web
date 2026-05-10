@@ -25,7 +25,7 @@ test('admin sidebar navigation routes to the correct views', async ({
   browser,
   baseURL,
 }) => {
-  const resolvedBaseURL = baseURL || 'http://127.0.0.1:3000';
+  const resolvedBaseURL = baseURL || 'http://localhost:3000';
   const host = new URL(resolvedBaseURL).hostname;
 
   const context = await browser.newContext();
@@ -116,7 +116,7 @@ test('admin can upload homepage media and publish cms changes', async ({
   baseURL,
   request,
 }) => {
-  const resolvedBaseURL = baseURL || 'http://127.0.0.1:3000';
+  const resolvedBaseURL = baseURL || 'http://localhost:3000';
   const host = new URL(resolvedBaseURL).hostname;
   const adminToken = await createAdminToken();
 
@@ -159,7 +159,7 @@ test('admin can upload homepage media and publish cms changes', async ({
   ).toBeVisible();
 
   const removeResponse = await request.delete(
-    'http://127.0.0.1:4000/cms/media',
+    'http://localhost:4000/cms/media',
     {
       data: { url: uploadedUrl },
       headers: {

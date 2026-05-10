@@ -1,4 +1,5 @@
-import { getCmsContent } from '@/lib/cms';
+import { Metadata } from 'next';
+import { getCmsContent, getCmsPageRecord } from '@/lib/cms';
 import { HelpClient } from './help-client';
 
 const FALLBACK = {
@@ -14,40 +15,61 @@ const FALLBACK = {
     {
       q: 'Jakie dane są wymagane do szybkiej wyceny?',
       a: 'W formularzu podajesz typ palety, kod pocztowy nadania i dostawy, wagę oraz wymiary ładunku. Dla standardowych typów palet część wymiarów uzupełnia się automatycznie.',
+      cat: 'Wycena i limity',
     },
     {
       q: 'Jakie są limity automatycznej wyceny?',
       a: 'Automatyczna wycena działa dla parametrów do 300 cm (długość), 300 cm (szerokość), 250 cm (wysokość) i 1500 kg. Powyżej limitów system kieruje do ścieżki obsługi niestandardowej.',
+      cat: 'Wycena i limity',
     },
     {
       q: 'Jakie kody pocztowe i kraje obsługuje formularz?',
       a: 'System waliduje format kodu pocztowego PL (XX-XXX) lub DE (XXXXX). W aktualnej konfiguracji formularza dostępne są kierunki PL i DE.',
+      cat: 'Wycena i limity',
     },
     {
       q: 'Jakie metody płatności są dostępne?',
       a: 'Płatności online realizowane są przez Stripe. W checkout mogą być dostępne m.in. karta, BLIK i Przelewy24 – zależnie od konfiguracji i dostępności operatora.',
+      cat: 'Płatności i dokumenty',
     },
     {
       q: 'Kiedy status zamówienia zmienia się na opłacone?',
       a: 'Po potwierdzeniu płatności przez webhook operatora płatności status zamówienia jest aktualizowany automatycznie, a system może uruchomić dalsze kroki realizacji.',
+      cat: 'Płatności i dokumenty',
     },
     {
       q: 'Jak sprawdzić status przesyłki?',
       a: 'W zakładce Śledzenie wpisz numer zamówienia (np. OR-...). System pokaże aktualny status i historię zdarzeń, jeśli są dostępne dla przesyłki.',
+      cat: 'Transport i statusy',
     },
     {
       q: 'Czy mogę zresetować hasło samodzielnie?',
       a: 'Tak. Na stronie logowania dostępny jest reset hasła. Token resetu jest czasowy, a po ustawieniu nowego hasła poprzednie dane logowania przestają obowiązywać.',
+      cat: 'Konto i logowanie',
     },
     {
       q: 'Jak skontaktować się w sprawie zlecenia lub reklamacji?',
       a: 'Najszybciej przez formularz kontaktowy lub e-mail z numerem zamówienia i opisem sprawy. Dzięki temu zespół może od razu sprawdzić historię operacyjną.',
+      cat: 'Transport i statusy',
     },
   ],
   ctaTitle: 'Nie widzisz odpowiedzi na swoje pytanie?',
   ctaSubtitle:
     'Skontaktuj się z nami bezpośrednio. W zgłoszeniu podaj numer zamówienia i opis problemu, a szybciej przeprowadzimy weryfikację.',
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getCmsPageRecord('pomoc');
+  return {
+    title: page?.metaTitle || 'Centrum pomocy – Transport palet, płatności, konto | PaletyBroker',
+    description: page?.metaDescription || 'Wszystko o transporcie paletowym w jednym miejscu. Dowiedz się jak działa wycena, jakie są metody płatności i jak śledzić przesyłkę. Sprawdź FAQ.',
+    openGraph: {
+      title: page?.metaTitle || 'Centrum pomocy PaletyBroker – FAQ i porady',
+      description: page?.metaDescription || 'Kompleksowe centrum pomocy: wycena, płatności, transport i obsługa konta.',
+      images: ['/og-image.png'],
+    },
+  };
+}
 
 type HelpCategory = {
   title?: string;
@@ -58,6 +80,7 @@ type HelpCategory = {
 type HelpFaq = {
   q?: string;
   a?: string;
+  cat?: string;
 };
 
 type HelpCmsContent = {
@@ -76,8 +99,9 @@ function normalizeFaq(items: HelpFaq[] | undefined) {
   for (const item of items) {
     const q = typeof item.q === 'string' ? item.q.trim() : '';
     const a = typeof item.a === 'string' ? item.a.trim() : '';
+    const cat = typeof item.cat === 'string' ? item.cat.trim() : '';
     if (!q || !a) continue;
-    base.set(q, { q, a });
+    base.set(q, { q, a, cat });
   }
 
   return Array.from(base.values());
@@ -135,5 +159,6 @@ export default async function HelpPage() {
     contactPhone: global?.phone || '+48 22 123 45 67',
     contactEmail: global?.email || 'kontakt@paletbroker.pl',
   };
+
   return <HelpClient data={data} />;
 }

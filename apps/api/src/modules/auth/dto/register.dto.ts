@@ -15,6 +15,24 @@ export class RegisterDto {
   password: string;
 
   @IsOptional()
-  @IsIn(['admin', 'customer'])
-  role?: 'admin' | 'customer';
+  @IsString()
+  @MinLength(1)
+  firstName?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  lastName?: string;
+
+  @IsOptional()
+  @IsIn(['company', 'individual'])
+  accountType?: 'company' | 'individual';
+
+  @IsOptional()
+  @IsString()
+  companyName?: string;
+
+  @IsOptional()
+  @IsString()
+  nip?: string;
 }

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, Package } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { getApiBaseUrl } from '@/lib/api-url';
 
 interface CustomQuoteFormValues {
   name: string;
@@ -22,7 +23,15 @@ export default function CustomQuotePage() {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<CustomQuoteFormValues>();
 
   const onSubmit = async (data: CustomQuoteFormValues) => {
-    console.log(data);
+    try {
+      await fetch(`${getApiBaseUrl()}/custom-quotes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+    } catch {
+      void 0;
+    }
     await new Promise(r => setTimeout(r, 1000));
     setSubmitted(true);
   };

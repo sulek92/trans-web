@@ -49,12 +49,12 @@ export default function CmsPagesImport() {
   };
 
   return (
-    <div className="p-6 space-y-4 bg-white border rounded-md shadow-sm">
+    <div className="p-6 space-y-4 bg-[var(--color-surface-primary)] border rounded-md shadow-sm">
       <h3 className="text-lg font-bold">Import /CMS Pages</h3>
-      <p className="text-sm text-slate-600">Wgraj plik JSON z atrybutem {'{ "pages": [{ "slug": "...", "title": "...", "content": "...", "metaTitle": "...", "metaDescription": "...", "isPublished": true }] }'}</p>
+      <p className="text-sm text-[var(--color-text-muted)]">Wgraj plik JSON z atrybutem {'{ "pages": [{ "slug": "...", "title": "...", "content": "...", "metaTitle": "...", "metaDescription": "...", "isPublished": true }] }'}</p>
       <input type="file" accept="application/json" onChange={onFile} />
-      {fileName && <div className="text-sm text-slate-600">Wybrano plik: {fileName}</div>}
-      {loading && <div className="text-sm text-slate-500">Wgrywanie...</div>}
+      {fileName && <div className="text-sm text-[var(--color-text-muted)]">Wybrano plik: {fileName}</div>}
+      {loading && <div className="text-sm text-[var(--color-text-muted)]">Wgrywanie...</div>}
       {status && <div className="mt-2 text-sm font-bold">{status}</div>}
     </div>
   );

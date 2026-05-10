@@ -30,13 +30,15 @@ export class LeadsController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   async getLeads() {
     return this.leadsService.getLeads();
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   async getLead(@Param('id') id: string) {
     return this.leadsService.getLeadById(id);
   }
@@ -50,7 +52,7 @@ export class LeadsController {
     const rows = leads
       .map(
         (l) =>
-          `${l.id},${new Date(l.createdAt).toLocaleDateString()},${l.name},${l.email},${l.company},${l.status}`,
+          `${l.id},${new Date(l.createdAt ?? '').toLocaleDateString()},${l.name},${l.email},${l.company},${l.status}`,
       )
       .join('\n');
 
@@ -60,7 +62,8 @@ export class LeadsController {
   }
 
   @Put(':id/status')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   async updateStatus(
     @Param('id') id: string,
     @Body() updateStatusDto: UpdateLeadStatusDto,

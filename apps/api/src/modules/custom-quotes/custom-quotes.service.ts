@@ -1,21 +1,32 @@
 import { Injectable } from '@nestjs/common';
+import { LeadsService } from '../leads/leads.service';
 
 @Injectable()
 export class CustomQuotesService {
-  createCustomQuote(_data: Record<string, unknown>) {
-    void _data;
-    // 1. Zapis do DB: tabela custom_quotes ze statusem 'pending'
-    // 2. Wysłanie powiadomienia e-mail do admina
-    // 3. Wysłanie potwierdzenia przyjęcia zapytania do klienta
+  constructor(private readonly leadsService: LeadsService) {}
+
+  async createCustomQuote(data: any) {
+    // Map custom quote data to lead schema
+    const leadData = {
+      name: data.name || 'Klient Niestandardowy',
+      email: data.email,
+      phone: data.phone,
+      company: data.company,
+      description: `Wycena niestandardowa: ${JSON.stringify(data.palletData || {})}`,
+      route: `${data.senderPostal || ''} -> ${data.recipientPostal || ''}`,
+      status: 'NEW',
+    };
+
+    const newLead = await this.leadsService.createLead(leadData);
+
     return {
       success: true,
-      quoteId: 'CQ-12345',
-      message: 'Zapytanie zostało zapisane i przekazane do działu wycen.',
+      quoteId: newLead.id,
+      message: 'Twoje zapytanie o wycenę niestandardową zostało przyjęte.',
     };
   }
 
-  getCustomQuotes() {
-    // 1. Pobranie listy niestandardowych zapytań dla panelu admina
-    return [{ id: 'CQ-12345', status: 'pending', date: new Date(), data: {} }];
+  async getCustomQuotes() {
+    return this.leadsService.getLeads();
   }
 }

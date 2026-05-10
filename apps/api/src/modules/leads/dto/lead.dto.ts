@@ -37,6 +37,10 @@ export class CreateLeadDto {
   @IsOptional()
   @IsDateString()
   preferredDate?: string;
+
+  @IsOptional()
+  @IsString()
+  leadType?: string;
 }
 
 export class UpdateLeadStatusDto {
